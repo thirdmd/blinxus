@@ -3,8 +3,8 @@ module.exports = {
   // NOTE: Update this to include the paths to all of your component files.
   content: [
     "./App.tsx",
-    "./src/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}"
+    "./blinxus/src/**/*.{js,jsx,ts,tsx}",
+    "./blinxus/**/*.{js,jsx,ts,tsx}"
   ],
   presets: [require("nativewind/preset")],
   theme: {
