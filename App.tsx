@@ -4,12 +4,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import { colors } from './src/constants';
+import { colors } from './blinxus/src/constants';
 
 // Import screens
-import ExploreScreen from './src/screens/Explore/ExploreScreen';
-import ProfileScreen from './src/screens/Profile/ProfileScreen';
-import CreatePost from './src/screens/Create/CreatePost';
+import ExploreScreen from './blinxus/src/screens/Explore/ExploreScreen';
+import ProfileScreen from './blinxus/src/screens/Profile/ProfileScreen';
+import CreatePost from './blinxus/src/screens/Create/CreatePost';
 
 // Create navigators
 const Tab = createBottomTabNavigator();

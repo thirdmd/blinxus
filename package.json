@@ -1,7 +1,7 @@
 {
   "name": "blinxus-dev",
   "version": "1.0.0",
-  "main": "App.tsx",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
