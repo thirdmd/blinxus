@@ -57,13 +57,13 @@ export default function CreatePost() {
   const renderContent = () => {
     switch (activeTab) {
       case 'Post':
-        return <CreateRegularPost />;
+        return <CreateRegularPost navigation={navigation} />;
       case 'Blinx':
-        return <CreateBlinx />;
+        return <CreateBlinx navigation={navigation} />;
       case 'Lucids':
-        return <CreateLucids />;
+        return <CreateLucids navigation={navigation} />;
       default:
-        return <CreateRegularPost />;
+        return <CreateRegularPost navigation={navigation} />;
     }
   };
 

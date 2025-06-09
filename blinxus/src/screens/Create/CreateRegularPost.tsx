@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  Alert,
 } from 'react-native';
-import { colors, activityTags } from '../../constants';
+import { colors } from '../../constants';
+import { activityTags, activityNames, ActivityKey } from '../../constants/activityTags';
 import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
+import { usePosts } from '../../store/PostsContext';
 
 interface CreateRegularPostProps {
   navigation: {
@@ -19,19 +22,40 @@ interface CreateRegularPostProps {
 }
 
 export default function CreateRegularPost({ navigation }: CreateRegularPostProps) {
+  const { addPost } = usePosts();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [postText, setPostText] = useState<string>('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleLocationPress = () => {
-    // TODO: Open location picker modal
-    console.log('Open location picker');
+    // Simple prompt for location input - can be enhanced later
+    Alert.prompt(
+      'Add Location',
+      'Where are you posting about?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Add', 
+          onPress: (location) => {
+            if (location && location.trim()) {
+              setSelectedLocation(location.trim());
+            }
+          }
+        }
+      ],
+      'plain-text',
+      selectedLocation
+    );
   };
 
   const handleImagePicker = () => {
-    // TODO: Open image picker
-    console.log('Open image picker');
+    // For demo purposes, add a sample image URL
+    if (!selectedImage) {
+      setSelectedImage(`https://picsum.photos/400/600?random=${Date.now()}`);
+    } else {
+      setSelectedImage(null);
+    }
   };
 
   const handleActivitySelect = (activityId: number) => {
@@ -39,20 +63,50 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
   };
 
   const handlePost = () => {
-    if (!selectedLocation || !selectedActivity) {
-      alert('Please select both location and activity');
+    if (!selectedLocation.trim()) {
+      Alert.alert('Missing Location', 'Please add a location for your post');
       return;
     }
     
-    // TODO: Implement post creation logic
-    console.log('Creating post...', {
-      location: selectedLocation,
-      activity: selectedActivity,
-      text: postText,
-      image: selectedImage,
-    });
-    
-    navigation.goBack();
+    try {
+      // Convert activity ID to ActivityKey for post creation
+      let activityKey: ActivityKey | undefined = undefined;
+      if (selectedActivity) {
+        const activityTag = activityTags.find(tag => tag.id === selectedActivity);
+        if (activityTag) {
+          const activityKeyMap: { [key: string]: ActivityKey } = {
+            'Aquatics': 'aquatics',
+            'Outdoors': 'outdoors', 
+            'City': 'city',
+            'Food': 'food',
+            'Stays': 'stays',
+            'Heritage': 'heritage',
+            'Wellness': 'wellness',
+            'Amusements': 'amusements',
+            'Cultural': 'cultural',
+            'Special Experiences': 'special',
+            'Thrill': 'thrill',
+          };
+          activityKey = activityKeyMap[activityTag.name];
+        }
+      }
+
+      addPost({
+        authorId: 'current_user', // Replace with actual user ID later
+        authorName: 'You', // Replace with actual user name later
+        type: 'regular',
+        content: postText.trim() || undefined,
+        images: selectedImage ? [selectedImage] : undefined,
+        location: selectedLocation.trim(),
+        activity: activityKey,
+      });
+
+      Alert.alert('Success!', 'Your post has been created', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create post. Please try again.');
+    }
   };
 
   return (
@@ -176,15 +230,15 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
         <Button
           title="Share Your Story"
           onPress={handlePost}
-          disabled={!selectedLocation || !selectedActivity}
+          disabled={!selectedLocation.trim()}
           size="large"
           variant="primary"
         />
         
         {/* Helpful hint when disabled */}
-        {(!selectedLocation || !selectedActivity) && (
+        {!selectedLocation.trim() && (
           <Text className="text-center text-gray-400 text-sm mt-3">
-            Please select a location and activity type to continue
+            Please add a location to continue
           </Text>
         )}
       </View>

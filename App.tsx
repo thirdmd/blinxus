@@ -11,6 +11,9 @@ import ExploreScreen from './blinxus/src/screens/Explore/ExploreScreen';
 import ProfileScreen from './blinxus/src/screens/Profile/ProfileScreen';
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
 
+// Import context
+import { PostsProvider } from './blinxus/src/store/PostsContext';
+
 // Create navigators
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
@@ -101,8 +104,10 @@ function RootNavigator() {
 // Main App Component
 export default function App() {
   return (
-    <NavigationContainer>
-      <RootNavigator />
-    </NavigationContainer>
+    <PostsProvider>
+      <NavigationContainer>
+        <RootNavigator />
+      </NavigationContainer>
+    </PostsProvider>
   );
 } 

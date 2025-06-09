@@ -14,4 +14,35 @@ export const activityTags = [
   { id: 5, name: 'Thrill', color: colors.activities.adventure },
 ] as const;
 
-export type ActivityTag = typeof activityTags[number]; 
+export type ActivityTag = typeof activityTags[number];
+
+// Helper objects for easier access by key
+export const activityColors = {
+  thrill: colors.activities.adventure,
+  amusements: colors.activities.attractions,
+  cultural: colors.activities.cultural,
+  food: colors.activities.culinary,
+  heritage: colors.activities.historical,
+  outdoors: colors.activities.mountains,
+  special: colors.activities.special,
+  stays: colors.activities.stays,
+  city: colors.activities.urban,
+  aquatics: colors.activities.water,
+  wellness: colors.activities.wellness,
+};
+
+export const activityNames = {
+  thrill: 'Thrill',
+  amusements: 'Amusements',
+  cultural: 'Cultural',
+  food: 'Food',
+  heritage: 'Heritage',
+  outdoors: 'Outdoors',
+  special: 'Special Experiences',
+  stays: 'Stays',
+  city: 'City',
+  aquatics: 'Aquatics',
+  wellness: 'Wellness',
+};
+
+export type ActivityKey = keyof typeof activityColors; 
