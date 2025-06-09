@@ -15,6 +15,7 @@
     "@react-navigation/stack": "^7.3.3",
     "expo": "^53.0.10",
     "expo-status-bar": "^2.2.3",
+    "lucide-react-native": "^0.513.0",
     "nativewind": "^4.1.23",
     "react": "^19.0.0",
     "react-native": "^0.79.2",
