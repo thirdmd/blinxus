@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { colors } from './blinxus/src/constants';
+import { Home, Users, User } from 'lucide-react-native';
 
 // Import screens
 import ExploreScreen from './blinxus/src/screens/Explore/ExploreScreen';
@@ -20,15 +21,16 @@ const RootStack = createStackNavigator();
 
 // Tab Icons
 function TabIcon({ name, color }: { name: string; color: string }) {
-  const iconMap: { [key: string]: string } = {
-    Explore: '🧭',
-    Pods: '🌍',
-    Profile: '👤'
-  };
-  
-  return (
-    <Text style={{ fontSize: 24, color }}>{iconMap[name] || '○'}</Text>
-  );
+  switch (name) {
+    case 'Explore':
+      return <Home size={24} color={color} />;
+    case 'Pods':
+      return <Users size={24} color={color} />;
+    case 'Profile':
+      return <User size={24} color={color} />;
+    default:
+      return <Home size={24} color={color} />;
+  }
 }
 
 // Temporary Pods Screen

@@ -45,19 +45,18 @@ Blinxus is a centralized travel directory designed to organize travel content in
 2. **Lucids**: Structured travel albums grouped by Day → Moments
 
 ### Color Code System (Activity Tagging):
-1. Water Activities – Cyan Blue (#00BCD4)
-2. Mountains/Nature – Forest Green (#228B22)
-3. Urban Exploration – Slate Blue (#708090)
-4. Cultural Experiences – Terracotta (#E2725B)
-5. Adventure/Extreme Sports – Crimson Red (#DC143C)
-6. Culinary Tourism – Burgundy (#800020)
-7. Wellness/Relaxation – Soft Lavender (#B497BD)
-8. Historical/Heritage – Saddle Brown (#8B4513)
-9. Stays/Home Rentals – Navy Blue (#000080)
-10. Attractions/Entertainment – Electric Coral (#FF6F61)
-11. Special Experiences – Gold (#FFD700)
-12. Snow Activities – White with thin black border (#FFFFFF border #000000)
-
+    adventure: '#D30000',       // Specific Red - exact red shade requested
+    attractions: '#FF6F61',     // Electric Coral - keep this one
+    cultural: '#D2691E',        // Chocolate/Saddle Brown - warm brown, distinct from historical
+    culinary: '#800020',        // Burgundy - DEEP burgundy wine color
+    historical: '#8B4513',      // Saddle Brown - OBVIOUSLY brown now
+    mountains: '#228B22',       // Forest Green - OBVIOUSLY green now
+    special: '#FFD700',         // Gold - keep this one
+    stays: '#0047AB',           // Cobalt Blue - using the main cobalt color
+    urban: '#708090',           // Slate Blue - keep this one
+    water: '#00BCD4',           // Cyan Blue - keep this one
+    wellness: '#9370DB',        // Medium
+    
 ### Future Features:
 - Fully featured Pods with expanded tabs
 - Marketplace with its own menu tab
@@ -222,7 +221,7 @@ This is cognitive design. Visual storytelling. Emotional UX.
 ### 🎨 VISUAL SYSTEM
 * **Color** 
     * Background: Pure white or light gray 
-    * Accents: Blinxus Teal (#2C9196), Cobalt Blue (#0047AB) 
+    * Accents: Cobalt Blue (#0047AB) 
     * All colors muted, clean, non-aggressive  
 * **Typography** 
     * Rounded geometric sans (e.g. Inter, SF Pro Rounded, Manrope) 

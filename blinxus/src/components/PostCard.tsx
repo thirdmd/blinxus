@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { PostCardProps } from '../types/structures/posts_structure';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera } from 'lucide-react-native';
 
 interface PostCardComponentProps extends PostCardProps {}
 
@@ -20,99 +21,164 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 }) => {
   const [openMenu, setOpenMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   return (
-    <View className="bg-white border-b border-gray-200 mb-3">
-      {/* Header */}
-      <View className="p-4">
-        <View className="flex-row items-center mb-3">
-          <View className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-gray-300">
-            {authorProfileImage ? (
-              <Image source={{ uri: authorProfileImage }} className="h-full w-full" />
-            ) : (
-              <View className="h-full w-full bg-gray-300 items-center justify-center">
-                <Text className="text-gray-500 text-sm font-semibold">
-                  {authorName.charAt(0).toUpperCase()}
+    <View className="mb-4">
+      {/* Card Container with Soft Shadow */}
+      <View 
+        className="bg-white overflow-hidden"
+        style={{
+          borderRadius: 24,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 3,
+        }}
+      >
+        {/* Header */}
+        <View className="flex-row items-center justify-between p-5">
+          <View className="flex-row items-center flex-1">
+            {/* Avatar */}
+            <View className="h-11 w-11 overflow-hidden mr-3" style={{ borderRadius: 22 }}>
+              {authorProfileImage ? (
+                <Image source={{ uri: authorProfileImage }} className="h-full w-full" />
+              ) : (
+                <View className="h-full w-full bg-gray-200 items-center justify-center">
+                  <Text className="text-gray-600 text-base font-semibold">
+                    {authorName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+            
+            {/* User Info */}
+            <View className="flex-1">
+              <Text className="font-semibold text-gray-900 text-base">{authorName}</Text>
+              
+              {/* Smart Location Pill - Below Name */}
+              <View className="flex-row items-center mt-2">
+                <View 
+                  className="px-3 py-1.5 mr-2"
+                  style={{ 
+                    backgroundColor: activityColor || 'white',
+                    borderRadius: 12,
+                    borderWidth: activityColor ? 0 : 1,
+                    borderColor: activityColor ? 'transparent' : '#E5E7EB'
+                  }}
+                >
+                  <Text 
+                    className="text-xs font-medium"
+                    style={{ 
+                      color: activityColor ? 'white' : '#1F2937'
+                    }}
+                  >
+                    {location}
+                  </Text>
+                </View>
+                <Text className="text-gray-500 text-sm">{timeAgo}</Text>
+              </View>
+            </View>
+          </View>
+          
+          {/* More Options */}
+          <TouchableOpacity 
+            onPress={() => setOpenMenu(!openMenu)}
+            className="p-2"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MoreVertical size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Content Text */}
+        {content && (
+          <View className="px-5 pb-4">
+            <Text className="text-gray-800 text-base leading-6">{content}</Text>
+          </View>
+        )}
+
+
+
+        {/* Image */}
+        {images && images.length > 0 && (
+          <View className="relative">
+            <Image 
+              source={{ uri: images[0] }} 
+              className="w-full h-80" 
+              resizeMode="cover" 
+            />
+            {device && (
+              <View 
+                className="absolute bottom-3 right-3 px-3 py-1.5 flex-row items-center"
+                style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  borderRadius: 16,
+                }}
+              >
+                <Camera size={14} color="white" style={{ marginRight: 4, opacity: 0.9 }} />
+                <Text className="text-white text-xs" style={{ opacity: 0.9 }}>
+                  {device}
                 </Text>
               </View>
             )}
           </View>
-          <View className="flex-1">
-            <Text className="font-semibold text-gray-800">{authorName}</Text>
-            <View className="flex-row items-center space-x-2 mt-1">
-              <Text className="text-xs text-gray-500">{timeAgo}</Text>
-              
-              {/* Smart Location Pill - Colored if activity exists, Colorless if not */}
-              <View 
-                className="px-2 py-1 rounded-full"
-                style={{ 
-                  backgroundColor: activityColor || '#E5E7EB' // Use activity color or gray if no activity
-                }}
-              >
-                <Text 
-                  className="text-xs font-medium"
-                  style={{ 
-                    color: activityColor ? 'white' : '#6B7280' // White text if colored, gray text if colorless
-                  }}
-                >
-                  {location}
-                </Text>
-              </View>
-            </View>
-          </View>
-          <TouchableOpacity onPress={() => setOpenMenu(!openMenu)}>
-            <Text className="text-gray-500 text-lg">⋯</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Content */}
-        {content && (
-          <View className="mb-3">
-            <Text className="text-gray-700 text-sm leading-5">{content}</Text>
-          </View>
         )}
-      </View>
 
-      {/* Image */}
-      {images && images.length > 0 && (
-        <View className="relative mb-2">
-          <Image source={{ uri: images[0] }} className="w-full h-80" resizeMode="cover" />
-          {device && (
-            <View className="absolute bottom-2 right-2 bg-black bg-opacity-40 backdrop-blur-sm rounded-full px-2 py-1 flex-row items-center">
-              <Text className="text-white text-xs opacity-80 mr-1">📸</Text>
-              <Text className="text-white text-xs opacity-80">{device}</Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Interaction Bar */}
-      <View className="px-4 py-3 flex-row items-center justify-between">
-        <View className="flex-row items-center space-x-6">
-          <View className="flex-row items-center space-x-1">
-            <TouchableOpacity onPress={() => setIsLiked(!isLiked)}>
-              <Text className="text-xl" style={{ color: isLiked ? "#DC2626" : "#6B7280" }}>
-                {isLiked ? '❤️' : '🤍'}
+        {/* Interaction Bar */}
+        <View className="flex-row items-center justify-between px-5 py-4 border-t border-gray-100">
+          {/* Left Actions */}
+          <View className="flex-row items-center">
+            {/* Like Button */}
+            <TouchableOpacity 
+              onPress={() => setIsLiked(!isLiked)}
+              className="flex-row items-center mr-5"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Heart 
+                size={22} 
+                color={isLiked ? '#EF4444' : '#6B7280'}
+                fill={isLiked ? '#EF4444' : 'none'}
+              />
+              <Text className={`ml-2 text-sm ${isLiked ? 'text-red-500 font-medium' : 'text-gray-600'}`}>
+                {likes}
               </Text>
             </TouchableOpacity>
-            <Text className="text-sm text-gray-600">{likes}</Text>
-          </View>
-          <View className="flex-row items-center space-x-1">
-            <TouchableOpacity>
-              <Text className="text-xl text-gray-500">💬</Text>
+
+            {/* Comment Button */}
+            <TouchableOpacity 
+              className="flex-row items-center mr-5"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MessageCircle size={22} color="#6B7280" />
+              <Text className="ml-2 text-gray-600 text-sm">{comments}</Text>
             </TouchableOpacity>
-            <Text className="text-sm text-gray-600">{comments}</Text>
+
+            {/* Share Button */}
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Send size={22} color="#6B7280" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity>
-            <Text className="text-xl text-gray-500">📤</Text>
+
+          {/* Save Button */}
+          <TouchableOpacity 
+            onPress={() => setIsSaved(!isSaved)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Bookmark 
+              size={22} 
+              color={isSaved ? '#0047AB' : '#6B7280'}
+              fill={isSaved ? '#0047AB' : 'none'}
+            />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity>
-          <Text className="text-xl text-gray-500">🔖</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
 export default PostCard;
+
