@@ -14,7 +14,7 @@ export const activityTags = [
   { id: 5, name: 'Thrill', color: colors.activities.adventure },
 ] as const;
 
-export type ActivityTag = typeof activityTags[number];
+export type ActivityTag = typeof activityTags[number]; 
 
 // Helper objects for easier access by key
 export const activityColors = {

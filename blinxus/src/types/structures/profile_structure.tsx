@@ -9,6 +9,7 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import { ProfileDataType, PostType } from '../userData/profile_data';
 import { useNavigation } from '@react-navigation/native';
@@ -37,10 +38,11 @@ export default function ProfileStructure({
   console.log('ProfileStructure - profileData.profileImage:', profileData?.profileImage);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <ScrollView ref={profileScrollRef} className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header Bar with Username and Buttons - Added create button */}
-        <View className="flex-row justify-between items-center px-4 py-4 bg-gray-50">
+        <View className="flex-row justify-between items-center px-4 py-4 bg-white">
           <Text className="text-2xl font-semibold text-gray-900">
             {profileData?.username || '@username'}
           </Text>

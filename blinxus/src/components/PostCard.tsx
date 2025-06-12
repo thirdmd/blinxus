@@ -68,7 +68,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                   }}
                 >
                   <Text 
-                    className="text-xs font-medium"
+                    className="text-sm font-medium"
                     style={{ 
                       color: activityColor ? 'white' : '#1F2937'
                     }}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, Animated } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, Animated, StatusBar } from 'react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import { useNavigation } from '@react-navigation/native';
@@ -39,8 +39,8 @@ export default function ExploreScreen() {
           useNativeDriver: true,
         }).start();
       }
-    } else {
-      // Scrolling up
+    } else if (currentScrollY <= 10 || (lastScrollY.current - currentScrollY > 50)) {
+      // Scrolling up - show if at top (<=10) OR scrolled up significantly (>50px)
       setHeaderVisible(true);
       if (!fabVisible) {
         setFabVisible(true);
@@ -81,7 +81,8 @@ export default function ExploreScreen() {
   const activityKeyMap = createActivityKeyMap();
   
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Title Header Layer */}
       {headerVisible && (
         <View className="bg-white py-3 px-4">

@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar } from 'react-native';
 import { colors } from './blinxus/src/constants';
 import { Home } from 'lucide-react-native';
 import ScrollContext from './blinxus/src/contexts/ScrollContext';
@@ -181,6 +181,7 @@ function TabIcon({ name, color }: { name: string; color: string }) {
 function PodsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View className="p-4 border-b border-gray-200">
         <Text className="text-2xl font-semibold text-gray-900">
           Pods

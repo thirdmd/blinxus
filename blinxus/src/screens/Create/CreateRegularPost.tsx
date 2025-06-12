@@ -99,8 +99,8 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
         images: selectedImage ? [selectedImage] : undefined,
         location: selectedLocation.trim(),
         activity: activityKey,
-      });
-
+    });
+    
       Alert.alert('Success!', 'Your post has been created', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
