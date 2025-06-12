@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -53,17 +53,29 @@ function TabButton({ title, isActive, onPress }: TabButtonProps) {
 export default function CreatePost() {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState<PostType>('Post');
+  const childRef = useRef<any>(null);
+  const [isValid, setIsValid] = useState(false);
+
+  const handleValidationChange = (validationState: boolean) => {
+    setIsValid(validationState);
+  };
+
+  const handleShare = () => {
+    if (childRef.current && childRef.current.handleSubmit && isValid) {
+      childRef.current.handleSubmit();
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'Post':
-        return <CreateRegularPost navigation={navigation} />;
+        return <CreateRegularPost ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       case 'Blinx':
-        return <CreateBlinx navigation={navigation} />;
+        return <CreateBlinx ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       case 'Lucids':
-        return <CreateLucids navigation={navigation} />;
+        return <CreateLucids ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       default:
-        return <CreateRegularPost navigation={navigation} />;
+        return <CreateRegularPost ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
     }
   };
 
@@ -86,9 +98,25 @@ export default function CreatePost() {
           <Text className="text-gray-600 text-lg">✕</Text>
         </TouchableOpacity>
         
-        <Text className="text-xl font-semibold text-gray-900">Create</Text>
-        
-        <View className="w-12" />
+        <TouchableOpacity
+          onPress={handleShare}
+          className={`w-12 h-12 rounded-full items-center justify-center ${
+            isValid ? 'bg-blue-600' : 'bg-gray-300'
+          }`}
+          style={{
+            shadowColor: isValid ? '#0047AB' : '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: isValid ? 0.12 : 0.05,
+            shadowRadius: 6,
+            elevation: isValid ? 3 : 1,
+          }}
+          activeOpacity={0.8}
+          disabled={!isValid}
+        >
+          <Text className={`text-lg font-semibold ${
+            isValid ? 'text-white' : 'text-gray-500'
+          }`}>→</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Tab Navigation - More spacious and centered */}

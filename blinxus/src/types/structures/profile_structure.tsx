@@ -267,7 +267,7 @@ export default function ProfileStructure({
         {/* Content based on active tab */}
         {activeTab === 'posts' ? (
           // Posts Tab - All posts in scroll view (like Twitter feed)
-          <View className="bg-gray-50 pt-4">
+          <View className="bg-white pt-4">
             {(posts || [])
               .filter(post => post.authorName === profileData?.name) // Only current user's posts
               .map((post) => {

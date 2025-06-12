@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,10 @@ interface CreateLucidsProps {
   navigation: {
     goBack: () => void;
   };
+  onValidationChange: (isValid: boolean) => void;
 }
 
-export default function CreateLucids({ navigation }: CreateLucidsProps) {
+const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucidsProps, ref) => {
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [tripTitle, setTripTitle] = useState<string>('');
@@ -33,9 +34,17 @@ export default function CreateLucids({ navigation }: CreateLucidsProps) {
     setSelectedActivity(activityId === selectedActivity ? null : activityId);
   };
 
+  useImperativeHandle(ref, () => ({
+    handleSubmit: handleCreateLucid
+  }), [selectedLocation, selectedActivity, tripTitle, duration, tripMode]);
+
+  useEffect(() => {
+    const isValid = selectedLocation && tripTitle;
+    onValidationChange(!!isValid);
+  }, [selectedLocation, tripTitle]);
+
   const handleCreateLucid = () => {
-    if (!selectedLocation || !selectedActivity || !tripTitle) {
-      alert('Please fill in all required fields');
+    if (!selectedLocation || !tripTitle) {
       return;
     }
     
@@ -260,25 +269,10 @@ export default function CreateLucids({ navigation }: CreateLucidsProps) {
           </Text>
           {renderDayCards()}
         </View>
-      )}
+              )}
 
-      {/* Create Button */}
-      <View className="pb-12">
-        <Button
-          title="Create Lucids"
-          onPress={handleCreateLucid}
-          disabled={!selectedLocation || !selectedActivity || !tripTitle}
-          size="large"
-          variant="primary"
-        />
-        
-        {/* Helpful hint when disabled */}
-        {(!selectedLocation || !selectedActivity || !tripTitle) && (
-          <Text className="text-center text-gray-400 text-sm mt-3">
-            Please fill in trip title, location, and activity type to continue
-          </Text>
-        )}
-      </View>
     </ScrollView>
   );
-} 
+});
+
+export default CreateLucids; 

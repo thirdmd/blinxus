@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,10 @@ interface CreateBlinxProps {
   navigation: {
     goBack: () => void;
   };
+  onValidationChange: (isValid: boolean) => void;
 }
 
-export default function CreateBlinx({ navigation }: CreateBlinxProps) {
+const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxProps, ref) => {
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
@@ -36,9 +37,17 @@ export default function CreateBlinx({ navigation }: CreateBlinxProps) {
     setSelectedActivity(activityId === selectedActivity ? null : activityId);
   };
 
+  useImperativeHandle(ref, () => ({
+    handleSubmit: handleCreateBlinx
+  }), [selectedLocation, selectedActivity, capturedPhoto]);
+
+  useEffect(() => {
+    const isValid = selectedLocation && capturedPhoto;
+    onValidationChange(!!isValid);
+  }, [selectedLocation, capturedPhoto]);
+
   const handleCreateBlinx = () => {
-    if (!selectedLocation || !selectedActivity || !capturedPhoto) {
-      alert('Please capture a photo and select location and activity');
+    if (!selectedLocation || !capturedPhoto) {
       return;
     }
     
@@ -181,27 +190,8 @@ export default function CreateBlinx({ navigation }: CreateBlinxProps) {
         </View>
       </View>
 
-      {/* Share Button */}
-      <View className="pb-12">
-        <Button
-          title="Share Blinx"
-          onPress={handleCreateBlinx}
-          disabled={!selectedLocation || !selectedActivity || !capturedPhoto}
-          size="large"
-          variant="primary"
-        />
-        
-        {/* Helpful hint when disabled */}
-        {(!selectedLocation || !selectedActivity || !capturedPhoto) && (
-          <Text className="text-center text-gray-400 text-sm mt-3">
-            {!capturedPhoto && 'Capture a photo, '}
-            {!selectedLocation && 'select location'}
-            {!selectedLocation && !selectedActivity && ', and '}
-            {!selectedActivity && 'choose activity'}
-            {' to continue'}
-          </Text>
-        )}
-      </View>
     </ScrollView>
   );
-} 
+});
+
+export default CreateBlinx; 

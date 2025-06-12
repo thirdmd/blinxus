@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -19,9 +19,10 @@ interface CreateRegularPostProps {
   navigation: {
     goBack: () => void;
   };
+  onValidationChange: (isValid: boolean) => void;
 }
 
-export default function CreateRegularPost({ navigation }: CreateRegularPostProps) {
+const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: CreateRegularPostProps, ref) => {
   const { addPost } = usePosts();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
@@ -62,9 +63,17 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
     setSelectedActivity(activityId === selectedActivity ? null : activityId);
   };
 
+  useImperativeHandle(ref, () => ({
+    handleSubmit: handlePost
+  }), [selectedLocation, postText, selectedImage, selectedActivity]);
+
+  useEffect(() => {
+    const isValid = selectedLocation.trim() && (postText.trim() || selectedImage);
+    onValidationChange(!!isValid);
+  }, [selectedLocation, postText, selectedImage]);
+
   const handlePost = () => {
-    if (!selectedLocation.trim()) {
-      Alert.alert('Missing Location', 'Please add a location for your post');
+    if (!selectedLocation.trim() || (!postText.trim() && !selectedImage)) {
       return;
     }
     
@@ -101,11 +110,9 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
         activity: activityKey,
     });
     
-      Alert.alert('Success!', 'Your post has been created', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to create post. Please try again.');
+      console.log('Error creating post:', error);
     }
   };
 
@@ -223,25 +230,10 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
             ))}
           </View>
         </View>
-      </View>
+              </View>
 
-      {/* Share Button */}
-      <View className="pb-12">
-        <Button
-          title="Share Your Story"
-          onPress={handlePost}
-          disabled={!selectedLocation.trim()}
-          size="large"
-          variant="primary"
-        />
-        
-        {/* Helpful hint when disabled */}
-        {!selectedLocation.trim() && (
-          <Text className="text-center text-gray-400 text-sm mt-3">
-            Please add a location to continue
-          </Text>
-        )}
-      </View>
     </ScrollView>
   );
-} 
+});
+
+export default CreateRegularPost; 
