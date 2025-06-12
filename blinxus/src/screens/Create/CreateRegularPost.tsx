@@ -93,7 +93,7 @@ export default function CreateRegularPost({ navigation }: CreateRegularPostProps
 
       addPost({
         authorId: 'current_user', // Replace with actual user ID later
-        authorName: 'You', // Replace with actual user name later
+        authorName: 'Third Camacho', // Current user name
         type: 'regular',
         content: postText.trim() || undefined,
         images: selectedImage ? [selectedImage] : undefined,

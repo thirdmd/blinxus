@@ -238,37 +238,37 @@ function TabNavigator() {
 
   return (
     <ScrollContext.Provider value={{ exploreScrollRef, podsScrollRef, profileScrollRef }}>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={route.name} color={color} />
-          ),
-          tabBarStyle: {
-            backgroundColor: colors.white,
-            borderTopColor: colors.borderGray,
-            borderTopWidth: 1,
-            height: 80,
-            paddingBottom: 20,
-            paddingTop: 10,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-          },
-          tabBarActiveTintColor: colors.cobalt,
-          tabBarInactiveTintColor: colors.mediumGray,
-        })}
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ color }) => (
+          <TabIcon name={route.name} color={color} />
+        ),
+        tabBarStyle: {
+          backgroundColor: colors.white,
+          borderTopColor: colors.borderGray,
+          borderTopWidth: 1,
+          height: 80,
+          paddingBottom: 20,
+          paddingTop: 10,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+        tabBarActiveTintColor: colors.cobalt,
+        tabBarInactiveTintColor: colors.mediumGray,
+      })}
         screenListeners={({ route }) => ({
           tabPress: () => {
             handleTabPress(route.name);
           },
         })}
-      >
-        <Tab.Screen name="Explore" component={ExploreScreen} />
-        <Tab.Screen name="Pods" component={PodsScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
-      </Tab.Navigator>
+    >
+      <Tab.Screen name="Explore" component={ExploreScreen} />
+      <Tab.Screen name="Pods" component={PodsScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
     </ScrollContext.Provider>
   );
 }

@@ -1,6 +1,6 @@
 // src/types/structures/profile_structure.tsx
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,11 @@ import {
   Dimensions,
   StatusBar,
 } from 'react-native';
-import { ProfileDataType, PostType } from '../userData/profile_data';
+import { ProfileDataType } from '../userData/profile_data';
+import { Post } from '../userData/posts_data';
+import { mapPostToCardProps } from './posts_structure';
+import PostCard from '../../components/PostCard';
 import { useNavigation } from '@react-navigation/native';
-import { useScrollContext } from '../../contexts/ScrollContext';
 
 const { width } = Dimensions.get('window');
 
@@ -21,7 +23,7 @@ interface Props {
   activeTab: 'feed' | 'lucids' | 'posts';
   setActiveTab: React.Dispatch<React.SetStateAction<'feed' | 'lucids' | 'posts'>>;
   profileData: ProfileDataType;
-  posts: PostType[];
+  posts: Post[];
 }
 
 export default function ProfileStructure({
@@ -31,16 +33,66 @@ export default function ProfileStructure({
   posts,
 }: Props) {
   const navigation = useNavigation();
-  const { profileScrollRef } = useScrollContext();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedPostIndex, setSelectedPostIndex] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
   
   // Debug logging
   console.log('ProfileStructure - profileData received:', profileData);
   console.log('ProfileStructure - profileData.profileImage:', profileData?.profileImage);
 
+  // Get filtered posts for current user with media (for Feed tab)
+  const userMediaPosts = (posts || []).filter(post => 
+    post.authorName === profileData?.name && 
+    post.images && 
+    post.images.length > 0
+  );
+
+  // If in fullscreen mode, show fullscreen view
+  if (isFullscreen && activeTab === 'feed') {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50">
+        <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+        
+        {/* Back Button Header */}
+        <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+          <TouchableOpacity
+            onPress={() => setIsFullscreen(false)}
+            className="flex-row items-center"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text className="text-blue-600 text-lg mr-2">←</Text>
+            <Text className="text-blue-600 text-base font-medium">Back</Text>
+          </TouchableOpacity>
+          <Text className="text-gray-900 text-lg font-semibold">Feed</Text>
+          <View className="w-12" />
+        </View>
+
+        {/* Fullscreen Posts List */}
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          {userMediaPosts.map((post) => {
+            const postCardProps = mapPostToCardProps(post);
+            return (
+              <PostCard key={post.id} {...postCardProps} />
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <ScrollView ref={profileScrollRef} className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef}
+        className="flex-1" 
+        showsVerticalScrollIndicator={false}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 0,
+          autoscrollToTopThreshold: 0,
+        }}
+      >
         {/* Header Bar with Username and Buttons - Added create button */}
         <View className="flex-row justify-between items-center px-4 py-4 bg-white">
           <Text className="text-2xl font-semibold text-gray-900">
@@ -214,56 +266,57 @@ export default function ProfileStructure({
 
         {/* Content based on active tab */}
         {activeTab === 'posts' ? (
-          // Posts Tab - Twitter-like scroll/list view
-          <View className="bg-white px-6 pt-4">
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {(posts || []).map((post) => (
-                <View key={post.id} className="mb-6 pb-6 border-b border-gray-100">
-                  {/* Post header */}
-                  <View className="flex-row items-center mb-3">
-                    <View className="w-10 h-10 rounded-full bg-gray-200 mr-3">
-                      <Image
-                        source={{ uri: profileData?.profileImage || 'https://via.placeholder.com/40x40' }}
-                        className="w-full h-full rounded-full"
-                        resizeMode="cover"
-                      />
-                    </View>
-                    <View>
-                      <Text className="font-semibold text-gray-900">{profileData?.name || 'User'}</Text>
-                      <Text className="text-sm text-gray-500">{post.location}</Text>
-                    </View>
-                  </View>
-                  
-                  {/* Post content */}
-                  <TouchableOpacity>
-                    <Text className="text-gray-900 mb-3">Sample post content for {post.location}</Text>
-                    <Image
-                      source={{ uri: post.image }}
-                      className="w-full h-48 rounded-xl bg-gray-200"
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
+          // Posts Tab - All posts in scroll view (like Twitter feed)
+          <View className="bg-gray-50 pt-4">
+            {(posts || [])
+              .filter(post => post.authorName === profileData?.name) // Only current user's posts
+              .map((post) => {
+                const postCardProps = mapPostToCardProps(post);
+                return (
+                  <PostCard key={post.id} {...postCardProps} />
+                );
+              })}
           </View>
         ) : (
           // Feed and Lucids Tabs - Grid view
           <View className="bg-white pt-4 px-6">
             <View className="flex-row flex-wrap -mx-1">
-              {(posts || []).map((post) => (
-                <TouchableOpacity
-                  key={post.id}
-                  className="px-1 mb-2"
-                  style={{ width: width / 3 - 16 }}
-                >
-                  <Image
-                    source={{ uri: post.image }}
-                    className="w-full aspect-square bg-gray-200 rounded-xl"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-              ))}
+              {(posts || [])
+                .filter(post => {
+                  // First filter: Only current user's posts
+                  const isCurrentUser = post.authorName === profileData?.name;
+                  if (!isCurrentUser) return false;
+                  
+                  if (activeTab === 'feed') {
+                    // Feed: Only posts with media (photos/videos)
+                    return post.images && post.images.length > 0;
+                  } else if (activeTab === 'lucids') {
+                    // Lucids: Only lucid posts with media (when we implement lucids)
+                    return post.type === 'lucid' && post.images && post.images.length > 0;
+                  }
+                  return false;
+                })
+                .map((post) => (
+                  <TouchableOpacity
+                    key={post.id}
+                    className="px-1 mb-2"
+                    style={{ width: width / 3 - 16 }}
+                    onPress={() => {
+                      // Navigate to fullscreen view for Feed tab only
+                      if (activeTab === 'feed') {
+                        const postIndex = userMediaPosts.findIndex(p => p.id === post.id);
+                        setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
+                        setIsFullscreen(true);
+                      }
+                    }}
+                  >
+                    <Image
+                      source={{ uri: post.images![0] }}
+                      className="w-full aspect-square bg-gray-200 rounded-xl"
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                ))}
             </View>
           </View>
         )}
