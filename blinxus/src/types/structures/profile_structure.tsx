@@ -51,20 +51,19 @@ export default function ProfileStructure({
   // If in fullscreen mode, show fullscreen view
   if (isFullscreen && activeTab === 'feed') {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50">
-        <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+      <SafeAreaView className="flex-1 bg-white">
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         
         {/* Back Button Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+        <View className="flex-row items-center justify-between px-4 py-3 bg-white">
           <TouchableOpacity
             onPress={() => setIsFullscreen(false)}
             className="flex-row items-center"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text className="text-blue-600 text-lg mr-2">←</Text>
-            <Text className="text-blue-600 text-base font-medium">Back</Text>
+            <Text className="text-gray-600 text-lg">←</Text>
           </TouchableOpacity>
-          <Text className="text-gray-900 text-lg font-semibold">Feed</Text>
+          <View className="w-12" />
           <View className="w-12" />
         </View>
 
