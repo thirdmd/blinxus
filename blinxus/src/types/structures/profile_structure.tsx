@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { ProfileDataType, PostType } from '../userData/profile_data';
 import { useNavigation } from '@react-navigation/native';
+import { useScrollContext } from '../../contexts/ScrollContext';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +30,7 @@ export default function ProfileStructure({
   posts,
 }: Props) {
   const navigation = useNavigation();
+  const { profileScrollRef } = useScrollContext();
   
   // Debug logging
   console.log('ProfileStructure - profileData received:', profileData);
@@ -36,9 +38,9 @@ export default function ProfileStructure({
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView ref={profileScrollRef} className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header Bar with Username and Buttons - Added create button */}
-        <View className="flex-row justify-between items-center px-4 py-4 bg-white">
+        <View className="flex-row justify-between items-center px-4 py-4 bg-gray-50">
           <Text className="text-2xl font-semibold text-gray-900">
             {profileData?.username || '@username'}
           </Text>

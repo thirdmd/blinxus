@@ -24,12 +24,11 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   const [isSaved, setIsSaved] = useState(false);
 
   return (
-    <View className="mb-4">
+    <View>
       {/* Card Container with Soft Shadow */}
       <View 
         className="bg-white overflow-hidden"
         style={{
-          borderRadius: 24,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.06,
@@ -38,15 +37,15 @@ const PostCard: React.FC<PostCardComponentProps> = ({
         }}
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between p-5">
-          <View className="flex-row items-center flex-1">
-            {/* Avatar */}
-            <View className="h-11 w-11 overflow-hidden mr-3" style={{ borderRadius: 22 }}>
+        <View className="flex-row items-start justify-between p-5">
+          <View className="flex-row flex-1">
+            {/* Avatar - Circle with same size */}
+            <View className="h-16 w-16 overflow-hidden mr-3" style={{ borderRadius: 32 }}>
               {authorProfileImage ? (
                 <Image source={{ uri: authorProfileImage }} className="h-full w-full" />
               ) : (
                 <View className="h-full w-full bg-gray-200 items-center justify-center">
-                  <Text className="text-gray-600 text-base font-semibold">
+                  <Text className="text-gray-600 text-lg font-semibold">
                     {authorName.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -54,7 +53,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             </View>
             
             {/* User Info */}
-            <View className="flex-1">
+            <View className="flex-1 justify-center">
               <Text className="font-semibold text-gray-900 text-base">{authorName}</Text>
               
               {/* Smart Location Pill - Below Name */}
@@ -65,7 +64,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                     backgroundColor: activityColor || 'white',
                     borderRadius: 12,
                     borderWidth: activityColor ? 0 : 1,
-                    borderColor: activityColor ? 'transparent' : '#E5E7EB'
+                    borderColor: activityColor ? 'transparent' : '#000000'
                   }}
                 >
                   <Text 
@@ -181,4 +180,3 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 };
 
 export default PostCard;
-
