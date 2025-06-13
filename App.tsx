@@ -10,7 +10,7 @@ import { Home } from 'lucide-react-native';
 import ScrollContext from './blinxus/src/contexts/ScrollContext';
 
 // Import screens
-import ExploreScreen from './blinxus/src/screens/Explore/ExploreScreen';
+import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
 import ProfileScreen from './blinxus/src/screens/Profile/ProfileScreen';
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
 
@@ -205,6 +205,7 @@ function TabNavigator() {
   const exploreScrollRef = useRef<FlatList>(null);
   const podsScrollRef = useRef<ScrollView>(null);
   const profileScrollRef = useRef<ScrollView>(null);
+  const exploreScreenRef = useRef<ExploreScreenRef>(null);
   
   // Double tap detection
   const lastTapRef = useRef<{ [key: string]: number }>({});
@@ -217,8 +218,9 @@ function TabNavigator() {
       // Scroll to top based on route
       switch (routeName) {
         case 'Explore':
-          if (exploreScrollRef.current) {
-            exploreScrollRef.current.scrollToOffset({ offset: 0, animated: true });
+          // Reset to "All" tab and scroll to top
+          if (exploreScreenRef.current) {
+            exploreScreenRef.current.resetToAll();
           }
           break;
         case 'Pods':
@@ -266,7 +268,9 @@ function TabNavigator() {
           },
         })}
     >
-      <Tab.Screen name="Explore" component={ExploreScreen} />
+      <Tab.Screen name="Explore">
+        {() => <ExploreScreen ref={exploreScreenRef} />}
+      </Tab.Screen>
       <Tab.Screen name="Pods" component={PodsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

@@ -5,6 +5,7 @@ export interface PostCardProps {
   id: string;
   authorId: string;
   authorName: string;
+  authorNationalityFlag?: string;
   authorProfileImage?: string;
   type: 'regular' | 'lucid';
   content?: string;

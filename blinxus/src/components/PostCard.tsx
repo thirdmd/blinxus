@@ -8,6 +8,7 @@ interface PostCardComponentProps extends PostCardProps {}
 const PostCard: React.FC<PostCardComponentProps> = ({
   id,
   authorName,
+  authorNationalityFlag,
   authorProfileImage,
   content,
   images,
@@ -54,7 +55,12 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             
             {/* User Info */}
             <View className="flex-1 justify-center">
-              <Text className="font-semibold text-gray-900 text-base">{authorName}</Text>
+              <View className="flex-row items-center">
+                <Text className="font-semibold text-gray-900 text-base">{authorName}</Text>
+                {authorNationalityFlag && (
+                  <Text className="ml-2 text-base">{authorNationalityFlag}</Text>
+                )}
+              </View>
               
               {/* Smart Location Pill - Below Name */}
               <View className="flex-row items-center mt-2">

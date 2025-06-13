@@ -217,12 +217,10 @@ export default function ProfileStructure({
           </View>
         </View>
 
-        {/* Tabs (Feed, Lucids, Posts) - Removed divider line and borders for cleaner look */}
+        {/* Tabs (Feed, Lucids, Posts) - Clean tabs without captions */}
         <View className="flex-row bg-white mt-12 px-6">
           <TouchableOpacity
-            className={`flex-1 py-4 ${
-              activeTab === 'feed' ? '' : ''
-            }`}
+            className="flex-1 py-4"
             onPress={() => setActiveTab('feed')}
           >
             <Text
@@ -234,9 +232,7 @@ export default function ProfileStructure({
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`flex-1 py-4 ${
-              activeTab === 'lucids' ? '' : ''
-            }`}
+            className="flex-1 py-4"
             onPress={() => setActiveTab('lucids')}
           >
             <Text
@@ -248,9 +244,7 @@ export default function ProfileStructure({
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`flex-1 py-4 ${
-              activeTab === 'posts' ? '' : ''
-            }`}
+            className="flex-1 py-4"
             onPress={() => setActiveTab('posts')}
           >
             <Text
@@ -267,56 +261,91 @@ export default function ProfileStructure({
         {activeTab === 'posts' ? (
           // Posts Tab - All posts in scroll view (like Twitter feed)
           <View className="bg-white pt-4">
-            {(posts || [])
-              .filter(post => post.authorName === profileData?.name) // Only current user's posts
-              .map((post) => {
+            {(() => {
+              const userPosts = (posts || []).filter(post => post.authorName === profileData?.name);
+              
+              if (userPosts.length === 0) {
+                // Empty state for Posts tab
+                return (
+                  <View className="flex-1 justify-center items-center py-8">
+                    <Text className="text-center text-base text-gray-500">
+                      All your Posts
+                    </Text>
+                  </View>
+                );
+              }
+              
+              return userPosts.map((post) => {
                 const postCardProps = mapPostToCardProps(post);
                 return (
                   <PostCard key={post.id} {...postCardProps} />
                 );
-              })}
+              });
+            })()}
           </View>
         ) : (
           // Feed and Lucids Tabs - Grid view
           <View className="bg-white pt-4 px-6">
-            <View className="flex-row flex-wrap -mx-1">
-              {(posts || [])
-                .filter(post => {
-                  // First filter: Only current user's posts
-                  const isCurrentUser = post.authorName === profileData?.name;
-                  if (!isCurrentUser) return false;
-                  
-                  if (activeTab === 'feed') {
-                    // Feed: Only posts with media (photos/videos)
-                    return post.images && post.images.length > 0;
-                  } else if (activeTab === 'lucids') {
-                    // Lucids: Only lucid posts with media (when we implement lucids)
-                    return post.type === 'lucid' && post.images && post.images.length > 0;
-                  }
-                  return false;
-                })
-                .map((post) => (
-                  <TouchableOpacity
-                    key={post.id}
-                    className="px-1 mb-2"
-                    style={{ width: width / 3 - 16 }}
-                    onPress={() => {
-                      // Navigate to fullscreen view for Feed tab only
-                      if (activeTab === 'feed') {
-                        const postIndex = userMediaPosts.findIndex(p => p.id === post.id);
-                        setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-                        setIsFullscreen(true);
-                      }
-                    }}
-                  >
-                    <Image
-                      source={{ uri: post.images![0] }}
-                      className="w-full aspect-square bg-gray-200 rounded-xl"
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                ))}
-            </View>
+            {(() => {
+              const filteredPosts = (posts || []).filter(post => {
+                // First filter: Only current user's posts
+                const isCurrentUser = post.authorName === profileData?.name;
+                if (!isCurrentUser) return false;
+                
+                if (activeTab === 'feed') {
+                  // Feed: Only posts with media (photos/videos)
+                  return post.images && post.images.length > 0;
+                } else if (activeTab === 'lucids') {
+                  // Lucids: Only lucid posts with media (when we implement lucids)
+                  return post.type === 'lucid' && post.images && post.images.length > 0;
+                }
+                return false;
+              });
+
+              if (filteredPosts.length === 0) {
+                // Empty state with caption
+                let emptyMessage = '';
+                if (activeTab === 'feed') {
+                  emptyMessage = 'All your Media Uploads';
+                } else if (activeTab === 'lucids') {
+                  emptyMessage = 'Your Immersive Albums';
+                }
+                
+                return (
+                  <View className="flex-1 justify-center items-center py-8">
+                    <Text className="text-center text-base text-gray-500">
+                      {emptyMessage}
+                    </Text>
+                  </View>
+                );
+              }
+
+              return (
+                <View className="flex-row flex-wrap -mx-1">
+                  {filteredPosts.map((post) => (
+                    <TouchableOpacity
+                      key={post.id}
+                      className="px-1 mb-2"
+                      style={{ width: width / 3 - 16 }}
+                      onPress={() => {
+                        // Navigate to fullscreen view for Feed tab only
+                        if (activeTab === 'feed') {
+                          const postIndex = userMediaPosts.findIndex(p => p.id === post.id);
+                          setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
+                          setIsFullscreen(true);
+                        }
+                      }}
+                    >
+                      <Image
+                        source={{ uri: post.images![0] }}
+                        className="w-full aspect-square bg-gray-200 rounded-xl"
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              );
+            })()}
           </View>
         )}
       </ScrollView>

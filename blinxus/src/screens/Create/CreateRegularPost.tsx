@@ -103,6 +103,7 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
       addPost({
         authorId: 'current_user', // Replace with actual user ID later
         authorName: 'Third Camacho', // Current user name
+        authorNationalityFlag: '🇵🇭', // Current user's nationality flag
         type: 'regular',
         content: postText.trim() || undefined,
         images: selectedImage ? [selectedImage] : undefined,

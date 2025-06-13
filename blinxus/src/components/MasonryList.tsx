@@ -12,6 +12,7 @@ interface MasonryListProps {
   onScroll?: (event: any) => void;
   scrollEventThrottle?: number;
   contentContainerStyle?: any;
+  bounces?: boolean;
 }
 
 const MasonryList: React.FC<MasonryListProps> = ({
@@ -25,6 +26,7 @@ const MasonryList: React.FC<MasonryListProps> = ({
   onScroll,
   scrollEventThrottle,
   contentContainerStyle,
+  bounces = true,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const columnWidth = (screenWidth - spacing * (columns + 1)) / columns;
@@ -55,6 +57,8 @@ const MasonryList: React.FC<MasonryListProps> = ({
       onScroll={onScroll}
       scrollEventThrottle={scrollEventThrottle}
       contentContainerStyle={contentContainerStyle}
+      bounces={bounces}
+      overScrollMode="never"
     >
       {ListHeaderComponent}
       

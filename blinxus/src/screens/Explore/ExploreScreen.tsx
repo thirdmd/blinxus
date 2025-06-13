@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, Animated, StatusBar, TextInput } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { Search, ArrowLeft } from 'lucide-react-native';
+import { Search, ArrowLeft, Images } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import { useNavigation } from '@react-navigation/native';
@@ -13,7 +13,11 @@ import MasonryList from '../../components/MasonryList';
 import FullPostView from '../../components/FullPostView';
 import { useScrollContext } from '../../contexts/ScrollContext';
 
-export default function ExploreScreen() {
+export interface ExploreScreenRef {
+  resetToAll: () => void;
+}
+
+const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   const navigation = useNavigation();
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
@@ -25,6 +29,35 @@ export default function ExploreScreen() {
   const [showFullPost, setShowFullPost] = useState(false);
   const lastScrollY = useRef(0);
   const fabAnimatedValue = useRef(new Animated.Value(1)).current;
+  const fabOpacityValue = useRef(new Animated.Value(1)).current;
+  const [isScrollingUp, setIsScrollingUp] = useState(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Global header state - once hidden by scrolling, stays hidden until explicitly shown
+  const [globalHeaderHidden, setGlobalHeaderHidden] = useState(false);
+  
+  // Store scroll positions for each filter
+  const scrollPositions = useRef<{ [key: string]: number }>({});
+  
+  // Store scroll positions for media mode separately
+  const mediaScrollPositions = useRef<{ [key: string]: number }>({});
+  
+  // Double tap detection for activity pills
+  const lastPillTapRef = useRef<{ [key: string]: number }>({});
+
+  // Store previous filter when entering media mode
+  const previousFilterRef = useRef<ActivityKey | 'all'>('all');
+
+  // Expose reset function for double-tap
+  useImperativeHandle(ref, () => ({
+    resetToAll: () => {
+      setSelectedFilter('all');
+      setIsMediaMode(false);
+      if (exploreScrollRef?.current) {
+        exploreScrollRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
+    },
+  }));
 
   const cardPropsArray = posts.map(post => mapPostToCardProps(post));
 
@@ -39,9 +72,25 @@ export default function ExploreScreen() {
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentScrollY = event.nativeEvent.contentOffset.y;
     
+    // Store scroll position ONLY for current active filter (prevent contamination)
+    if (isMediaMode) {
+      // Only store for media mode if we're actually in media mode
+      mediaScrollPositions.current[selectedFilter] = currentScrollY;
+    } else {
+      // Only store for normal mode if we're actually in normal mode
+      scrollPositions.current[selectedFilter] = currentScrollY;
+    }
+    
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
     if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
       // Scrolling down
       setHeaderVisible(false);
+      setGlobalHeaderHidden(true); // Mark header as globally hidden
+      setIsScrollingUp(false);
       if (fabVisible) {
         setFabVisible(false);
         Animated.timing(fabAnimatedValue, {
@@ -50,9 +99,11 @@ export default function ExploreScreen() {
           useNativeDriver: true,
         }).start();
       }
-    } else if (currentScrollY <= 10 || (lastScrollY.current - currentScrollY > 50)) {
-      // Scrolling up - show if at top (<=10) OR scrolled up significantly (>50px)
+    } else if (currentScrollY <= 10) {
+      // Only show header when actually at the very top (≤10px)
       setHeaderVisible(true);
+      setGlobalHeaderHidden(false); // Reset global hidden state when at top
+      setIsScrollingUp(false);
       if (!fabVisible) {
         setFabVisible(true);
         Animated.timing(fabAnimatedValue, {
@@ -61,14 +112,129 @@ export default function ExploreScreen() {
           useNativeDriver: true,
         }).start();
       }
+      // Full opacity when at top
+      Animated.timing(fabOpacityValue, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    } else if (lastScrollY.current - currentScrollY > 15) {
+      // Show FAB when scrolling up just a little (>15px), but keep header hidden
+      setIsScrollingUp(true);
+      if (!fabVisible) {
+        setFabVisible(true);
+        Animated.timing(fabAnimatedValue, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }).start();
+      }
+      // Semi-transparent when scrolling up
+      Animated.timing(fabOpacityValue, {
+        toValue: 0.6,
+        duration: 100,
+        useNativeDriver: true,
+      }).start();
     }
+    
+    // Set timeout to restore full opacity when scrolling stops
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (isScrollingUp && currentScrollY > 10) {
+        setIsScrollingUp(false);
+        Animated.timing(fabOpacityValue, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    }, 150);
     
     lastScrollY.current = currentScrollY;
   };
 
-  // Handle filter selection
+  // Handle filter selection with scroll position restoration and double-tap detection
   const handleFilterSelect = (activityKey: ActivityKey | 'all') => {
+    const now = Date.now();
+    const lastTap = lastPillTapRef.current[activityKey] || 0;
+    
+    // Check for double-tap (within 300ms on same pill)
+    if (now - lastTap < 300 && activityKey === selectedFilter) {
+      // Double-tap detected on current pill - scroll to top
+      if (isMediaMode) {
+        // For media mode, reset only the current tab's position
+        mediaScrollPositions.current[activityKey] = 0;
+      } else {
+        if (exploreScrollRef?.current) {
+          exploreScrollRef.current.scrollToOffset({ offset: 0, animated: true });
+        }
+        // Reset only the current tab's position
+        scrollPositions.current[activityKey] = 0;
+      }
+      lastPillTapRef.current[activityKey] = 0; // Reset to prevent triple-tap issues
+      setHeaderVisible(true); // Show header when going to top
+      setGlobalHeaderHidden(false); // Reset global hidden state
+      return;
+    }
+    
+    // Update last tap time
+    lastPillTapRef.current[activityKey] = now;
+    
+    if (activityKey === selectedFilter) return; // Don't change if same filter (single tap)
+    
     setSelectedFilter(activityKey);
+    
+    // Restore scroll position for the selected filter after a short delay
+    setTimeout(() => {
+      if (isMediaMode) {
+        // For media mode, get the saved position (0 for unvisited tabs)
+        const savedPosition = mediaScrollPositions.current[activityKey] || 0;
+        // Always start unvisited tabs from top, but respect global header state
+        if (!globalHeaderHidden && savedPosition <= 10) {
+          setHeaderVisible(true);
+        } else {
+          setHeaderVisible(false);
+        }
+      } else {
+        // Normal mode logic - always scroll to saved position (0 for unvisited tabs)
+        const savedPosition = scrollPositions.current[activityKey] || 0;
+        if (exploreScrollRef?.current) {
+          exploreScrollRef.current.scrollToOffset({ offset: savedPosition, animated: false });
+        }
+        // Always start unvisited tabs from top, but respect global header state
+        if (!globalHeaderHidden && savedPosition <= 10) {
+          setHeaderVisible(true);
+        } else {
+          setHeaderVisible(false);
+        }
+      }
+    }, 100);
+  };
+
+  // Handle entering media mode
+  const enterMediaMode = () => {
+    previousFilterRef.current = selectedFilter; // Store current filter
+    setSelectedFilter('all'); // Always go to "All" in media mode
+    setIsMediaMode(true);
+  };
+
+  // Handle exiting media mode
+  const exitMediaMode = () => {
+    setIsMediaMode(false);
+    setSelectedFilter(previousFilterRef.current); // Restore previous filter
+    
+    // Restore scroll position for the previous filter after a short delay
+    setTimeout(() => {
+      const savedPosition = scrollPositions.current[previousFilterRef.current] || 0;
+      if (exploreScrollRef?.current) {
+        exploreScrollRef.current.scrollToOffset({ offset: savedPosition, animated: false });
+      }
+      // Respect global header hidden state when exiting media mode
+      if (!globalHeaderHidden && savedPosition <= 10) {
+        setHeaderVisible(true);
+      } else {
+        setHeaderVisible(false);
+      }
+    }, 100);
   };
 
   // Handle swipe gesture
@@ -78,10 +244,10 @@ export default function ExploreScreen() {
     if (state === State.END) {
       if (translationX > 50 && !isMediaMode) {
         // Swipe right - switch to media mode
-        setIsMediaMode(true);
+        enterMediaMode();
       } else if (translationX < -50 && isMediaMode && !showFullPost) {
         // Swipe left - switch back to normal mode
-        setIsMediaMode(false);
+        exitMediaMode();
       }
     }
   };
@@ -127,6 +293,7 @@ export default function ExploreScreen() {
         id={item.id}
         imageUri={item.images![0]}
         username={item.authorName}
+        nationalityFlag={item.authorNationalityFlag}
         location={item.location}
         activityColor={item.activityColor}
         onPress={() => handleMediaItemPress(item)}
@@ -146,6 +313,7 @@ export default function ExploreScreen() {
           renderItem={renderMediaItem}
           columns={2}
           spacing={12}
+          bounces={false}
         />
       </View>
     );
@@ -171,7 +339,7 @@ export default function ExploreScreen() {
               // Search bar for media mode
               <View className="flex-row items-center">
                 <TouchableOpacity 
-                  onPress={() => setIsMediaMode(false)}
+                  onPress={exitMediaMode}
                   className="mr-3"
                 >
                   <ArrowLeft size={24} color="#1F2937" />
@@ -190,10 +358,25 @@ export default function ExploreScreen() {
               <View className="flex-row items-center justify-between">
                 <Text className="text-2xl font-bold text-gray-800">Blinxus</Text>
                 <TouchableOpacity
-                  onPress={() => setIsMediaMode(true)}
-                  className="px-3 py-1 bg-blue-100 rounded-full"
+                  onPress={enterMediaMode}
+                  className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 3,
+                    elevation: 1,
+                  }}
+                  activeOpacity={0.7}
                 >
-                  <Text className="text-blue-600 text-sm font-medium">Media</Text>
+                  <View className="flex-row">
+                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-0.5" />
+                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                  </View>
+                  <View className="flex-row mt-0.5">
+                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-0.5" />
+                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                  </View>
                 </TouchableOpacity>
               </View>
             )}
@@ -252,6 +435,7 @@ export default function ExploreScreen() {
             onScroll={handleScroll}
             scrollEventThrottle={16}
             contentContainerStyle={{ paddingBottom: 100 }}
+            bounces={false}
           />
         ) : (
           // Normal Posts Feed
@@ -282,21 +466,29 @@ export default function ExploreScreen() {
             ],
           }}
         >
-          <TouchableOpacity
-            className="w-16 h-16 rounded-full bg-blue-600 justify-center items-center shadow-lg"
+          <Animated.View
             style={{
-              elevation: 8,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
+              opacity: fabOpacityValue,
             }}
-            onPress={() => navigation.navigate('CreatePost' as never)}
           >
-            <Text className="text-white text-2xl font-bold">+</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              className="w-16 h-16 rounded-full bg-blue-600 justify-center items-center shadow-lg"
+              style={{
+                elevation: 8,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+              }}
+              onPress={() => navigation.navigate('CreatePost' as never)}
+            >
+              <Text className="text-white text-2xl font-bold">+</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </Animated.View>
       </SafeAreaView>
     </PanGestureHandler>
   );
-}
+});
+
+export default ExploreScreen;

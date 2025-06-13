@@ -4,6 +4,7 @@ export interface Post {
   id: string;
   authorId: string;
   authorName: string;
+  authorNationalityFlag?: string;
   authorProfileImage?: string;
   type: 'regular' | 'lucid';
   content?: string;
@@ -24,6 +25,7 @@ export const initialPostsData: Post[] = [
     id: '1',
     authorId: 'user123',
     authorName: 'Jessica Martinez',
+    authorNationalityFlag: '🇪🇸',
     type: 'regular',
     content: 'Found paradise today! The crystal clear waters are absolutely breathtaking. The island hopping tour took us to secret lagoons and hidden beaches.',
     images: ['https://picsum.photos/400/600?random=1'],
@@ -39,6 +41,7 @@ export const initialPostsData: Post[] = [
     id: '2',
     authorId: 'user456',
     authorName: 'Miguel Santos',
+    authorNationalityFlag: '🇧🇷',
     type: 'regular',
     content: 'Sunrise at the sea of clouds! Worth every step of the challenging trek. Mount Pulag never disappoints with its breathtaking views.',
     images: ['https://picsum.photos/400/600?random=2'],
@@ -54,6 +57,7 @@ export const initialPostsData: Post[] = [
     id: '3',
     authorId: 'user789',
     authorName: 'Maria Santos',
+    authorNationalityFlag: '🇰🇷',
     type: 'regular',
     content: 'Amazing street food tour in Binondo! The dumplings and noodles were incredible. This place has so much history and flavor.',
     location: 'Binondo, Manila',
@@ -67,6 +71,7 @@ export const initialPostsData: Post[] = [
     id: '4',
     authorId: 'user101',
     authorName: 'Carlos Rodriguez',
+    authorNationalityFlag: '🇲🇽',
     type: 'regular',
     content: 'Beach vibes and sunset magic! Perfect end to an amazing day exploring this beautiful island.',
     images: ['https://picsum.photos/400/600?random=3'],

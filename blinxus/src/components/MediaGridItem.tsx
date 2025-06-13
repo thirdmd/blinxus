@@ -5,6 +5,7 @@ interface MediaGridItemProps {
   id: string;
   imageUri: string;
   username: string;
+  nationalityFlag?: string;
   location: string;
   activityColor?: string;
   onPress: () => void;
@@ -16,6 +17,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   id,
   imageUri,
   username,
+  nationalityFlag,
   location,
   activityColor,
   onPress,
@@ -44,13 +46,18 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
         
         {/* Username and Location overlay */}
         <View className="flex-row items-center justify-between mt-2 px-1">
-          {/* Username */}
-          <Text 
-            className="text-xs font-medium text-gray-700 flex-shrink"
-            numberOfLines={1}
-          >
-            {username}
-          </Text>
+          {/* Username with Flag */}
+          <View className="flex-row items-center flex-shrink">
+            <Text 
+              className="text-xs font-medium text-gray-700"
+              numberOfLines={1}
+            >
+              {username}
+            </Text>
+            {nationalityFlag && (
+              <Text className="ml-1 text-xs">{nationalityFlag}</Text>
+            )}
+          </View>
           
           {/* Location Pill */}
           <View 

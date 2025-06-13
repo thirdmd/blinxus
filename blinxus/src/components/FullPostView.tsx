@@ -25,11 +25,13 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
         {bottomComponent}
       </ScrollView>
       
-      {/* Floating Back Button */}
+      {/* Floating Back Button - Liquid Glass Effect */}
       <TouchableOpacity
         onPress={onBack}
-        className="absolute top-12 left-4 w-12 h-12 bg-white rounded-full justify-center items-center"
+        className="absolute top-12 left-4 w-12 h-12 justify-center items-center"
         style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.85)', // Semi-transparent white
+          borderRadius: 24,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.15,
