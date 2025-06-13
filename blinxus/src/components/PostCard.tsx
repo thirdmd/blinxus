@@ -126,7 +126,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
         )}
 
         {/* Interaction Bar */}
-        <View className="flex-row items-center justify-between px-5 py-4 border-t border-gray-100">
+        <View className="flex-row items-center justify-between px-5 py-4">
           {/* Left Actions */}
           <View className="flex-row items-center">
             {/* Like Button */}

@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from './blinxus/src/constants';
 import { Home } from 'lucide-react-native';
 import ScrollContext from './blinxus/src/contexts/ScrollContext';
@@ -294,9 +295,11 @@ function RootNavigator() {
 export default function App() {
   return (
     <PostsProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </GestureHandlerRootView>
     </PostsProvider>
   );
 } 
