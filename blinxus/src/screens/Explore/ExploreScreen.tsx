@@ -51,11 +51,20 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   // Expose reset function for double-tap
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
-      setSelectedFilter('all');
+      // Exit fullscreen mode if active
+      setShowFullPost(false);
+      setSelectedPost(null);
+      
+      // Exit media mode and reset to normal view
       setIsMediaMode(false);
-      if (exploreScrollRef?.current) {
-        exploreScrollRef.current.scrollToOffset({ offset: 0, animated: true });
-      }
+      setSelectedFilter('all');
+      
+      // Scroll to top in normal view
+      setTimeout(() => {
+        if (exploreScrollRef?.current) {
+          exploreScrollRef.current.scrollToOffset({ offset: 0, animated: true });
+        }
+      }, 100);
     },
   }));
 
@@ -354,13 +363,23 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
                   }}
                   activeOpacity={0.7}
                 >
-                  <View className="flex-row">
-                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-0.5" />
-                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                  </View>
-                  <View className="flex-row mt-0.5">
-                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-0.5" />
-                    <View className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                  {/* Modern Grid Icon - 3x3 grid */}
+                  <View className="w-5 h-5">
+                    <View className="flex-row justify-between mb-1">
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                    </View>
+                    <View className="flex-row justify-between mb-1">
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                    </View>
+                    <View className="flex-row justify-between">
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
+                    </View>
                   </View>
                 </TouchableOpacity>
               </View>

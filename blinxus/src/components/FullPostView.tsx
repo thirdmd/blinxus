@@ -16,7 +16,11 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
       <ScrollView 
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        bounces={true}
+        scrollEventThrottle={32}
+        decelerationRate="normal"
+        overScrollMode="auto"
+        removeClippedSubviews={true}
       >
         {/* Full Post Card */}
         <PostCard {...post} />
@@ -25,22 +29,22 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
         {bottomComponent}
       </ScrollView>
       
-      {/* Floating Back Button - Liquid Glass Effect */}
+      {/* Floating Back Button - Clean Minimalist Design */}
       <TouchableOpacity
         onPress={onBack}
-        className="absolute top-12 left-4 w-12 h-12 justify-center items-center"
+        className="absolute top-16 left-6 w-10 h-10 justify-center items-center"
         style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.85)', // Semi-transparent white
-          borderRadius: 24,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark semi-transparent
+          borderRadius: 20,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.15,
+          shadowOpacity: 0.25,
           shadowRadius: 8,
           elevation: 5,
         }}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <ChevronLeft size={24} color="#1F2937" />
+        <ChevronLeft size={20} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );
