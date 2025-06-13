@@ -4,6 +4,7 @@ import { Post, initialPostsData } from '../types/userData/posts_data';
 interface PostsContextType {
   posts: Post[];
   addPost: (post: Omit<Post, 'id' | 'timestamp' | 'timeAgo' | 'likes' | 'comments'>) => void;
+  deletePost: (postId: string) => void;
 }
 
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
@@ -24,8 +25,12 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setPosts(prevPosts => [newPost, ...prevPosts]); // Add to beginning of array
   };
 
+  const deletePost = (postId: string) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+  };
+
   return (
-    <PostsContext.Provider value={{ posts, addPost }}>
+    <PostsContext.Provider value={{ posts, addPost, deletePost }}>
       {children}
     </PostsContext.Provider>
   );

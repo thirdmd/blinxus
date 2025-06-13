@@ -118,14 +118,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
         duration: 200,
         useNativeDriver: true,
       }).start();
-    } else if (lastScrollY.current - currentScrollY > 15) {
-      // Show FAB when scrolling up just a little (>15px), but keep header hidden
+    } else if (lastScrollY.current - currentScrollY > 30) {
+      // Show FAB when scrolling up significantly (>30px), but keep header hidden
       setIsScrollingUp(true);
       if (!fabVisible) {
         setFabVisible(true);
         Animated.timing(fabAnimatedValue, {
           toValue: 1,
-          duration: 120,
+          duration: 150,
           useNativeDriver: true,
         }).start();
       }
@@ -188,24 +188,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       if (isMediaMode) {
         // For media mode, get the saved position (0 for unvisited tabs)
         const savedPosition = mediaScrollPositions.current[activityKey] || 0;
-        // Always start unvisited tabs from top, but respect global header state
-        if (!globalHeaderHidden && savedPosition <= 10) {
-          setHeaderVisible(true);
-        } else {
-          setHeaderVisible(false);
-        }
+        // Header state is inherited - no change based on position
       } else {
         // Normal mode logic - always scroll to saved position (0 for unvisited tabs)
         const savedPosition = scrollPositions.current[activityKey] || 0;
         if (exploreScrollRef?.current) {
           exploreScrollRef.current.scrollToOffset({ offset: savedPosition, animated: false });
         }
-        // Always start unvisited tabs from top, but respect global header state
-        if (!globalHeaderHidden && savedPosition <= 10) {
-          setHeaderVisible(true);
-        } else {
-          setHeaderVisible(false);
-        }
+        // Header state is inherited - no change based on position
       }
     }, 100);
   };
@@ -228,12 +218,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       if (exploreScrollRef?.current) {
         exploreScrollRef.current.scrollToOffset({ offset: savedPosition, animated: false });
       }
-      // Respect global header hidden state when exiting media mode
-      if (!globalHeaderHidden && savedPosition <= 10) {
-        setHeaderVisible(true);
-      } else {
-        setHeaderVisible(false);
-      }
+      // Header state is inherited from media mode - no change based on position
     }, 100);
   };
 
@@ -433,9 +418,9 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
             columns={2}
             spacing={12}
             onScroll={handleScroll}
-            scrollEventThrottle={16}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            bounces={false}
+            scrollEventThrottle={32}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            bounces={true}
           />
         ) : (
           // Normal Posts Feed
@@ -448,44 +433,46 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            bounces={false}
+            bounces={true}
           />
         )}
 
         {/* Floating Action Button - Fixed position to bottom right corner */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            bottom: 24,
-            right: 24,
-            opacity: fabAnimatedValue,
-            transform: [
-              {
-                scale: fabAnimatedValue,
-              },
-            ],
-          }}
-        >
+        {!isMediaMode && (
           <Animated.View
             style={{
-              opacity: fabOpacityValue,
+              position: 'absolute',
+              bottom: 24,
+              right: 24,
+              opacity: fabAnimatedValue,
+              transform: [
+                {
+                  scale: fabAnimatedValue,
+                },
+              ],
             }}
           >
-            <TouchableOpacity
-              className="w-16 h-16 rounded-full bg-blue-600 justify-center items-center shadow-lg"
+            <Animated.View
               style={{
-                elevation: 8,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
+                opacity: fabOpacityValue,
               }}
-              onPress={() => navigation.navigate('CreatePost' as never)}
             >
-              <Text className="text-white text-2xl font-bold">+</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                className="w-16 h-16 rounded-full bg-blue-600 justify-center items-center shadow-lg"
+                style={{
+                  elevation: 8,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                }}
+                onPress={() => navigation.navigate('CreatePost' as never)}
+              >
+                <Text className="text-white text-2xl font-bold">+</Text>
+              </TouchableOpacity>
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
+        )}
       </SafeAreaView>
     </PanGestureHandler>
   );

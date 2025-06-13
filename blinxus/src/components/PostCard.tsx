@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import { PostCardProps } from '../types/structures/posts_structure';
-import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag } from 'lucide-react-native';
+import { usePosts } from '../store/PostsContext';
 
 interface PostCardComponentProps extends PostCardProps {}
 
@@ -20,15 +21,54 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   likes,
   comments
 }) => {
+  const { deletePost } = usePosts();
   const [openMenu, setOpenMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  // Check if current user is the author
+  const isCurrentUserPost = authorName === 'Third Camacho';
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => {
+            deletePost(id);
+            setOpenMenu(false);
+          }
+        }
+      ]
+    );
+  };
+
+  const handleReport = () => {
+    Alert.alert(
+      'Report Post',
+      'This feature will be available soon.',
+      [{ text: 'OK', onPress: () => setOpenMenu(false) }]
+    );
+  };
+
   return (
     <View>
+      {/* Overlay to close menu when tapping outside */}
+      {openMenu && (
+        <TouchableOpacity
+          onPress={() => setOpenMenu(false)}
+          className="absolute inset-0 z-5"
+          activeOpacity={1}
+        />
+      )}
+
       {/* Card Container with Soft Shadow */}
       <View 
-        className="bg-white overflow-hidden"
+        className="bg-white overflow-hidden relative"
         style={{
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
@@ -88,13 +128,52 @@ const PostCard: React.FC<PostCardComponentProps> = ({
           </View>
           
           {/* More Options */}
-          <TouchableOpacity 
-            onPress={() => setOpenMenu(!openMenu)}
-            className="p-2"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MoreVertical size={20} color="#9CA3AF" />
-          </TouchableOpacity>
+          <View className="relative">
+            <TouchableOpacity 
+              onPress={() => setOpenMenu(!openMenu)}
+              className="p-2"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MoreVertical size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            {/* Dropdown Menu */}
+            {openMenu && (
+              <View 
+                className="absolute top-10 right-0 bg-white rounded-2xl py-2 z-10"
+                style={{
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 12,
+                  elevation: 8,
+                  minWidth: 140,
+                }}
+              >
+                {isCurrentUserPost ? (
+                  // Show Delete option for current user's posts
+                  <TouchableOpacity
+                    onPress={handleDelete}
+                    className="flex-row items-center px-4 py-3"
+                    activeOpacity={0.7}
+                  >
+                    <Trash2 size={18} color="#EF4444" />
+                    <Text className="ml-3 text-red-500 font-medium">Delete</Text>
+                  </TouchableOpacity>
+                ) : (
+                  // Show Report option for other users' posts
+                  <TouchableOpacity
+                    onPress={handleReport}
+                    className="flex-row items-center px-4 py-3"
+                    activeOpacity={0.7}
+                  >
+                    <Flag size={18} color="#6B7280" />
+                    <Text className="ml-3 text-gray-600 font-medium">Report</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Content Text */}
@@ -103,8 +182,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             <Text className="text-gray-800 text-base leading-6">{content}</Text>
           </View>
         )}
-
-
 
         {/* Image */}
         {images && images.length > 0 && (

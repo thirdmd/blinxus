@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, ScrollView, Dimensions } from 'react-native';
 
 interface MasonryListProps {
@@ -24,41 +24,45 @@ const MasonryList: React.FC<MasonryListProps> = ({
   refreshing,
   ListHeaderComponent,
   onScroll,
-  scrollEventThrottle,
+  scrollEventThrottle = 32,
   contentContainerStyle,
   bounces = true,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const columnWidth = (screenWidth - spacing * (columns + 1)) / columns;
   
-  // Distribute items into columns
-  const distributeItems = () => {
-    const columnArrays: any[][] = Array.from({ length: columns }, () => []);
+  // Memoize the column distribution to prevent recalculation on every scroll
+  const columnArrays = useMemo(() => {
+    const arrays: any[][] = Array.from({ length: columns }, () => []);
     const columnHeights = new Array(columns).fill(0);
     
     data.forEach((item, index) => {
       // Find the shortest column
       const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights));
-      columnArrays[shortestColumnIndex].push({ item, index });
+      arrays[shortestColumnIndex].push({ item, index });
       
       // Estimate height based on aspect ratio if available
       const aspectRatio = item.images?.[0] ? 1.5 : 1; // Default aspect ratio
       columnHeights[shortestColumnIndex] += columnWidth / aspectRatio + 60; // Image height + metadata height
     });
     
-    return columnArrays;
-  };
-  
-  const columnArrays = distributeItems();
+    return arrays;
+  }, [data, columns, columnWidth]); // Only recalculate when data, columns, or columnWidth changes
   
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
       scrollEventThrottle={scrollEventThrottle}
-      contentContainerStyle={contentContainerStyle}
+      contentContainerStyle={[
+        { paddingBottom: 40 }, // Reduced padding for less space at bottom
+        contentContainerStyle
+      ]}
       bounces={bounces}
-      overScrollMode="never"
+      overScrollMode="auto"
+      removeClippedSubviews={true}
+      scrollIndicatorInsets={{ right: 1 }}
+      decelerationRate="normal"
     >
       {ListHeaderComponent}
       
