@@ -17,6 +17,8 @@ export interface Post {
   timeAgo: string;
   likes: number;
   comments: number;
+  isEdited?: boolean; // Track if post has been edited
+  editAttempts?: number; // Track number of edit attempts for activity/location
 }
 
 // Initial sample data to test the system

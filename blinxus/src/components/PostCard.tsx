@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { PostCardProps } from '../types/structures/posts_structure';
-import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag, Edit, X, Check } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
+import { activityTags, ActivityKey } from '../constants/activityTags';
+import type { ActivityTag } from '../constants/activityTags';
+import PillTag from './PillTag';
 
 interface PostCardComponentProps extends PostCardProps {}
 
@@ -19,15 +22,36 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   activityColor,
   timeAgo,
   likes,
-  comments
+  comments,
+  isEdited,
+  editAttempts,
+  activity
 }) => {
-  const { deletePost } = usePosts();
+  const { deletePost, editPost } = usePosts();
   const [openMenu, setOpenMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState(content || '');
+  const [editLocation, setEditLocation] = useState(location);
+  const [editActivity, setEditActivity] = useState<number | null>(null);
+
+  // Track original values to detect changes
+  const [originalContent, setOriginalContent] = useState(content || '');
+  const [originalLocation, setOriginalLocation] = useState(location);
+  const [originalActivity, setOriginalActivity] = useState<number | null>(null);
 
   // Check if current user is the author
   const isCurrentUserPost = authorName === 'Third Camacho';
+
+  // Check if location/activity can still be edited (only once allowed)
+  const canEditLocationActivity = (editAttempts || 0) < 1;
+
+  // Check if any changes have been made
+  const hasChanges = 
+    editContent !== originalContent || 
+    editLocation !== originalLocation || 
+    editActivity !== originalActivity;
 
   const handleDelete = () => {
     Alert.alert(
@@ -47,6 +71,99 @@ const PostCard: React.FC<PostCardComponentProps> = ({
     );
   };
 
+  const handleEdit = () => {
+    const currentContent = content || '';
+    const currentLocation = location;
+    
+    // Set current values
+    setEditContent(currentContent);
+    setEditLocation(currentLocation);
+    
+    // Set original values for comparison
+    setOriginalContent(currentContent);
+    setOriginalLocation(currentLocation);
+    
+    // Set current activity selection
+    if (activity) {
+      const currentActivityTag = activityTags.find(tag => {
+        const activityKeyMap: { [key: string]: ActivityKey } = {
+          'Aquatics': 'aquatics',
+          'Outdoors': 'outdoors', 
+          'City': 'city',
+          'Food': 'food',
+          'Stays': 'stays',
+          'Heritage': 'heritage',
+          'Wellness': 'wellness',
+          'Amusements': 'amusements',
+          'Cultural': 'cultural',
+          'Special Experiences': 'special',
+          'Thrill': 'thrill',
+        };
+        return activityKeyMap[tag.name] === activity;
+      });
+      setEditActivity(currentActivityTag?.id || null);
+      setOriginalActivity(currentActivityTag?.id || null);
+    } else {
+      setEditActivity(null);
+      setOriginalActivity(null);
+    }
+    
+    setShowEditModal(true);
+    setOpenMenu(false);
+  };
+
+  const handleActivitySelect = (activityId: number) => {
+    if (!canEditLocationActivity) return; // Prevent selection if already edited once
+    setEditActivity(activityId === editActivity ? null : activityId);
+  };
+
+  const handleSaveEdit = () => {
+    if (editLocation.trim() === '') {
+      Alert.alert('Error', 'Location cannot be empty.');
+      return;
+    }
+
+    // Convert activity ID to ActivityKey for post update
+    let activityKey: ActivityKey | undefined = undefined;
+    if (editActivity) {
+      const activityTag = activityTags.find(tag => tag.id === editActivity);
+      if (activityTag) {
+        const activityKeyMap: { [key: string]: ActivityKey } = {
+          'Aquatics': 'aquatics',
+          'Outdoors': 'outdoors', 
+          'City': 'city',
+          'Food': 'food',
+          'Stays': 'stays',
+          'Heritage': 'heritage',
+          'Wellness': 'wellness',
+          'Amusements': 'amusements',
+          'Cultural': 'cultural',
+          'Special Experiences': 'special',
+          'Thrill': 'thrill',
+        };
+        activityKey = activityKeyMap[activityTag.name];
+      }
+    }
+
+    editPost(id, {
+      content: editContent.trim() === '' ? undefined : editContent.trim(),
+      location: editLocation.trim(),
+      activity: activityKey
+    });
+    
+    setShowEditModal(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(content || '');
+    setEditLocation(location);
+    setEditActivity(null);
+    setOriginalContent('');
+    setOriginalLocation('');
+    setOriginalActivity(null);
+    setShowEditModal(false);
+  };
+
   const handleReport = () => {
     Alert.alert(
       'Report Post',
@@ -57,6 +174,182 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
   return (
     <View>
+      {/* Edit Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCancelEdit}
+      >
+        <View className="flex-1 bg-white">
+          {/* Header - Matching CreatePost design */}
+          <View className="flex-row items-center justify-between px-6 py-6">
+            <TouchableOpacity
+              onPress={handleCancelEdit}
+              className="w-12 h-12 rounded-full bg-gray-50 items-center justify-center"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 4,
+                elevation: 1,
+              }}
+              activeOpacity={0.7}
+            >
+              <Text className="text-gray-600 text-lg">✕</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={handleSaveEdit}
+              className={`w-12 h-12 rounded-full items-center justify-center ${
+                hasChanges ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+              style={{
+                shadowColor: hasChanges ? '#0047AB' : '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: hasChanges ? 0.12 : 0.05,
+                shadowRadius: 6,
+                elevation: hasChanges ? 3 : 1,
+              }}
+              activeOpacity={0.8}
+              disabled={!hasChanges}
+            >
+              <Text className={`text-lg font-semibold ${
+                hasChanges ? 'text-white' : 'text-gray-500'
+              }`}>✓</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Title Section */}
+          <View className="items-center py-4 px-6">
+            <Text className="text-xl font-semibold text-gray-900">Edit Post</Text>
+            <Text className="text-sm text-gray-400 mt-2 text-center">
+              Update your caption and location
+            </Text>
+            
+            {/* First-time edit warning */}
+            {canEditLocationActivity && (
+              <View className="mt-4 p-3 bg-amber-50 rounded-2xl border border-amber-200">
+                <Text className="text-sm text-amber-800 text-center">
+                  ⚠️ Important: LOCATION and ACTIVITY can only be changed once per post!
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Modal Content */}
+          <View className="flex-1 px-6" style={{ paddingBottom: 20 }}>
+            {/* Caption Section */}
+            <View className="mb-8">
+              <Text className="text-lg font-semibold text-gray-900 mb-4">
+                What's on your mind?
+              </Text>
+              
+              <View 
+                className="bg-gray-50 rounded-3xl p-5"
+                style={{
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.03,
+                  shadowRadius: 8,
+                  elevation: 1,
+                }}
+              >
+                <TextInput
+                  value={editContent}
+                  onChangeText={setEditContent}
+                  placeholder="Share your experience, thoughts, or memories..."
+                  multiline
+                  numberOfLines={4}
+                  className="text-base text-gray-900 leading-6"
+                  style={{
+                    minHeight: 100,
+                    textAlignVertical: 'top'
+                  }}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </View>
+
+                         {/* Location Section */}
+             <View className="mb-8">
+               <Text className="text-lg font-semibold text-gray-900 mb-4">
+                 Where are you posting about?
+               </Text>
+               {!canEditLocationActivity && (
+                 <Text className="text-sm text-orange-600 mb-3">
+                   ⚠️ Location can only be changed once. You've already edited this post.
+                 </Text>
+               )}
+               <View
+                 className="bg-gray-50 rounded-3xl p-5"
+                 style={{
+                   shadowColor: '#000',
+                   shadowOffset: { width: 0, height: 1 },
+                   shadowOpacity: 0.03,
+                   shadowRadius: 8,
+                   elevation: 1,
+                   opacity: canEditLocationActivity ? 1 : 0.5
+                 }}
+               >
+                 <View className="flex-row items-center">
+                   <View className="w-10 h-10 rounded-full bg-white items-center justify-center mr-4">
+                     <Text className="text-gray-400 text-lg">📍</Text>
+                   </View>
+                   <TextInput
+                     value={editLocation}
+                     onChangeText={canEditLocationActivity ? setEditLocation : undefined}
+                     placeholder="Enter your destination"
+                     className="text-base text-gray-900 flex-1"
+                     placeholderTextColor="#9CA3AF"
+                     editable={canEditLocationActivity}
+                   />
+                 </View>
+               </View>
+             </View>
+
+                         {/* Activity Section */}
+             <View className="mb-8">
+               <Text className="text-lg font-semibold text-gray-900 mb-4">
+                 What type of experience?
+               </Text>
+               {!canEditLocationActivity && (
+                 <Text className="text-sm text-orange-600 mb-3">
+                   ⚠️ Activity can only be changed once. You've already edited this post.
+                 </Text>
+               )}
+               <View 
+                 className="bg-gray-50 p-4 rounded-3xl"
+                 style={{
+                   shadowColor: '#000',
+                   shadowOffset: { width: 0, height: 1 },
+                   shadowOpacity: 0.03,
+                   shadowRadius: 8,
+                   elevation: 1,
+                   opacity: canEditLocationActivity ? 1 : 0.5
+                 }}
+               >
+                 <View className="flex-row flex-wrap gap-3">
+                   {activityTags.map((tag: ActivityTag) => (
+                     <PillTag
+                       key={tag.id}
+                       label={tag.name}
+                       color={tag.color}
+                       selected={editActivity === tag.id}
+                       onPress={canEditLocationActivity ? () => handleActivitySelect(tag.id) : undefined}
+                       size="medium"
+                       isCreatePage={true}
+                     />
+                   ))}
+                 </View>
+               </View>
+             </View>
+
+            
+          </View>
+        </View>
+      </Modal>
+
       {/* Overlay to close menu when tapping outside */}
       {openMenu && (
         <TouchableOpacity
@@ -122,7 +415,15 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                     {location}
                   </Text>
                 </View>
-                <Text className="text-gray-500 text-sm">{timeAgo}</Text>
+                <View className="flex-row items-center">
+                  <Text className="text-gray-500 text-sm">{timeAgo}</Text>
+                  {isEdited && (
+                    <View className="flex-row items-center ml-2">
+                      <Text className="text-gray-400 text-xs">•</Text>
+                      <Text className="text-gray-400 text-xs ml-1">edited</Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           </View>
@@ -151,15 +452,25 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                 }}
               >
                 {isCurrentUserPost ? (
-                  // Show Delete option for current user's posts
-                  <TouchableOpacity
-                    onPress={handleDelete}
-                    className="flex-row items-center px-4 py-3"
-                    activeOpacity={0.7}
-                  >
-                    <Trash2 size={18} color="#EF4444" />
-                    <Text className="ml-3 text-red-500 font-medium">Delete</Text>
-                  </TouchableOpacity>
+                  // Show Edit and Delete options for current user's posts
+                  <>
+                    <TouchableOpacity
+                      onPress={handleEdit}
+                      className="flex-row items-center px-4 py-3"
+                      activeOpacity={0.7}
+                    >
+                      <Edit size={18} color="#6B7280" />
+                      <Text className="ml-3 text-gray-600 font-medium">Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handleDelete}
+                      className="flex-row items-center px-4 py-3"
+                      activeOpacity={0.7}
+                    >
+                      <Trash2 size={18} color="#EF4444" />
+                      <Text className="ml-3 text-red-500 font-medium">Delete</Text>
+                    </TouchableOpacity>
+                  </>
                 ) : (
                   // Show Report option for other users' posts
                   <TouchableOpacity

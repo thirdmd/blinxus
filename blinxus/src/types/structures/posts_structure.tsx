@@ -20,6 +20,8 @@ export interface PostCardProps {
   timeAgo: string;
   likes: number;
   comments: number;
+  isEdited?: boolean;
+  editAttempts?: number;
 }
 
 export const mapPostToCardProps = (post: Post): PostCardProps => {

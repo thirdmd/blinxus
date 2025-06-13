@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import PostCard from './PostCard';
-import { PostCardProps } from '../types/structures/posts_structure';
+import { PostCardProps, mapPostToCardProps } from '../types/structures/posts_structure';
+import { usePosts } from '../store/PostsContext';
 
 interface FullPostViewProps {
   post: PostCardProps;
@@ -11,6 +12,25 @@ interface FullPostViewProps {
 }
 
 const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomComponent }) => {
+  const { posts } = usePosts();
+  
+  // Get the latest version of the post from the context
+  const latestPost = posts.find(p => p.id === post.id);
+  const currentPostProps = latestPost ? mapPostToCardProps(latestPost) : post;
+
+  // Monitor if post still exists - if deleted, automatically exit fullscreen
+  useEffect(() => {
+    if (!latestPost) {
+      // Post was deleted, automatically exit fullscreen
+      onBack();
+    }
+  }, [latestPost, onBack]);
+
+  // If post doesn't exist, don't render anything (component will unmount anyway)
+  if (!latestPost) {
+    return null;
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView 
@@ -22,8 +42,8 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
         overScrollMode="auto"
         removeClippedSubviews={true}
       >
-        {/* Full Post Card */}
-        <PostCard {...post} />
+        {/* Full Post Card - Using latest post data */}
+        <PostCard {...currentPostProps} />
         
         {/* Bottom Component (Explore header + grid) */}
         {bottomComponent}
