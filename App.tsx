@@ -16,6 +16,7 @@ import CreatePost from './blinxus/src/screens/Create/CreatePost';
 
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
+import { SavedPostsProvider } from './blinxus/src/store/SavedPostsContext';
 
 // Create navigators
 const Tab = createBottomTabNavigator();
@@ -299,11 +300,13 @@ function RootNavigator() {
 export default function App() {
   return (
     <PostsProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </GestureHandlerRootView>
+      <SavedPostsProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </GestureHandlerRootView>
+      </SavedPostsProvider>
     </PostsProvider>
   );
 } 

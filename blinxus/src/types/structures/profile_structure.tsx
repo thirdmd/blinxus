@@ -24,6 +24,7 @@ interface Props {
   setActiveTab: React.Dispatch<React.SetStateAction<'feed' | 'lucids' | 'posts'>>;
   profileData: ProfileDataType;
   posts: Post[];
+  onSettingsPress: () => void;
 }
 
 export default function ProfileStructure({
@@ -31,6 +32,7 @@ export default function ProfileStructure({
   setActiveTab,
   profileData,
   posts,
+  onSettingsPress,
 }: Props) {
   const navigation = useNavigation();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -118,6 +120,7 @@ export default function ProfileStructure({
             <TouchableOpacity
               className="w-11 h-11 items-center justify-center"
               activeOpacity={0.7}
+              onPress={onSettingsPress}
             >
               <Text className="text-gray-700 text-3xl">☰</Text>
             </TouchableOpacity>

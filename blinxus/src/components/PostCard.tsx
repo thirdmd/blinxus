@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, Alert, Modal, TextInput } from 're
 import { PostCardProps } from '../types/structures/posts_structure';
 import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag, Edit, X, Check } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
+import { useSavedPosts } from '../store/SavedPostsContext';
 import { activityTags, ActivityKey } from '../constants/activityTags';
 import type { ActivityTag } from '../constants/activityTags';
 import PillTag from './PillTag';
@@ -28,9 +29,9 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   activity
 }) => {
   const { deletePost, editPost } = usePosts();
+  const { savePost, unsavePost, isPostSaved } = useSavedPosts();
   const [openMenu, setOpenMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editContent, setEditContent] = useState(content || '');
   const [editLocation, setEditLocation] = useState(location);
@@ -558,13 +559,19 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
           {/* Save Button */}
           <TouchableOpacity 
-            onPress={() => setIsSaved(!isSaved)}
+            onPress={() => {
+              if (isPostSaved(id)) {
+                unsavePost(id);
+              } else {
+                savePost(id);
+              }
+            }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Bookmark 
               size={22} 
-              color={isSaved ? '#0047AB' : '#6B7280'}
-              fill={isSaved ? '#0047AB' : 'none'}
+              color={isPostSaved(id) ? '#0047AB' : '#6B7280'}
+              fill={isPostSaved(id) ? '#0047AB' : 'none'}
             />
           </TouchableOpacity>
         </View>
