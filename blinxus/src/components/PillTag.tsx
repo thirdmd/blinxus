@@ -33,12 +33,53 @@ export default function PillTag({
 
     // Size styles
     const sizeStyles = {
-      small: { paddingHorizontal: 8, paddingVertical: 4 },
-      medium: { paddingHorizontal: 12, paddingVertical: 6 },
-      large: { paddingHorizontal: 16, paddingVertical: 8 },
+      small: { paddingHorizontal: 4, paddingVertical: 2 },
+      medium: { paddingHorizontal: 6, paddingVertical: 2.5 },
+      large: { paddingHorizontal: 8, paddingVertical: 3 },
     };
 
-    // Background color logic
+    // Special handling for colorless pills (All, Snow)
+    const isColorlessPill = color === '#E5E7EB' || color === colors.activities.snow;
+    
+    if (isColorlessPill) {
+      // Colorless pills: always white background with black text and border
+      // Make border thicker when selected
+      return {
+        ...baseStyle,
+        ...sizeStyles[size],
+        backgroundColor: '#FFFFFF',
+        borderWidth: selected ? 1.5 : 0.5,
+        borderColor: '#000000',
+        ...style,
+      };
+    }
+
+    // For colored pills: implement alternate color styling when alwaysFullColor is true
+    if (alwaysFullColor) {
+      if (selected) {
+        // Selected: white background with colored text and bold border
+        return {
+          ...baseStyle,
+          ...sizeStyles[size],
+          backgroundColor: '#FFFFFF',
+          borderWidth: 1.5, // Bold border when selected
+          borderColor: color,
+          ...style,
+        };
+      } else {
+        // Unselected: colored background with white text
+        return {
+          ...baseStyle,
+          ...sizeStyles[size],
+          backgroundColor: color,
+          borderWidth: 0.5,
+          borderColor: color,
+          ...style,
+        };
+      }
+    }
+
+    // Original logic for other cases (create page, etc.)
     const keepFullColor = [
       '#C62828', // adventure
       '#5C4033', // historical
@@ -47,32 +88,21 @@ export default function PillTag({
     
     const backgroundColor = (selected || (alwaysFullColor && keepFullColor))
       ? color 
-      : alwaysFullColor 
-      ? `${color}E6` // 90% opacity for most colors when alwaysFullColor
-      : isCreatePage ? `${color}80` : `${color}60`; // Use 60% opacity when not selected AND not alwaysFullColor
-
-    // Special handling for white/snow activities
-    const specialStyle = color === colors.activities.snow 
-      ? {
-          backgroundColor: (selected || alwaysFullColor) ? colors.activities.snow : `${colors.activities.snow}40`,
-          borderWidth: 1,
-          borderColor: (selected || alwaysFullColor) ? colors.cobalt : colors.borderGray,
-        }
-      : {
-          backgroundColor,
-        };
+      : isCreatePage ? `${color}80` : `${color}60`;
 
     return {
       ...baseStyle,
       ...sizeStyles[size],
-      ...specialStyle,
+      backgroundColor,
+      borderWidth: 0.5,
+      borderColor: color,
       ...style,
     };
   };
 
   const getTextStyle = (): TextStyle => {
     const baseTextStyle: TextStyle = {
-      fontWeight: '500',
+      fontWeight: 'normal',
     };
 
     // Size text styles
@@ -82,20 +112,46 @@ export default function PillTag({
       large: { fontSize: 16 },
     };
 
-    // Text color logic - ensure readability
+    // Text color and weight logic
     const getTextColor = () => {
-      if (color === colors.activities.snow) {
-        return colors.richBlack;
+      // Colorless pills always use black text
+      if (color === '#E5E7EB' || color === colors.activities.snow) {
+        return '#000000';
       }
       
-      // For all other colors, use white text
-      return colors.white;
+      // For colored pills with alwaysFullColor (ExploreScreen)
+      if (alwaysFullColor) {
+        if (selected) {
+          // Selected: colored text on white background
+          return color;
+        } else {
+          // Unselected: white text on colored background
+          return '#FFFFFF';
+        }
+      }
+      
+      // Default: white text for all other cases
+      return '#FFFFFF';
+    };
+
+    // Make text bold when selected
+    const getFontWeight = () => {
+      // Colorless pills: make text bold when selected to match border thickness
+      if ((color === '#E5E7EB' || color === colors.activities.snow) && selected) {
+        return '600'; // Semi-bold for colorless pills when selected
+      }
+      
+      if (alwaysFullColor && selected) {
+        return '600'; // Semi-bold for better readability when colored text on white
+      }
+      return 'normal';
     };
 
     return {
       ...baseTextStyle,
       ...sizeTextStyles[size],
       color: getTextColor(),
+      fontWeight: getFontWeight(),
     };
   };
 

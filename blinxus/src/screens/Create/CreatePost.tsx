@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  StatusBar,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { X, ArrowRight, Edit3, Zap, Camera } from 'lucide-react-native';
 import { colors } from '../../constants';
 import CreateRegularPost from './CreateRegularPost';
 import CreateLucids from './CreateLucids';
@@ -19,33 +22,67 @@ type PostType = 'Post' | 'Blinx' | 'Lucids';
 
 interface TabButtonProps {
   title: string;
+  icon: React.ReactNode;
   isActive: boolean;
   onPress: () => void;
 }
 
-function TabButton({ title, isActive, onPress }: TabButtonProps) {
+function TabButton({ title, icon, isActive, onPress }: TabButtonProps) {
+  const scaleValue = useRef(new Animated.Value(isActive ? 1.15 : 0.95)).current;
+  const underlineScale = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+  const opacityValue = useRef(new Animated.Value(isActive ? 1 : 0.6)).current;
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scaleValue, {
+        toValue: isActive ? 1.15 : 0.95,
+        useNativeDriver: true,
+        tension: 200,
+        friction: 6,
+      }),
+      Animated.spring(underlineScale, {
+        toValue: isActive ? 1 : 0,
+        useNativeDriver: true,
+        tension: 250,
+        friction: 7,
+      }),
+      Animated.spring(opacityValue, {
+        toValue: isActive ? 1 : 0.6,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 8,
+      }),
+    ]).start();
+  }, [isActive]);
+
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`px-8 py-4 rounded-full ${
-        isActive ? 'bg-gray-900' : 'bg-gray-50'
-      }`}
-      style={{
-        shadowColor: isActive ? '#000' : 'transparent',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: isActive ? 0.08 : 0,
-        shadowRadius: 8,
-        elevation: isActive ? 2 : 0,
-      }}
-      activeOpacity={0.7}
+      className="flex-1 py-3 px-1 mx-1"
+      activeOpacity={0.3}
     >
-      <Text
-        className={`font-semibold text-base ${
-          isActive ? 'text-white' : 'text-gray-500'
-        }`}
+      <Animated.View 
+        className="items-center"
+        style={{ 
+          transform: [{ scale: scaleValue }],
+          opacity: opacityValue 
+        }}
       >
-        {title}
-      </Text>
+        {React.isValidElement(icon) && React.cloneElement(icon, {
+          size: 18,
+          color: isActive ? '#000000' : '#6B7280',
+          strokeWidth: 1.5
+        } as any)}
+        <Text className={`font-light text-sm mt-1.5 ${
+          isActive ? 'text-black' : 'text-gray-600'
+        }`}>
+          {title}
+        </Text>
+        <Animated.View 
+          className="w-6 h-0.5 bg-black mt-2 rounded-full"
+          style={{ transform: [{ scaleX: underlineScale }] }}
+        />
+      </Animated.View>
     </TouchableOpacity>
   );
 }
@@ -79,77 +116,78 @@ export default function CreatePost() {
     }
   };
 
+  const getTabData = () => [
+    {
+      key: 'Post' as PostType,
+      title: 'Post',
+      icon: <Edit3 />
+    },
+    {
+      key: 'Blinx' as PostType,
+      title: 'Blinx',
+      icon: <Zap />
+    },
+    {
+      key: 'Lucids' as PostType,
+      title: 'Lucids',
+      icon: <Camera />
+    }
+  ];
+
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header - More spacious and elegant */}
-      <View className="flex-row items-center justify-between px-6 py-6">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-6 py-4">
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="w-12 h-12 rounded-full bg-gray-50 items-center justify-center"
-          style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 4,
-            elevation: 1,
-          }}
-          activeOpacity={0.7}
+          className="w-10 h-10 items-center justify-center"
+          activeOpacity={0.3}
         >
-          <Text className="text-gray-600 text-lg">✕</Text>
+          <X size={24} color="#000000" strokeWidth={2} />
         </TouchableOpacity>
+        
+        <View className="flex-1" />
         
         <TouchableOpacity
           onPress={handleShare}
-          className={`w-12 h-12 rounded-full items-center justify-center ${
-            isValid ? 'bg-blue-600' : 'bg-gray-300'
+          className={`w-10 h-10 rounded-full items-center justify-center ${
+            isValid 
+              ? 'bg-black' 
+              : 'bg-gray-100'
           }`}
-          style={{
-            shadowColor: isValid ? '#0047AB' : '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: isValid ? 0.12 : 0.05,
-            shadowRadius: 6,
-            elevation: isValid ? 3 : 1,
-          }}
-          activeOpacity={0.8}
+          activeOpacity={0.3}
           disabled={!isValid}
         >
-          <Text className={`text-lg font-semibold ${
-            isValid ? 'text-white' : 'text-gray-500'
-          }`}>→</Text>
+          <ArrowRight 
+            size={18} 
+            color={isValid ? '#ffffff' : '#9CA3AF'} 
+            strokeWidth={2} 
+          />
         </TouchableOpacity>
       </View>
 
-      {/* Tab Navigation - More spacious and centered */}
-      <View className="items-center py-8 px-6">
-        <View className="flex-row space-x-4 bg-gray-50 p-2 rounded-full">
-          <TabButton
-            title="Post"
-            isActive={activeTab === 'Post'}
-            onPress={() => setActiveTab('Post')}
-          />
-          <TabButton
-            title="Blinx"
-            isActive={activeTab === 'Blinx'}
-            onPress={() => setActiveTab('Blinx')}
-          />
-          <TabButton
-            title="Lucids"
-            isActive={activeTab === 'Lucids'}
-            onPress={() => setActiveTab('Lucids')}
-          />
+      {/* Tab Selection */}
+      <View className="px-6 py-4">
+        <View className="flex-row">
+          {getTabData().map((tab) => (
+            <TabButton
+              key={tab.key}
+              title={tab.title}
+              icon={tab.icon}
+              isActive={activeTab === tab.key}
+              onPress={() => setActiveTab(tab.key)}
+            />
+          ))}
         </View>
-        
-        {/* Subtle description for context */}
-        <Text className="text-sm text-gray-400 mt-4 text-center">
-          {activeTab === 'Post' && 'Share your travel moments'}
-          {activeTab === 'Blinx' && 'Capture real-time stories'}
-          {activeTab === 'Lucids' && 'Create immersive albums'}
-        </Text>
       </View>
 
-      {/* Content */}
-      <View className="flex-1">
-        {renderContent()}
+      {/* Content Area */}
+      <View className="flex-1 bg-gray-50">
+        <View className="bg-white rounded-t-3xl flex-1 pt-6">
+          {renderContent()}
+        </View>
       </View>
     </SafeAreaView>
   );

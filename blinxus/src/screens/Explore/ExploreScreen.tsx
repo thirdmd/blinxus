@@ -1,7 +1,7 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, Animated, StatusBar, TextInput } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { Search, ArrowLeft, Images } from 'lucide-react-native';
+import { Search, ArrowLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import { useNavigation } from '@react-navigation/native';
@@ -301,7 +301,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   if (showFullPost && selectedPost) {
     const exploreHeaderComponent = (
       <View className="px-4 py-6">
-        <Text className="text-2xl font-bold text-gray-800 mb-4">Explore</Text>
+        <Text className="text-2xl font-normal text-black mb-4">Explore</Text>
         <MasonryList
           data={postsWithImages.filter(p => p.id !== selectedPost.id)}
           renderItem={renderMediaItem}
@@ -320,106 +320,78 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       />
     );
   }
+
+  // Clean Grid Icon using Lucide
   
   return (
     <PanGestureHandler onGestureEvent={onGestureEvent}>
       <SafeAreaView className="flex-1 bg-white">
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         
-        {/* Header */}
+        {/* Header - Minimal Design */}
         {headerVisible && (
-          <View className="bg-white py-3 px-4">
+          <View className="bg-white py-4 px-6">
             {isMediaMode ? (
-              // Search bar for media mode
+              // Search bar for media mode - Minimal
               <View className="flex-row items-center">
                 <TouchableOpacity 
                   onPress={exitMediaMode}
-                  className="mr-3"
+                  className="w-10 h-10 -ml-2 items-center justify-center"
+                  activeOpacity={0.3}
                 >
-                  <ArrowLeft size={24} color="#1F2937" />
+                  <ArrowLeft size={20} color="#000000" />
                 </TouchableOpacity>
-                <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-                  <Search size={20} color="#9CA3AF" />
+                <View className="flex-1 flex-row items-center border border-gray-200 rounded-full px-4 py-2.5 ml-2">
+                  <Search size={18} color="#9CA3AF" />
                   <TextInput
                     placeholder="Search places..."
-                    className="flex-1 ml-2 text-gray-800"
+                    className="flex-1 ml-3 text-base text-black font-light"
                     placeholderTextColor="#9CA3AF"
                   />
                 </View>
               </View>
             ) : (
-              // Normal title with toggle button
+              // Normal title with toggle button - Minimal
               <View className="flex-row items-center justify-between">
-                <Text className="text-2xl font-bold text-gray-800">Blinxus</Text>
+                <Text className="text-2xl font-normal text-black">Blinxus</Text>
                 <TouchableOpacity
                   onPress={enterMediaMode}
-                  className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center"
-                  style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 3,
-                    elevation: 1,
-                  }}
-                  activeOpacity={0.7}
+                  className="w-10 h-10 items-center justify-center"
+                  activeOpacity={0.3}
                 >
-                  {/* Modern Grid Icon - 3x3 grid */}
-                  <View className="w-5 h-5">
-                    <View className="flex-row justify-between mb-1">
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                    </View>
-                    <View className="flex-row justify-between mb-1">
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                    </View>
-                    <View className="flex-row justify-between">
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                      <View className="w-1 h-1 rounded-sm bg-gray-600" />
-                    </View>
-                  </View>
+                  <Grid3X3 size={24} color="#000000" strokeWidth={2} />
                 </TouchableOpacity>
               </View>
             )}
           </View>
         )}
 
-        {/* Pills Layer */}
-        <View className="bg-white p-4">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {/* Pills Layer - Minimal */}
+        <View className="bg-white pb-4">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
             <View className="flex-row">
               {/* All Filter Pill */}
-              <View 
-                className="mr-2"
-                style={{
-                  transform: [{ scale: selectedFilter === 'all' ? 1.05 : 1 }]
-                }}
-              >
+              <View className="mr-1.5">
                 <PillTag
                   label="All"
                   color="#E5E7EB" // Light gray color for "All"
+                  selected={selectedFilter === 'all'}
                   onPress={() => handleFilterSelect('all')}
                   alwaysFullColor={true}
+                  size="medium"
                 />
               </View>
               {activityTags.map((tag, index) => {
                 const activityKey = activityKeyMap[tag.name];
                 return (
-                  <View 
-                    key={tag.id} 
-                    className="mr-2"
-                    style={{
-                      transform: [{ scale: selectedFilter === activityKey ? 1.05 : 1 }]
-                    }}
-                  >
+                  <View key={tag.id} className="mr-1.5">
                     <PillTag
                       label={tag.name}
                       color={tag.color}
+                      selected={selectedFilter === activityKey}
                       onPress={() => handleFilterSelect(activityKey)}
                       alwaysFullColor={true}
+                      size="medium"
                     />
                   </View>
                 );
@@ -456,7 +428,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
           />
         )}
 
-        {/* Floating Action Button - Fixed position to bottom right corner */}
+        {/* Floating Action Button - Minimal Design */}
         {!isMediaMode && (
           <Animated.View
             style={{
@@ -477,17 +449,12 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
               }}
             >
               <TouchableOpacity
-                className="w-16 h-16 rounded-full bg-blue-600 justify-center items-center shadow-lg"
-                style={{
-                  elevation: 8,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                }}
+                className="w-14 h-14 rounded-full bg-black justify-center items-center"
                 onPress={() => navigation.navigate('CreatePost' as never)}
+                activeOpacity={0.7}
               >
-                <Text className="text-white text-2xl font-bold">+</Text>
+                <View className="w-5 h-0.5 bg-white absolute" />
+                <View className="w-0.5 h-5 bg-white absolute" />
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>

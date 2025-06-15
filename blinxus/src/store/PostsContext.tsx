@@ -7,6 +7,9 @@ interface PostsContextType {
   addPost: (post: Omit<Post, 'id' | 'timestamp' | 'timeAgo' | 'likes' | 'comments'>) => void;
   deletePost: (postId: string) => void;
   editPost: (postId: string, updates: { content?: string; location?: string; activity?: ActivityKey }) => void;
+  likePost: (postId: string) => void;
+  unlikePost: (postId: string) => void;
+  addComment: (postId: string) => void;
 }
 
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
@@ -35,26 +38,32 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setPosts(prevPosts => 
       prevPosts.map(post => {
         if (post.id === postId) {
-          const currentAttempts = post.editAttempts || 0;
+          // Track location and activity edits separately
+          const locationEditCount = post.locationEditCount || 0;
+          const activityEditCount = post.activityEditCount || 0;
           
-          // Check if trying to edit location or activity after first attempt
-          const isLocationOrActivityEdit = updates.location !== undefined || updates.activity !== undefined;
+          // Check what's being edited
+          const isLocationEdit = updates.location !== undefined;
+          const isActivityEdit = updates.activity !== undefined;
           
-          if (isLocationOrActivityEdit && currentAttempts >= 1) {
-            // Don't allow location/activity changes after first edit
-            return {
-              ...post,
-              content: updates.content !== undefined ? updates.content : post.content,
-              isEdited: true
-            };
+          // Check if location edit is allowed (if trying to edit location)
+          const canEditLocation = !isLocationEdit || locationEditCount < 1;
+          
+          // Check if activity edit is allowed (if trying to edit activity)
+          const canEditActivity = !isActivityEdit || activityEditCount < 1;
+          
+          // If trying to edit something that's already been edited, don't allow it
+          if (!canEditLocation || !canEditActivity) {
+            return post; // Return unchanged post
           }
           
-          // Allow the edit and increment attempts if location/activity is being changed
+          // Allow the edit and increment appropriate counters
           return {
             ...post,
             ...updates,
             isEdited: true,
-            editAttempts: isLocationOrActivityEdit ? currentAttempts + 1 : currentAttempts
+            locationEditCount: isLocationEdit ? locationEditCount + 1 : locationEditCount,
+            activityEditCount: isActivityEdit ? activityEditCount + 1 : activityEditCount
           };
         }
         return post;
@@ -62,8 +71,38 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     );
   };
 
+  const likePost = (postId: string) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: post.likes + 1 }
+          : post
+      )
+    );
+  };
+
+  const unlikePost = (postId: string) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: Math.max(0, post.likes - 1) }
+          : post
+      )
+    );
+  };
+
+  const addComment = (postId: string) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, comments: post.comments + 1 }
+          : post
+      )
+    );
+  };
+
   return (
-    <PostsContext.Provider value={{ posts, addPost, deletePost, editPost }}>
+    <PostsContext.Provider value={{ posts, addPost, deletePost, editPost, likePost, unlikePost, addComment }}>
       {children}
     </PostsContext.Provider>
   );

@@ -63,15 +63,17 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
           <View 
             className="ml-2 px-2 py-1"
             style={{ 
-              backgroundColor: activityColor || '#E5E7EB',
+              backgroundColor: activityColor || 'transparent',
               borderRadius: 12,
               maxWidth: '60%',
+              borderWidth: activityColor ? 0 : 0.5,
+              borderColor: activityColor ? 'transparent' : '#000000'
             }}
           >
             <Text 
               className="text-xs font-medium"
               style={{ 
-                color: activityColor ? 'white' : '#374151'
+                color: activityColor ? 'white' : '#000000'
               }}
               numberOfLines={1}
             >

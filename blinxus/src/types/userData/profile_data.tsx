@@ -34,7 +34,7 @@ export interface Interest {
     bio: 'water boi 🏀',
     followers: 2,
     following: 2,
-    profileImage: 'https://via.placeholder.com/300x400',
+    profileImage: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
     languages: ['English', 'Filipino'],
     interests: [
       { icon: '🏖️', label: 'Beach' },

@@ -18,7 +18,9 @@ export interface Post {
   likes: number;
   comments: number;
   isEdited?: boolean; // Track if post has been edited
-  editAttempts?: number; // Track number of edit attempts for activity/location
+  editAttempts?: number; // Track number of edit attempts for activity/location (deprecated)
+  locationEditCount?: number; // Track location edit attempts separately
+  activityEditCount?: number; // Track activity edit attempts separately
 }
 
 // Initial sample data to test the system
@@ -61,7 +63,7 @@ export const initialPostsData: Post[] = [
     authorName: 'Maria Santos',
     authorNationalityFlag: '🇰🇷',
     type: 'regular',
-    content: 'Amazing street food tour in Binondo! The dumplings and noodles were incredible. This place has so much history and flavor.',
+    content: 'Amazing street food tour in Binondo! The dumplings and noodles were incredible. This place has so much history and flavor. Walking through the narrow streets, I discovered authentic Chinese restaurants that have been serving families for generations. The pork buns were steaming hot and the noodle soup was perfectly seasoned with traditional spices and herbs.',
     location: 'Binondo, Manila',
     // NO activity - this will show colorless location pill
     timestamp: '2025-01-09T03:00:00Z',
@@ -83,5 +85,19 @@ export const initialPostsData: Post[] = [
     timeAgo: '1d',
     likes: 203,
     comments: 15
+  },
+  {
+    id: '5',
+    authorId: 'user202',
+    authorName: 'Alfonso Rivera',
+    authorNationalityFlag: '🇵🇭',
+    type: 'regular',
+    content: 'Just finished an incredible hiking adventure through the rice terraces of Banaue. The ancient engineering of these terraces is absolutely mind-blowing and the views are spectacular. Every step revealed new perspectives of this UNESCO World Heritage site. The local Ifugao people shared stories about their ancestors who built these terraces over two thousand years ago using only hand tools.',
+    location: 'Banaue, Ifugao',
+    activity: 'outdoors',
+    timestamp: '2025-01-08T14:20:00Z',
+    timeAgo: '1d',
+    likes: 89,
+    comments: 12
   }
 ];

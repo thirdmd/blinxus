@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+interface SavedPost {
+  postId: string;
+  savedAt: string; // ISO timestamp when the post was saved
+}
+
 interface SavedPostsContextType {
   savedPostIds: string[];
+  savedPosts: SavedPost[];
   savePost: (postId: string) => void;
   unsavePost: (postId: string) => void;
   isPostSaved: (postId: string) => boolean;
@@ -10,27 +16,30 @@ interface SavedPostsContextType {
 const SavedPostsContext = createContext<SavedPostsContextType | undefined>(undefined);
 
 export const SavedPostsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [savedPostIds, setSavedPostIds] = useState<string[]>([]);
+  const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
+  
+  // Keep savedPostIds for backward compatibility
+  const savedPostIds = savedPosts.map(saved => saved.postId);
 
   const savePost = (postId: string) => {
-    setSavedPostIds(prev => {
-      if (!prev.includes(postId)) {
-        return [...prev, postId];
+    setSavedPosts(prev => {
+      if (!prev.some(saved => saved.postId === postId)) {
+        return [...prev, { postId, savedAt: new Date().toISOString() }];
       }
       return prev;
     });
   };
 
   const unsavePost = (postId: string) => {
-    setSavedPostIds(prev => prev.filter(id => id !== postId));
+    setSavedPosts(prev => prev.filter(saved => saved.postId !== postId));
   };
 
   const isPostSaved = (postId: string) => {
-    return savedPostIds.includes(postId);
+    return savedPosts.some(saved => saved.postId === postId);
   };
 
   return (
-    <SavedPostsContext.Provider value={{ savedPostIds, savePost, unsavePost, isPostSaved }}>
+    <SavedPostsContext.Provider value={{ savedPostIds, savedPosts, savePost, unsavePost, isPostSaved }}>
       {children}
     </SavedPostsContext.Provider>
   );
