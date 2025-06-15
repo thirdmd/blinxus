@@ -436,8 +436,7 @@ export default function ProfileStructure({
                           if (post.type === 'lucid') {
                             const postCardProps = mapPostToCardProps(post);
                             (navigation as any).navigate('LucidFullscreen', {
-                              post: postCardProps,
-                              source: 'profile'
+                              post: postCardProps
                             });
                           } else {
                             // For regular posts, use the existing fullscreen logic

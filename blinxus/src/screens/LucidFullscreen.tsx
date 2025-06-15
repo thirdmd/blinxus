@@ -6,25 +6,15 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 
 interface LucidFullscreenParams {
   post: PostCardProps;
-  source?: string; // Optional source parameter to know where user came from
 }
 
 export default function LucidFullscreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { post, source } = route.params as LucidFullscreenParams;
+  const { post } = route.params as LucidFullscreenParams;
 
   const handleBack = () => {
-    if (source === 'library') {
-      // If coming from library, navigate back to Profile with a parameter to show Library
-      (navigation as any).navigate('MainTabs', {
-        screen: 'Profile',
-        params: { showLibrary: true }
-      });
-    } else {
-      // Default behavior for other sources
-      navigation.goBack();
-    }
+    navigation.goBack();
   };
 
   return (

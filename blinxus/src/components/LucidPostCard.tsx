@@ -232,8 +232,7 @@ const LucidPostCard: React.FC<LucidPostCardProps> = ({
         authorId: '',
         timestamp: '',
         title: undefined
-      },
-      source: 'feed' // Default source for LucidPostCard
+      }
     });
   };
 

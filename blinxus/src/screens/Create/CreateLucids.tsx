@@ -28,7 +28,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [dayPhotos, setDayPhotos] = useState<{[key: number]: string[]}>({});
-
+  
   const minDuration = 1;
   const maxDuration = 30;
 
@@ -191,9 +191,9 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
         location: selectedLocation.trim(),
         // For now, no specific activity - can be added later
         activity: undefined,
-      });
-      
-      navigation.goBack();
+    });
+    
+    navigation.goBack();
     } catch (error) {
       console.log('Error creating Lucid:', error);
     }

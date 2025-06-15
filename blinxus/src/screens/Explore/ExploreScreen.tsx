@@ -9,6 +9,7 @@ import { usePosts } from '../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import PostCard from '../../components/PostCard';
 import LucidPostCard from '../../components/LucidPostCard';
+import LucidAlbumView from '../../components/LucidAlbumView';
 import MediaGridItem from '../../components/MediaGridItem';
 import MasonryList from '../../components/MasonryList';
 import FullPostView from '../../components/FullPostView';
@@ -252,8 +253,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
     // If it's a Lucid post, navigate to dedicated fullscreen
     if (post.type === 'lucid') {
       (navigation as any).navigate('LucidFullscreen', {
-        post: post,
-        source: 'explore'
+        post: post
       });
     } else {
       // For regular posts, use existing fullscreen logic

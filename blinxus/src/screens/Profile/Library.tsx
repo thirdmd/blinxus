@@ -16,7 +16,7 @@ import { usePosts } from '../../store/PostsContext';
 import { useSavedPosts } from '../../store/SavedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import LibraryFeedView from '../../components/LibraryFeedView';
-import { useNavigation } from '@react-navigation/native';
+import LucidAlbumView from '../../components/LucidAlbumView';
 
 const { width } = Dimensions.get('window');
 
@@ -25,8 +25,6 @@ interface LibraryProps {
 }
 
 export default function Library({ onBackPress }: LibraryProps = {}) {
-  const navigation = useNavigation();
-  
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
   
@@ -347,18 +345,9 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
   // Handle post press - navigate to full post view with context
   const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent') => {
-    // If it's a Lucid post, navigate to dedicated fullscreen
-    if (post.type === 'lucid') {
-      (navigation as any).navigate('LucidFullscreen', {
-        post: post,
-        source: 'library' // Pass source information for proper back navigation
-      });
-    } else {
-      // For regular posts, use existing fullscreen logic
-      setSelectedPost(post);
-      setFeedContext(context);
-      setShowFullPost(true);
-    }
+    setSelectedPost(post);
+    setFeedContext(context);
+    setShowFullPost(true);
   };
 
   // Handle back from full post
@@ -496,8 +485,19 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     );
   };
 
-  // If showing full post, only render that (only for regular posts now, Lucids navigate to dedicated screen)
-  if (showFullPost && selectedPost && selectedPost.type !== 'lucid') {
+  // If showing full post, only render that
+  if (showFullPost && selectedPost) {
+    // If it's a Lucid post, show the immersive album view
+    if (selectedPost.type === 'lucid') {
+      return (
+        <LucidAlbumView 
+          post={selectedPost}
+          onBack={handleBackFromFullPost}
+        />
+      );
+    }
+    
+    // Otherwise show regular feed view
     const postsToShow = feedContext === 'recent' ? sortedByRecent : allActivityPosts;
     
     return (

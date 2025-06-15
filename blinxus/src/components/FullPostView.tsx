@@ -38,8 +38,7 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
   useEffect(() => {
     if (latestPost && latestPost.type === 'lucid') {
       (navigation as any).navigate('LucidFullscreen', {
-        post: currentPostProps,
-        source: 'fullpost'
+        post: currentPostProps
       });
       // Go back from current view since we're navigating to new screen
       onBack();
