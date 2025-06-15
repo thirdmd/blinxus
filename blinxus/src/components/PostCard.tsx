@@ -60,8 +60,8 @@ const PostCard: React.FC<PostCardComponentProps> = ({
     editLocation !== originalLocation || 
     editActivity !== originalActivity;
 
-  // Text truncation logic - line-based (15 lines max)
-  const MAX_LINES = 15;
+  // Text truncation logic - line-based (20 lines max)
+  const MAX_LINES = 20;
   const shouldTruncate = content && content.split('\n').length > MAX_LINES;
   const truncatedContent = shouldTruncate 
     ? content.split('\n').slice(0, MAX_LINES).join('\n').trim() + '...'

@@ -81,31 +81,78 @@ export default function ProfileStructure({
     post.images.length > 0
   );
 
-  // Minimal icon components
+  // Better social media icon components
   const FacebookIcon = () => (
-    <View className="w-5 h-5">
-      <Text className="text-black text-base font-medium">f</Text>
+    <View className="w-8 h-8 bg-blue-600 rounded-lg items-center justify-center">
+      <Text className="text-white text-lg font-bold">f</Text>
     </View>
   );
 
   const InstagramIcon = () => (
-    <View className="w-5 h-5 rounded-lg border-2 border-black items-center justify-center">
-      <View className="w-2 h-2 rounded-full border border-black" />
+    <View className="w-8 h-8 rounded-lg items-center justify-center relative" style={{ backgroundColor: '#E1306C' }}>
+      {/* Instagram camera outline - rounded square like the real logo */}
+      <View className="w-5 h-5 rounded border-2 border-white items-center justify-center">
+        {/* Camera lens - circle */}
+        <View className="w-2.5 h-2.5 rounded-full border-2 border-white" />
+      </View>
+      {/* Camera flash - small dot in top right */}
+      <View className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-white" />
     </View>
   );
 
-  const TikTokIcon = () => (
-    <View className="w-5 h-5 items-center justify-center">
-      <View className="w-3 h-4 border-2 border-black rounded-tl-xl rounded-tr-sm rounded-br-xl rounded-bl-sm" />
-      <View className="absolute -top-0.5 -right-0.5 w-2 h-2 border border-black rounded-full bg-white" />
+  const YouTubeIcon = () => (
+    <View className="w-8 h-8 bg-red-600 rounded-lg items-center justify-center">
+      <View 
+        style={{
+          width: 0,
+          height: 0,
+          borderLeftWidth: 6,
+          borderRightWidth: 0,
+          borderTopWidth: 4,
+          borderBottomWidth: 4,
+          borderLeftColor: '#FFFFFF',
+          borderRightColor: 'transparent',
+          borderTopColor: 'transparent',
+          borderBottomColor: 'transparent',
+          marginLeft: 2,
+        }}
+      />
     </View>
   );
 
-  const LinkedInIcon = () => (
-    <View className="w-5 h-5">
-      <Text className="text-black text-sm font-medium">in</Text>
-    </View>
-  );
+  const TikTokIcon = () => {
+    // Helper to draw the musical note (stem + rounded hook)
+    const Note = ({ color, offsetX, offsetY }: { color: string; offsetX: number; offsetY: number }) => (
+      <View style={{ position: 'absolute', left: 10 + offsetX, top: 6 + offsetY }}>
+        {/* Stem */}
+        <View style={{ width: 3, height: 16, backgroundColor: color, borderRadius: 1.5 }} />
+        {/* Hook */}
+        <View style={{
+          width: 10,
+          height: 10,
+          borderWidth: 3,
+          borderColor: color,
+          borderLeftColor: 'transparent',
+          borderBottomColor: 'transparent',
+          borderRadius: 16,
+          position: 'absolute',
+          left: 3,
+          top: 2,
+        }} />
+      </View>
+    );
+
+    return (
+      <View className="w-8 h-8 bg-black rounded-lg items-center justify-center relative" style={{ overflow: 'hidden' }}>
+        {/* Cyan shadow */}
+        <Note color="#25F4EE" offsetX={-1.5} offsetY={-1.5} />
+        {/* Pink shadow */}
+        <Note color="#FE2C55" offsetX={1.5} offsetY={1.5} />
+        {/* Main white note */}
+        <Note color="#FFFFFF" offsetX={0} offsetY={0} />
+      </View>
+    );
+  };
 
   // Show library screen if showLibrary is true
   if (showLibrary) {
@@ -200,11 +247,10 @@ export default function ProfileStructure({
           </View>
         </View>
 
-        {/* Name, Age & Flag - Minimal typography */}
+        {/* Name & Flag - Minimal typography */}
         <View className="mt-8 items-center">
           <Text className="text-2xl text-black">
             <Text className="font-medium">{profileData?.name || 'Loading'}</Text>
-            <Text className="font-light">, {profileData?.age || '0'}</Text>
             <Text className="font-light"> {profileData?.nationalityFlag || '🏳️'}</Text>
           </Text>
         </View>
@@ -225,11 +271,11 @@ export default function ProfileStructure({
           </TouchableOpacity>
           
           <TouchableOpacity className="mx-3" activeOpacity={0.3}>
-            <TikTokIcon />
+            <YouTubeIcon />
           </TouchableOpacity>
           
           <TouchableOpacity className="mx-3" activeOpacity={0.3}>
-            <LinkedInIcon />
+            <TikTokIcon />
           </TouchableOpacity>
         </View>
 

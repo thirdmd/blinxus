@@ -49,13 +49,13 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
           {/* Username with Flag */}
           <View className="flex-row items-center flex-shrink">
             <Text 
-              className="text-xs font-medium text-gray-700"
+              className="text-xs font-normal text-gray-700"
               numberOfLines={1}
             >
               {username}
             </Text>
             {nationalityFlag && (
-              <Text className="ml-1 text-xs">{nationalityFlag}</Text>
+              <Text className="ml-1 text-xs font-light">{nationalityFlag}</Text>
             )}
           </View>
           
@@ -71,7 +71,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
             }}
           >
             <Text 
-              className="text-xs font-medium"
+              className="text-xs font-light"
               style={{ 
                 color: activityColor ? 'white' : '#000000'
               }}

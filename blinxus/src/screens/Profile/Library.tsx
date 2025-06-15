@@ -15,6 +15,7 @@ import { activityTags } from '../../constants/activityTags';
 import { usePosts } from '../../store/PostsContext';
 import { useSavedPosts } from '../../store/SavedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
+import LibraryFeedView from '../../components/LibraryFeedView';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,11 @@ interface LibraryProps {
 export default function Library({ onBackPress }: LibraryProps = {}) {
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
+  
+  // State for full post view
+  const [showFullPost, setShowFullPost] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<PostCardProps | null>(null);
+  const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent'); // Track which tab context
   
   // Get posts and saved posts
   const { posts } = usePosts();
@@ -44,11 +50,6 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     return new Date(bSaveData.savedAt).getTime() - new Date(aSaveData.savedAt).getTime();
   });
 
-  // Get unique activities that actually have posts (only posts with activities)
-  const activitiesWithPosts = activityTags.filter(tag => {
-    return savedPostsProps.some(post => post.activityName === tag.name && post.activityColor);
-  });
-
   // Helper function to get posts for an activity (only posts with activities)
   const getPostsForActivity = (activityName: string) => {
     const activityPosts = savedPostsProps.filter(post => post.activityName === activityName && post.activityColor);
@@ -63,6 +64,17 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
       return new Date(bSaveData.savedAt).getTime() - new Date(aSaveData.savedAt).getTime();
     });
   };
+
+  // Get unique activities that actually have posts (only posts with activities)
+  const activitiesWithPosts = activityTags.filter(tag => {
+    return savedPostsProps.some(post => post.activityName === tag.name && post.activityColor);
+  });
+
+  // Get all posts from activities tab (flattened)
+  const allActivityPosts = activitiesWithPosts.reduce((acc: PostCardProps[], category) => {
+    const postsInCategory = getPostsForActivity(category.name);
+    return [...acc, ...postsInCategory];
+  }, []);
 
   // Dynamic Library Post Card for Recent Tab - Pinterest-style with flexible heights
   const DynamicLibraryPostCard = ({ post, onPress }: { post: PostCardProps; onPress: () => void }) => {
@@ -116,7 +128,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
                 }}
               >
                 <Text 
-                  className="text-xs font-medium"
+                  className="text-xs font-light"
                   style={{ 
                     color: post.activityColor ? 'white' : '#000000'
                   }}
@@ -137,13 +149,13 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             
             {/* Bottom Info */}
             <View className="absolute bottom-0 left-0 right-0 p-3 flex-row items-center justify-between">
-              <Text className="text-white text-sm font-medium flex-1 mr-2" numberOfLines={1}>
+              <Text className="text-white text-sm font-normal flex-1 mr-2" numberOfLines={1}>
                 {post.authorName}
               </Text>
               
               <View className="flex-row items-center">
                 <Heart size={14} color="#FFFFFF" fill="none" strokeWidth={2} />
-                <Text className="text-white text-xs ml-1 font-medium">{post.likes}</Text>
+                <Text className="text-white text-xs ml-1 font-light">{post.likes}</Text>
               </View>
             </View>
           </View>
@@ -161,7 +173,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
                 }}
               >
                 <Text 
-                  className="text-xs font-medium"
+                  className="text-xs font-light"
                   style={{ 
                     color: post.activityColor ? 'white' : '#000000'
                   }}
@@ -182,7 +194,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
               
               {/* Bottom Info */}
               <View className="flex-row items-center justify-between">
-                <Text className="text-gray-600 text-sm font-medium flex-1 mr-2" numberOfLines={1}>
+                <Text className="text-gray-600 text-sm font-normal flex-1 mr-2" numberOfLines={1}>
                   {post.authorName}
                 </Text>
                 
@@ -233,7 +245,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
               }}
             >
               <Text 
-                className="text-xs font-medium"
+                className="text-xs font-light"
                 style={{ 
                   color: post.activityColor ? 'white' : '#000000'
                 }}
@@ -254,13 +266,13 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           
           {/* Bottom Info */}
           <View className="absolute bottom-0 left-0 right-0 p-3 flex-row items-center justify-between">
-            <Text className="text-white text-sm font-medium flex-1 mr-2" numberOfLines={1}>
+            <Text className="text-white text-sm font-normal flex-1 mr-2" numberOfLines={1}>
               {post.authorName}
             </Text>
             
             <View className="flex-row items-center">
               <Heart size={14} color="#FFFFFF" fill="none" strokeWidth={2} />
-              <Text className="text-white text-xs ml-1 font-medium">{post.likes}</Text>
+              <Text className="text-white text-xs ml-1 font-light">{post.likes}</Text>
             </View>
           </View>
         </View>
@@ -277,7 +289,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             }}
           >
             <Text 
-              className="text-xs font-medium"
+              className="text-xs font-light"
               style={{ 
                 color: post.activityColor ? 'white' : '#000000'
               }}
@@ -298,7 +310,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           
           {/* Bottom Info */}
           <View className="flex-row items-center justify-between mt-3">
-            <Text className="text-gray-600 text-sm font-medium flex-1 mr-2" numberOfLines={1}>
+            <Text className="text-gray-600 text-sm font-normal flex-1 mr-2" numberOfLines={1}>
               {post.authorName}
             </Text>
             
@@ -312,23 +324,30 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     </TouchableOpacity>
   );
 
-  // Handle post press - for now just log, later can navigate to full post
-  const handlePostPress = (post: PostCardProps) => {
-    console.log('Navigating to post:', post.id);
-    // TODO: Add navigation to full post view
+  // Handle post press - navigate to full post view with context
+  const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent') => {
+    setSelectedPost(post);
+    setFeedContext(context);
+    setShowFullPost(true);
+  };
+
+  // Handle back from full post
+  const handleBackFromFullPost = () => {
+    setShowFullPost(false);
+    setSelectedPost(null);
   };
 
   // Render item for Recent Tab FlatList (2 columns with dynamic height)
   const renderRecentPostItem = ({ item }: { item: PostCardProps }) => (
     <View style={{ width: (width - 32) / 2, marginHorizontal: 4 }}>
-      <DynamicLibraryPostCard post={item} onPress={() => handlePostPress(item)} />
+      <DynamicLibraryPostCard post={item} onPress={() => handlePostPress(item, 'recent')} />
     </View>
   );
 
   // Render item for Activities Tab (fixed height)
   const renderActivityPostItem = ({ item }: { item: PostCardProps }) => (
     <View style={{ width: width / 2 - 8 }}>
-      <FixedLibraryPostCard post={item} onPress={() => handlePostPress(item)} />
+      <FixedLibraryPostCard post={item} onPress={() => handlePostPress(item, 'activities')} />
     </View>
   );
 
@@ -447,6 +466,21 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     );
   };
 
+  // If showing full post, only render that
+  if (showFullPost && selectedPost) {
+    // Determine which posts array to use based on context
+    const postsToShow = feedContext === 'recent' ? sortedByRecent : allActivityPosts;
+    
+    return (
+      <LibraryFeedView
+        selectedPost={selectedPost}
+        allPosts={postsToShow}
+        onBack={handleBackFromFullPost}
+      />
+    );
+  }
+
+  // Otherwise render the main library screen
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
