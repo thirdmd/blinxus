@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePosts } from '../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import PostCard from '../../components/PostCard';
+import LucidPostCard from '../../components/LucidPostCard';
 import MediaGridItem from '../../components/MediaGridItem';
 import MasonryList from '../../components/MasonryList';
 import FullPostView from '../../components/FullPostView';
@@ -248,8 +249,17 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
 
   // Handle media item press
   const handleMediaItemPress = (post: PostCardProps) => {
-    setSelectedPost(post);
-    setShowFullPost(true);
+    // If it's a Lucid post, navigate to dedicated fullscreen
+    if (post.type === 'lucid') {
+      (navigation as any).navigate('LucidFullscreen', {
+        post: post,
+        source: 'explore'
+      });
+    } else {
+      // For regular posts, use existing fullscreen logic
+      setSelectedPost(post);
+      setShowFullPost(true);
+    }
   };
 
   // Handle back from full post
@@ -419,7 +429,11 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
             ref={exploreScrollRef}
             data={filteredPosts}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <PostCard {...item} />}
+            renderItem={({ item }) => 
+              item.type === 'lucid' ? 
+                <LucidPostCard {...item} /> : 
+                <PostCard {...item} />
+            }
             className="flex-1"
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}

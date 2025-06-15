@@ -4,14 +4,14 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Alert,
+  TextInput,
 } from 'react-native';
-import { Navigation, ChevronRight, Calendar, Plus } from 'lucide-react-native';
-import { colors, activityTags } from '../../constants';
-import type { ActivityTag } from '../../constants/activityTags';
-import PillTag from '../../components/PillTag';
+import { Navigation, ChevronRight, Plus, Calendar, Image } from 'lucide-react-native';
+import { colors } from '../../constants';
+import { activityTags, ActivityKey } from '../../constants/activityTags';
 import Button from '../../components/Button';
+import { usePosts } from '../../store/PostsContext';
 
 interface CreateLucidsProps {
   navigation: {
@@ -21,10 +21,16 @@ interface CreateLucidsProps {
 }
 
 const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucidsProps, ref) => {
+  const { addPost } = usePosts();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
-  const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
-  const [tripTitle, setTripTitle] = useState<string>('');
-  const [duration, setDuration] = useState<number>(3);
+  const [durationMode, setDurationMode] = useState<'days' | 'dates'>('days');
+  const [duration, setDuration] = useState<number>(1);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [dayPhotos, setDayPhotos] = useState<{[key: number]: string[]}>({});
+
+  const minDuration = 1;
+  const maxDuration = 30;
 
   const handleLocationPress = () => {
     Alert.prompt(
@@ -46,127 +52,429 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
     );
   };
 
-  const handleActivitySelect = (activityId: number) => {
-    setSelectedActivity(activityId === selectedActivity ? null : activityId);
-  };
-
   useImperativeHandle(ref, () => ({
     handleSubmit: handleCreateLucid
-  }), [selectedLocation, selectedActivity, tripTitle, duration]);
+  }), [selectedLocation, duration]);
 
   useEffect(() => {
-    const isValid = selectedLocation && tripTitle;
+    const isValid = selectedLocation;
     onValidationChange(!!isValid);
-  }, [selectedLocation, tripTitle]);
+  }, [selectedLocation]);
+
+  // Calculate duration from dates
+  const calculateDurationFromDates = () => {
+    if (startDate && endDate) {
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      return Math.min(diffDays, maxDuration);
+    }
+    return 1;
+  };
+
+  // Handle date selection with more options
+  const handleDateSelection = (type: 'start' | 'end') => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    const nextMonth = new Date(today);
+    nextMonth.setDate(today.getDate() + 30);
+    
+    Alert.alert(
+      `Select ${type} date`,
+      'Choose a date:',
+      [
+        {
+          text: `Today (${formatDate(today)})`,
+          onPress: () => {
+            if (type === 'start') {
+              setStartDate(today);
+            } else {
+              setEndDate(today);
+            }
+          }
+        },
+        {
+          text: `Tomorrow (${formatDate(tomorrow)})`,
+          onPress: () => {
+            if (type === 'start') {
+              setStartDate(tomorrow);
+            } else {
+              setEndDate(tomorrow);
+            }
+          }
+        },
+        {
+          text: `Next Week (${formatDate(nextWeek)})`,
+          onPress: () => {
+            if (type === 'start') {
+              setStartDate(nextWeek);
+            } else {
+              setEndDate(nextWeek);
+            }
+          }
+        },
+        {
+          text: `Next Month (${formatDate(nextMonth)})`,
+          onPress: () => {
+            if (type === 'start') {
+              setStartDate(nextMonth);
+            } else {
+              setEndDate(nextMonth);
+            }
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Handle photo selection for a specific day
+  const handleDayPhotoSelection = (dayIndex: number) => {
+    // Check if photos already exist for this day
+    if (dayPhotos[dayIndex]) {
+      // If photos exist, remove them
+      setDayPhotos(prev => {
+        const updated = { ...prev };
+        delete updated[dayIndex];
+        return updated;
+      });
+    } else {
+      // Automatically add 4 photos without popup
+      const mockPhotos = [
+        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 1}`,
+        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 2}`,
+        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 3}`,
+        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 4}`,
+      ];
+      setDayPhotos(prev => ({
+        ...prev,
+        [dayIndex]: mockPhotos
+      }));
+    }
+  };
 
   const handleCreateLucid = () => {
-    if (!selectedLocation || !tripTitle) {
+    if (!selectedLocation) {
       return;
     }
     
-    console.log('Creating Lucids...', {
-      title: tripTitle,
-      location: selectedLocation,
-      activity: selectedActivity,
-      duration,
-    });
-    
-    navigation.goBack();
+    try {
+      const finalDuration = durationMode === 'dates' ? calculateDurationFromDates() : duration;
+      
+      // Generate all images from all days (4 images per day)
+      const allImages: string[] = [];
+      for (let day = 0; day < finalDuration; day++) {
+        // Generate 4 images per day
+        for (let img = 0; img < 4; img++) {
+          allImages.push(`https://picsum.photos/400/600?random=${Date.now() + (day * 10) + img}`);
+        }
+      }
+      
+      addPost({
+        authorId: 'current_user',
+        authorName: 'Third Camacho',
+        authorNationalityFlag: '🇵🇭',
+        type: 'lucid',
+        title: selectedLocation.trim(), // Use destination as exact title
+        content: undefined, // No content needed, title is enough
+        images: allImages,
+        location: selectedLocation.trim(),
+        // For now, no specific activity - can be added later
+        activity: undefined,
+      });
+      
+      navigation.goBack();
+    } catch (error) {
+      console.log('Error creating Lucid:', error);
+    }
   };
 
   return (
-    <ScrollView className="flex-1 px-6 pt-2" showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingTop: 8 }} showsVerticalScrollIndicator={false}>
       {/* Location */}
-      <View className="mb-6">
+      <View style={{ marginBottom: 24 }}>
         <TouchableOpacity
           onPress={handleLocationPress}
-          className={`bg-gray-50 rounded-2xl p-4 flex-row items-center ${
-            selectedLocation ? 'border-2 border-black' : ''
-          }`}
-          activeOpacity={0.3}
+          style={{
+            backgroundColor: colors.lightGrayBg,
+            borderRadius: 16,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: selectedLocation ? 2 : 0,
+            borderColor: selectedLocation ? colors.richBlack : 'transparent',
+          }}
+          activeOpacity={0.7}
         >
           <Navigation 
             size={16} 
-            color={selectedLocation ? '#000000' : '#6B7280'} 
+            color={selectedLocation ? colors.richBlack : colors.mediumGray} 
             strokeWidth={1.5} 
           />
-          <Text className={`ml-3 flex-1 text-base ${
-            selectedLocation ? 'text-black font-light' : 'text-gray-500 font-light'
-          }`}>
+          <Text style={{
+            marginLeft: 12,
+            flex: 1,
+            fontSize: 16,
+            color: selectedLocation ? colors.richBlack : colors.mediumGray,
+            fontWeight: '400',
+          }}>
             {selectedLocation || 'Destination'}
           </Text>
-          <ChevronRight size={20} color="#6B7280" strokeWidth={1.5} />
+          <ChevronRight size={20} color={colors.mediumGray} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
 
-      {/* Trip Title */}
-      <View className="mb-6">
-        <View className="bg-gray-50 rounded-2xl p-4">
-          <TextInput
-            value={tripTitle}
-            onChangeText={setTripTitle}
-            placeholder="Trip title"
-            className="text-base text-black font-light"
-            placeholderTextColor="#6B7280"
-          />
+      {/* Duration Mode Selection */}
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ fontSize: 16, fontWeight: '400', color: colors.richBlack, marginBottom: 12 }}>
+          Duration
+        </Text>
+        
+        {/* Mode Toggle */}
+        <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: colors.subtleGray, borderRadius: 12, padding: 4 }}>
+          <TouchableOpacity
+            onPress={() => setDurationMode('days')}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 8,
+              backgroundColor: durationMode === 'days' ? colors.white : 'transparent',
+              alignItems: 'center',
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={{
+              color: durationMode === 'days' ? colors.richBlack : colors.mediumGray,
+              fontWeight: '500',
+            }}>
+              Days
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setDurationMode('dates')}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 8,
+              backgroundColor: durationMode === 'dates' ? colors.white : 'transparent',
+              alignItems: 'center',
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={{
+              color: durationMode === 'dates' ? colors.richBlack : colors.mediumGray,
+              fontWeight: '500',
+            }}>
+              Dates
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Duration */}
-      <View className="mb-6">
-        <Text className="text-base font-light text-black mb-3">Duration</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((day) => (
-            <TouchableOpacity
-              key={day}
-              onPress={() => setDuration(day)}
-              className={`px-4 py-2 rounded-full ${
-                duration === day ? 'bg-black' : 'bg-gray-100'
-              }`}
-              activeOpacity={0.3}
-            >
-              <Text
-                className={`text-sm font-light ${
-                  duration === day ? 'text-white' : 'text-gray-600'
-                }`}
-              >
-                {day}d
+        {/* Duration Input */}
+        {durationMode === 'days' ? (
+          <View style={{ backgroundColor: colors.lightGrayBg, borderRadius: 16, padding: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 18, fontWeight: '400', color: colors.richBlack }}>
+                {duration} days
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Activity Tags */}
-      <View className="mb-6">
-        <Text className="text-base font-light text-black mb-3">Activity</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {activityTags.map((tag: ActivityTag) => (
-            <PillTag
-              key={tag.id}
-              label={tag.name}
-              color={tag.color}
-              selected={selectedActivity === tag.id}
-              onPress={() => handleActivitySelect(tag.id)}
-              size="medium"
-              isCreatePage={true}
-            />
-          ))}
-        </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity
+                  onPress={() => duration > minDuration && setDuration(duration - 1)}
+                  style={{
+                    backgroundColor: colors.white,
+                    borderRadius: 8,
+                    padding: 8,
+                    marginRight: 8,
+                    opacity: duration > minDuration ? 1 : 0.5,
+                  }}
+                >
+                  <Text style={{ fontSize: 16, color: colors.richBlack, fontWeight: 'bold' }}>-</Text>
+                </TouchableOpacity>
+                
+                <TextInput
+                  value={duration.toString()}
+                  onChangeText={(text) => {
+                    // Allow empty string for editing
+                    if (text === '') {
+                      return;
+                    }
+                    
+                    const num = parseInt(text);
+                    // Only update if it's a valid number within range
+                    if (!isNaN(num) && num >= minDuration && num <= maxDuration) {
+                      setDuration(num);
+                    }
+                  }}
+                  onBlur={() => {
+                    // If field is empty on blur, reset to minimum
+                    if (duration < minDuration || isNaN(duration)) {
+                      setDuration(minDuration);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: colors.white,
+                    borderRadius: 8,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    textAlign: 'center',
+                    fontSize: 16,
+                    color: colors.richBlack,
+                    fontWeight: '400',
+                    minWidth: 50,
+                    marginRight: 8,
+                  }}
+                  keyboardType="numeric"
+                  maxLength={2}
+                  selectTextOnFocus={true}
+                />
+                
+                <TouchableOpacity
+                  onPress={() => duration < maxDuration && setDuration(duration + 1)}
+                  style={{
+                    backgroundColor: colors.white,
+                    borderRadius: 8,
+                    padding: 8,
+                    opacity: duration < maxDuration ? 1 : 0.5,
+                  }}
+                >
+                  <Text style={{ fontSize: 16, color: colors.richBlack, fontWeight: 'bold' }}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={{ backgroundColor: colors.lightGrayBg, borderRadius: 16, padding: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+              <TouchableOpacity
+                onPress={() => handleDateSelection('start')}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: colors.white,
+                  borderRadius: 12,
+                  padding: 12,
+                }}
+                activeOpacity={0.7}
+              >
+                <Calendar size={16} color={colors.mediumGray} strokeWidth={1.5} />
+                <Text style={{ 
+                  marginLeft: 8, 
+                  color: startDate ? colors.richBlack : colors.mediumGray,
+                  fontSize: 14,
+                  fontWeight: '400',
+                }}>
+                  {startDate ? formatDate(startDate) : 'Start date'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => handleDateSelection('end')}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: colors.white,
+                  borderRadius: 12,
+                  padding: 12,
+                }}
+                activeOpacity={0.7}
+              >
+                <Calendar size={16} color={colors.mediumGray} strokeWidth={1.5} />
+                <Text style={{ 
+                  marginLeft: 8, 
+                  color: endDate ? colors.richBlack : colors.mediumGray,
+                  fontSize: 14,
+                  fontWeight: '400',
+                }}>
+                  {endDate ? formatDate(endDate) : 'End date'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            {startDate && endDate && (
+              <Text style={{ 
+                textAlign: 'center', 
+                color: colors.mediumGray, 
+                fontSize: 14,
+                fontWeight: '400',
+              }}>
+                Duration: {calculateDurationFromDates()} days
+              </Text>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Days Preview */}
-      <View className="mb-8">
-        <Text className="text-base font-light text-black mb-3">Days</Text>
-        <View className="space-y-2">
-          {Array.from({ length: duration }, (_, i) => (
-            <View key={i} className="bg-gray-50 rounded-2xl p-4 flex-row items-center justify-between">
-              <Text className="text-black font-light">Day {i + 1}</Text>
+      <View style={{ marginBottom: 32 }}>
+        <Text style={{ fontSize: 16, fontWeight: '400', color: colors.richBlack, marginBottom: 12 }}>
+          Days
+        </Text>
+        <View>
+          {Array.from({ length: durationMode === 'dates' ? calculateDurationFromDates() : duration }, (_, i) => (
+            <View key={i} style={{
+              backgroundColor: colors.lightGrayBg,
+              borderRadius: 16,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 8,
+            }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: colors.richBlack, fontWeight: '400' }}>
+                  Day {i + 1}
+                  {durationMode === 'dates' && startDate && (
+                    <Text style={{ color: colors.mediumGray, fontSize: 14 }}>
+                      {' '}• {formatDate(new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000))}
+                    </Text>
+                  )}
+                </Text>
+                {dayPhotos[i] && (
+                  <Text style={{ color: colors.mediumGray, fontSize: 12, marginTop: 2 }}>
+                    {dayPhotos[i].length} photos added
+                  </Text>
+                )}
+              </View>
               <TouchableOpacity 
-                className="bg-gray-200 rounded-full p-1"
-                activeOpacity={0.3}
+                onPress={() => handleDayPhotoSelection(i)}
+                style={{
+                  backgroundColor: dayPhotos[i] ? colors.cobalt : colors.subtleGray,
+                  borderRadius: 20,
+                  padding: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+                activeOpacity={0.7}
               >
-                <Plus size={16} color="#6B7280" strokeWidth={1.5} />
+                {dayPhotos[i] ? (
+                  <>
+                    <Image size={14} color={colors.white} strokeWidth={1.5} />
+                    <Text style={{ 
+                      color: colors.white, 
+                      fontSize: 12, 
+                      marginLeft: 4,
+                      fontWeight: '500'
+                    }}>
+                      {dayPhotos[i].length}
+                    </Text>
+                  </>
+                ) : (
+                  <Plus size={16} color={colors.mediumGray} strokeWidth={1.5} />
+                )}
               </TouchableOpacity>
             </View>
           ))}

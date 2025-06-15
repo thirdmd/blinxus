@@ -16,6 +16,7 @@ import { usePosts } from '../../store/PostsContext';
 import { useSavedPosts } from '../../store/SavedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import LibraryFeedView from '../../components/LibraryFeedView';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,8 @@ interface LibraryProps {
 }
 
 export default function Library({ onBackPress }: LibraryProps = {}) {
+  const navigation = useNavigation();
+  
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
   
@@ -138,6 +141,15 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
                 </Text>
               </View>
             </View>
+            
+            {/* Lucid Album Indicator - Top Right */}
+            {post.type === 'lucid' && (
+              <View className="absolute top-3 right-3">
+                <View className="px-2 py-0.5 bg-blue-600/90 rounded-full">
+                  <Text className="text-white text-xs font-medium">ALBUM</Text>
+                </View>
+              </View>
+            )}
             
             {/* Gradient Overlay for better text visibility */}
             <View 
@@ -256,6 +268,15 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             </View>
           </View>
           
+          {/* Lucid Album Indicator - Top Right */}
+          {post.type === 'lucid' && (
+            <View className="absolute top-3 right-3">
+              <View className="px-2 py-0.5 bg-blue-600/90 rounded-full">
+                <Text className="text-white text-xs font-medium">ALBUM</Text>
+              </View>
+            </View>
+          )}
+          
           {/* Gradient Overlay for better text visibility */}
           <View 
             className="absolute bottom-0 left-0 right-0 h-12"
@@ -326,9 +347,18 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
   // Handle post press - navigate to full post view with context
   const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent') => {
-    setSelectedPost(post);
-    setFeedContext(context);
-    setShowFullPost(true);
+    // If it's a Lucid post, navigate to dedicated fullscreen
+    if (post.type === 'lucid') {
+      (navigation as any).navigate('LucidFullscreen', {
+        post: post,
+        source: 'library' // Pass source information for proper back navigation
+      });
+    } else {
+      // For regular posts, use existing fullscreen logic
+      setSelectedPost(post);
+      setFeedContext(context);
+      setShowFullPost(true);
+    }
   };
 
   // Handle back from full post
@@ -466,9 +496,8 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     );
   };
 
-  // If showing full post, only render that
-  if (showFullPost && selectedPost) {
-    // Determine which posts array to use based on context
+  // If showing full post, only render that (only for regular posts now, Lucids navigate to dedicated screen)
+  if (showFullPost && selectedPost && selectedPost.type !== 'lucid') {
     const postsToShow = feedContext === 'recent' ? sortedByRecent : allActivityPosts;
     
     return (

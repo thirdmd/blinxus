@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import PostCard from './PostCard';
+import LucidPostCard from './LucidPostCard';
 import { PostCardProps } from '../types/structures/posts_structure';
 
 interface LibraryFeedViewProps {
@@ -56,7 +57,10 @@ const LibraryFeedView: React.FC<LibraryFeedViewProps> = ({
         {/* Render all posts in original order */}
         {postsToShow.map((post, index) => (
           <View key={`${post.id}-${index}`}>
-            <PostCard {...post} />
+            {post.type === 'lucid' ? 
+              <LucidPostCard {...post} /> : 
+              <PostCard {...post} />
+            }
             {/* Add spacing between posts except for the last one */}
             {index < postsToShow.length - 1 && (
               <View className="h-4 bg-gray-50" />

@@ -13,6 +13,7 @@ import ScrollContext from './blinxus/src/contexts/ScrollContext';
 import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
 import ProfileScreen, { ProfileScreenRef } from './blinxus/src/screens/Profile/ProfileScreen';
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
+import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
 
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
@@ -153,6 +154,14 @@ function RootNavigator() {
       <RootStack.Screen 
         name="CreatePost" 
         component={CreatePost}
+        options={{
+          presentation: 'modal',
+          gestureEnabled: true,
+        }}
+      />
+      <RootStack.Screen 
+        name="LucidFullscreen" 
+        component={LucidFullscreen}
         options={{
           presentation: 'modal',
           gestureEnabled: true,

@@ -99,5 +99,45 @@ export const initialPostsData: Post[] = [
     timeAgo: '1d',
     likes: 89,
     comments: 12
+  },
+  {
+    id: '6',
+    authorId: 'current_user',
+    authorName: 'Third Camacho',
+    authorNationalityFlag: '🇵🇭',
+    type: 'lucid',
+    title: 'Siargao Island',
+    content: undefined,
+    images: [
+      'https://picsum.photos/400/600?random=100',
+      'https://picsum.photos/400/600?random=101',
+      'https://picsum.photos/400/600?random=102'
+    ],
+    location: 'Siargao Island, Philippines',
+    activity: 'aquatics',
+    timestamp: '2025-01-07T16:45:00Z',
+    timeAgo: '2d',
+    likes: 324,
+    comments: 28
+  },
+  {
+    id: '7',
+    authorId: 'user303',
+    authorName: 'Isabella Chen',
+    authorNationalityFlag: '🇨🇳',
+    type: 'lucid',
+    title: 'Kyoto',
+    content: undefined,
+    images: [
+      'https://picsum.photos/400/600?random=200',
+      'https://picsum.photos/400/600?random=201',
+      'https://picsum.photos/400/600?random=202'
+    ],
+    location: 'Kyoto, Japan',
+    activity: 'cultural',
+    timestamp: '2025-01-06T12:30:00Z',
+    timeAgo: '3d',
+    likes: 267,
+    comments: 19
   }
 ];

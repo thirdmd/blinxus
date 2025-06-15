@@ -2,8 +2,10 @@ import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import PostCard from './PostCard';
+import LucidPostCard from './LucidPostCard';
 import { PostCardProps, mapPostToCardProps } from '../types/structures/posts_structure';
 import { usePosts } from '../store/PostsContext';
+import { useNavigation } from '@react-navigation/native';
 
 interface FullPostViewProps {
   post: PostCardProps;
@@ -13,6 +15,7 @@ interface FullPostViewProps {
 
 const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomComponent }) => {
   const { posts } = usePosts();
+  const navigation = useNavigation();
   
   // Get the latest version of the post from the context
   const latestPost = posts.find(p => p.id === post.id);
@@ -31,6 +34,18 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
     return null;
   }
 
+  // If it's a Lucid post, navigate to dedicated fullscreen instead
+  useEffect(() => {
+    if (latestPost && latestPost.type === 'lucid') {
+      (navigation as any).navigate('LucidFullscreen', {
+        post: currentPostProps,
+        source: 'fullpost'
+      });
+      // Go back from current view since we're navigating to new screen
+      onBack();
+    }
+  }, [latestPost, currentPostProps, navigation, onBack]);
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView 
@@ -43,7 +58,10 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
         removeClippedSubviews={true}
       >
         {/* Full Post Card - Using latest post data */}
-        <PostCard {...currentPostProps} />
+        {currentPostProps.type === 'lucid' ? 
+          <LucidPostCard {...currentPostProps} /> : 
+          <PostCard {...currentPostProps} />
+        }
         
         {/* Bottom Component (Explore header + grid) */}
         {bottomComponent}

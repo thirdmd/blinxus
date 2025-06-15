@@ -3,8 +3,9 @@ import ProfileStructure from '../../types/structures/profile_structure';
 import { profileData } from '../../types/userData/profile_data';
 import { usePosts } from '../../store/PostsContext';
 import ProfileSettings from '../Settings/profile_settings';
+import Library from './Library';
 import { useScrollContext } from '../../contexts/ScrollContext';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 
 export interface ProfileScreenRef {
   resetToTop: () => void;
@@ -13,9 +14,11 @@ export interface ProfileScreenRef {
 const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   const [activeTab, setActiveTab] = useState<'feed' | 'lucids' | 'posts'>('feed');
   const [showSettings, setShowSettings] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const { posts } = usePosts();
   const { profileScrollRef } = useScrollContext();
   const navigation = useNavigation();
+  const route = useRoute();
   
   // Create a ref to hold the reset function from ProfileStructure
   const profileStructureResetRef = useRef<(() => void) | null>(null);
@@ -49,15 +52,28 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Auto-reset to top when navigating to Profile from PostCard
   useFocusEffect(
     React.useCallback(() => {
-      // Always reset to top when Profile screen is focused
-      // This ensures clicking profile names/pictures always goes to top
-      resetToTop();
-    }, [])
+      // Check if we should show Library (coming from LucidFullscreen)
+      const params = route.params as any;
+      if (params?.showLibrary) {
+        setShowLibrary(true);
+        // Clear the parameter to prevent it from persisting
+        (navigation as any).setParams({ showLibrary: undefined });
+      } else {
+        // Always reset to top when Profile screen is focused normally
+        // This ensures clicking profile names/pictures always goes to top
+        resetToTop();
+      }
+    }, [route.params])
   );
 
   // Debug logging
   console.log('ProfileScreen - profileData:', profileData);
   console.log('ProfileScreen - posts:', posts);
+
+  // Show library screen if showLibrary is true
+  if (showLibrary) {
+    return <Library onBackPress={() => setShowLibrary(false)} />;
+  }
 
   // Show settings screen if showSettings is true
   if (showSettings) {

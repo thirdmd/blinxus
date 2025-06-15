@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { PostCardProps } from '../types/structures/posts_structure';
-import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag, Edit, X, Check } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag, Edit, X, Check, MapPin } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { activityTags, ActivityKey } from '../constants/activityTags';
@@ -9,9 +9,14 @@ import type { ActivityTag } from '../constants/activityTags';
 import PillTag from './PillTag';
 import { useNavigation } from '@react-navigation/native';
 
-interface PostCardComponentProps extends PostCardProps {}
+interface LucidPostCardProps extends PostCardProps {
+  // Additional props specific to Lucids
+  duration?: number;
+  dayCount?: number;
+  isLucidPost?: boolean;
+}
 
-const PostCard: React.FC<PostCardComponentProps> = ({
+const LucidPostCard: React.FC<LucidPostCardProps> = ({
   id,
   authorName,
   authorNationalityFlag,
@@ -29,7 +34,10 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   editAttempts,
   locationEditCount,
   activityEditCount,
-  activity
+  activity,
+  duration,
+  dayCount,
+  isLucidPost = true
 }) => {
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
@@ -60,20 +68,15 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
   // Future-proof profile navigation handler
   const handleProfilePress = () => {
-    // For now, only Third Camacho has a profile since no authentication/backend yet
-    // In the future, this will navigate to any user's profile based on authorName/authorId
     if (authorName === 'Third Camacho') {
-      // Navigate to Profile - the profile will handle resetting to top
       navigation.navigate('Profile' as never);
     }
-    // TODO: When backend is implemented, add logic for other users:
-    // navigation.navigate('UserProfile', { userId: authorId, userName: authorName });
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Post',
-      'Are you sure you want to delete this post?',
+      'Delete Lucid',
+      'Are you sure you want to delete this Lucid post?',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -92,15 +95,11 @@ const PostCard: React.FC<PostCardComponentProps> = ({
     const currentContent = content || '';
     const currentLocation = location;
     
-    // Set current values
     setEditContent(currentContent);
     setEditLocation(currentLocation);
-    
-    // Set original values for comparison
     setOriginalContent(currentContent);
     setOriginalLocation(currentLocation);
     
-    // Set current activity selection
     if (activity) {
       const currentActivityTag = activityTags.find(tag => {
         const activityKeyMap: { [key: string]: ActivityKey } = {
@@ -130,7 +129,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   };
 
   const handleActivitySelect = (activityId: number) => {
-    if (!canEditActivity) return; // Prevent selection if activity already edited once
+    if (!canEditActivity) return;
     setEditActivity(activityId === editActivity ? null : activityId);
   };
 
@@ -140,7 +139,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
       return;
     }
 
-    // Convert activity ID to ActivityKey for post update
     let activityKey: ActivityKey | undefined = undefined;
     if (editActivity) {
       const activityTag = activityTags.find(tag => tag.id === editActivity);
@@ -183,7 +181,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
   const handleReport = () => {
     Alert.alert(
-      'Report Post',
+      'Report Lucid',
       'This feature will be available soon.',
       [{ text: 'OK', onPress: () => setOpenMenu(false) }]
     );
@@ -200,8 +198,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   };
 
   const handleComment = () => {
-    // For now, just increment comment count
-    // In the future, this could open a comment modal
     addComment(id);
     Alert.alert(
       'Comment Added',
@@ -210,9 +206,40 @@ const PostCard: React.FC<PostCardComponentProps> = ({
     );
   };
 
+  const handleImagePress = () => {
+    // Navigate to dedicated fullscreen instead of showing inline
+    (navigation as any).navigate('LucidFullscreen', {
+      post: {
+        id,
+        authorName,
+        authorNationalityFlag,
+        authorProfileImage,
+        content,
+        images,
+        device,
+        location,
+        activityName,
+        activityColor,
+        timeAgo,
+        likes,
+        comments,
+        isEdited,
+        editAttempts,
+        locationEditCount,
+        activityEditCount,
+        activity,
+        type: 'lucid',
+        authorId: '',
+        timestamp: '',
+        title: undefined
+      },
+      source: 'feed' // Default source for LucidPostCard
+    });
+  };
+
   return (
     <View>
-      {/* Edit Modal - Minimalist Design */}
+      {/* Edit Modal - Same as PostCard for now */}
       <Modal
         visible={showEditModal}
         animationType="slide"
@@ -220,7 +247,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
         onRequestClose={handleCancelEdit}
       >
         <View className="flex-1 bg-white">
-          {/* Header - Minimal */}
           <View className="flex-row items-center justify-between px-6 pt-6 pb-4">
             <TouchableOpacity
               onPress={handleCancelEdit}
@@ -240,14 +266,12 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Title Section */}
           <View className="px-6 pb-8">
-            <Text className="text-2xl font-normal text-black">Edit Post</Text>
+            <Text className="text-2xl font-normal text-black">Edit Lucid</Text>
             <Text className="text-sm text-gray-400 font-light mt-2">
-              Update your caption and location
+              Update your Lucid post details
             </Text>
             
-            {/* First-time edit warning - More opaque, consistent styling */}
             {(canEditLocation || canEditActivity) && (
               <View className="mt-6 p-4 rounded-lg" style={{ backgroundColor: '#FEF3C7' }}>
                 <Text className="text-sm font-light" style={{ color: '#92400E' }}>
@@ -257,9 +281,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             )}
           </View>
 
-          {/* Modal Content */}
           <View className="flex-1 px-6">
-            {/* Caption Section */}
             <View className="mb-10">
               <Text className="text-base font-normal text-black mb-4">
                 CAPTION
@@ -269,7 +291,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                 <TextInput
                   value={editContent}
                   onChangeText={setEditContent}
-                  placeholder="Share your thoughts..."
+                  placeholder="Share your Lucid experience..."
                   multiline
                   numberOfLines={4}
                   className="text-base text-black font-light"
@@ -282,7 +304,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
               </View>
             </View>
 
-            {/* Location Section */}
             <View className="mb-10">
               <Text className="text-base font-normal text-black mb-4">
                 LOCATION
@@ -309,7 +330,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
               </View>
             </View>
 
-            {/* Activity Section */}
             <View className="mb-10">
               <Text className="text-base font-normal text-black mb-4">
                 ACTIVITY
@@ -344,7 +364,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
         </View>
       </Modal>
 
-      {/* Overlay to close menu when tapping outside */}
+      {/* Overlay to close menu */}
       {openMenu && (
         <TouchableOpacity
           onPress={() => setOpenMenu(false)}
@@ -360,12 +380,11 @@ const PostCard: React.FC<PostCardComponentProps> = ({
         />
       )}
 
-      {/* Card Container - Pure white, minimal border */}
+      {/* Lucid Card Container - Special styling for Lucids */}
       <View className="bg-white border-b border-gray-100">
-        {/* Header */}
+        {/* Header with Lucid indicator */}
         <View className="flex-row items-start justify-between p-6">
           <View className="flex-row flex-1">
-            {/* Avatar - Simple circle */}
             <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
               <View className="h-12 w-12 rounded-full overflow-hidden mr-4">
                 {authorProfileImage ? (
@@ -380,7 +399,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
               </View>
             </TouchableOpacity>
             
-            {/* User Info */}
             <View className="flex-1">
               <View className="flex-row items-center">
                 <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
@@ -389,20 +407,24 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                 {authorNationalityFlag && (
                   <Text className="ml-2 text-base font-light">{authorNationalityFlag}</Text>
                 )}
+                {/* Lucid Badge */}
+                <View className="ml-2 px-2 py-0.5 bg-blue-100 rounded-full">
+                  <Text className="text-blue-600 text-xs font-medium">LUCID</Text>
+                </View>
               </View>
               
-              {/* Location Pill - Minimal with activity color */}
               <View className="flex-row items-center mt-1">
                 <View 
-                  className="px-1.5 py-0.5 rounded-full mr-3"
+                  className="px-1.5 py-0.5 rounded-full mr-3 flex-row items-center"
                   style={{ 
                     backgroundColor: activityColor || 'transparent',
                     borderWidth: activityColor ? 0 : 0.5,
                     borderColor: activityColor ? 'transparent' : '#000000'
                   }}
                 >
+                  <MapPin size={12} color={activityColor ? 'white' : '#000000'} />
                   <Text 
-                    className="text-sm font-light"
+                    className="text-sm font-light ml-1"
                     style={{ 
                       color: activityColor ? 'white' : '#000000'
                     }}
@@ -410,6 +432,11 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                     {location}
                   </Text>
                 </View>
+                {duration && (
+                  <Text className="text-gray-400 text-sm font-light mr-2">
+                    {duration} days
+                  </Text>
+                )}
                 <Text className="text-gray-400 text-sm font-light">{timeAgo}</Text>
                 {isEdited && (
                   <Text className="text-gray-400 text-sm font-light ml-1">• edited</Text>
@@ -418,7 +445,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             </View>
           </View>
           
-          {/* More Options */}
           <TouchableOpacity 
             onPress={() => setOpenMenu(!openMenu)}
             className="p-2"
@@ -428,7 +454,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             <MoreVertical size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
-          {/* Dropdown Menu - Minimal */}
+          {/* Dropdown Menu */}
           {openMenu && (
             <View className="absolute top-14 right-6 bg-white border border-gray-200 rounded-lg py-2 z-10 min-w-32">
               {isCurrentUserPost ? (
@@ -466,28 +492,33 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
 
 
-        {/* Image */}
+        {/* Image - Clickable for Lucid Album */}
         {images && images.length > 0 && (
-          <View className="relative">
-            <Image 
-              source={{ uri: images[0] }} 
-              className="w-full h-80" 
-              resizeMode="cover" 
-            />
-            {device && (
-              <View className="absolute bottom-4 right-4 px-3 py-2 bg-white/90 rounded-full flex-row items-center">
-                <Camera size={14} color="#000000" style={{ marginRight: 4 }} />
-                <Text className="text-black text-xs font-light">
-                  {device}
-                </Text>
+          <TouchableOpacity onPress={handleImagePress} activeOpacity={0.95}>
+            <View className="relative">
+              <Image 
+                source={{ uri: images[0] }} 
+                className="w-full h-80" 
+                resizeMode="cover" 
+              />
+              {/* Lucid Album Indicator */}
+              <View className="absolute top-4 left-4 px-3 py-1 bg-blue-600/90 rounded-full">
+                <Text className="text-white text-xs font-medium">ALBUM</Text>
               </View>
-            )}
-          </View>
+              {device && (
+                <View className="absolute bottom-4 right-4 px-3 py-2 bg-white/90 rounded-full flex-row items-center">
+                  <Camera size={14} color="#000000" style={{ marginRight: 4 }} />
+                  <Text className="text-black text-xs font-light">
+                    {device}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
         )}
 
-        {/* Interaction Bar - Edge to Edge */}
+        {/* Interaction Bar */}
         <View className="flex-row items-center justify-between px-6 py-4">
-          {/* Like Button */}
           <TouchableOpacity 
             onPress={handleLike}
             className="flex-row items-center"
@@ -504,7 +535,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {/* Comment Button */}
           <TouchableOpacity 
             onPress={handleComment}
             className="flex-row items-center"
@@ -515,7 +545,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             <Text className="ml-2 text-gray-500 text-sm font-light">{comments}</Text>
           </TouchableOpacity>
 
-          {/* Share Button */}
           <TouchableOpacity
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.3}
@@ -523,7 +552,6 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             <Send size={20} color="#6B7280" />
           </TouchableOpacity>
 
-          {/* Save Button */}
           <TouchableOpacity 
             onPress={() => {
               if (isPostSaved(id)) {
@@ -547,4 +575,4 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   );
 };
 
-export default PostCard;
+export default LucidPostCard; 

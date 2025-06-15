@@ -15,6 +15,7 @@ import { ProfileDataType } from '../userData/profile_data';
 import { Post } from '../userData/posts_data';
 import { mapPostToCardProps } from './posts_structure';
 import PostCard from '../../components/PostCard';
+import LucidPostCard from '../../components/LucidPostCard';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
@@ -159,34 +160,39 @@ export default function ProfileStructure({
     return <Library onBackPress={() => setShowLibrary(false)} />;
   }
 
-  // If in fullscreen mode, show fullscreen view
-  if (isFullscreen && activeTab === 'feed') {
-    return (
-      <SafeAreaView className="flex-1 bg-white">
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        
-        {/* Back Button Header */}
-        <View className="px-6 pt-4 pb-4">
-          <TouchableOpacity
-            onPress={() => setIsFullscreen(false)}
-            className="w-10 h-10 -ml-2 items-center justify-center"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <ChevronLeft size={24} color="#000000" strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
+  // If in fullscreen mode for regular posts (non-Lucid), show fullscreen view
+  if (isFullscreen && (activeTab === 'feed' || activeTab === 'lucids')) {
+    const selectedPost = userMediaPosts[selectedPostIndex];
+    
+    // Only show fullscreen for regular posts (Lucid posts navigate to dedicated screen)
+    if (selectedPost && selectedPost.type !== 'lucid') {
+      return (
+        <SafeAreaView className="flex-1 bg-white">
+          <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+          
+          {/* Back Button Header */}
+          <View className="px-6 pt-4 pb-4">
+            <TouchableOpacity
+              onPress={() => setIsFullscreen(false)}
+              className="w-10 h-10 -ml-2 items-center justify-center"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ChevronLeft size={24} color="#000000" strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
 
-        {/* Fullscreen Posts List */}
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {userMediaPosts.map((post) => {
-            const postCardProps = mapPostToCardProps(post);
-            return (
-              <PostCard key={post.id} {...postCardProps} />
-            );
-          })}
-        </ScrollView>
-      </SafeAreaView>
-    );
+          {/* Fullscreen Posts List */}
+          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+            {userMediaPosts.filter(post => post.type !== 'lucid').map((post) => {
+              const postCardProps = mapPostToCardProps(post);
+              return (
+                <PostCard key={post.id} {...postCardProps} />
+              );
+            })}
+          </ScrollView>
+        </SafeAreaView>
+      );
+    }
   }
 
   return (
@@ -375,7 +381,9 @@ export default function ProfileStructure({
               
               return userPosts.map((post) => {
                 const postCardProps = mapPostToCardProps(post);
-                return (
+                return post.type === 'lucid' ? (
+                  <LucidPostCard key={post.id} {...postCardProps} />
+                ) : (
                   <PostCard key={post.id} {...postCardProps} />
                 );
               });
@@ -423,10 +431,20 @@ export default function ProfileStructure({
                       className="px-0.5 mb-1"
                       style={{ width: width / 3 - 16 }}
                       onPress={() => {
-                        if (activeTab === 'feed') {
-                          const postIndex = userMediaPosts.findIndex(p => p.id === post.id);
-                          setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-                          setIsFullscreen(true);
+                        if (activeTab === 'feed' || activeTab === 'lucids') {
+                          // If it's a Lucid post, navigate to dedicated fullscreen
+                          if (post.type === 'lucid') {
+                            const postCardProps = mapPostToCardProps(post);
+                            (navigation as any).navigate('LucidFullscreen', {
+                              post: postCardProps,
+                              source: 'profile'
+                            });
+                          } else {
+                            // For regular posts, use the existing fullscreen logic
+                            const postIndex = userMediaPosts.findIndex(p => p.id === post.id);
+                            setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
+                            setIsFullscreen(true);
+                          }
                         }
                       }}
                       activeOpacity={0.8}
