@@ -3,6 +3,7 @@ import { SafeAreaView, StatusBar } from 'react-native';
 import LucidAlbumView from '../components/LucidAlbumView';
 import { PostCardProps } from '../types/structures/posts_structure';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface LucidFullscreenParams {
   post: PostCardProps;
@@ -11,6 +12,7 @@ interface LucidFullscreenParams {
 export default function LucidFullscreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const themeColors = useThemeColors();
   const { post } = route.params as LucidFullscreenParams;
 
   const handleBack = () => {
@@ -18,8 +20,11 @@ export default function LucidFullscreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       <LucidAlbumView 
         post={post}
         onBack={handleBack}

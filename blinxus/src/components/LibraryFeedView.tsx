@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import PostCard from './PostCard';
 import LucidPostCard from './LucidPostCard';
 import { PostCardProps } from '../types/structures/posts_structure';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface LibraryFeedViewProps {
   selectedPost: PostCardProps;
@@ -17,6 +18,7 @@ const LibraryFeedView: React.FC<LibraryFeedViewProps> = ({
   onBack 
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
+  const themeColors = useThemeColors();
   
   // Find the index of the selected post in the original array
   const selectedPostIndex = allPosts.findIndex(post => post.id === selectedPost.id);
@@ -43,10 +45,10 @@ const LibraryFeedView: React.FC<LibraryFeedViewProps> = ({
   }, [selectedPostIndex]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <ScrollView 
         ref={scrollViewRef}
-        className="flex-1"
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         bounces={true}
         scrollEventThrottle={32}
@@ -72,9 +74,15 @@ const LibraryFeedView: React.FC<LibraryFeedViewProps> = ({
       {/* Floating Back Button */}
       <TouchableOpacity
         onPress={onBack}
-        className="absolute top-16 left-6 w-10 h-10 justify-center items-center"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          position: 'absolute',
+          top: 64,
+          left: 24,
+          width: 40,
+          height: 40,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: themeColors.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.8)',
           borderRadius: 20,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },

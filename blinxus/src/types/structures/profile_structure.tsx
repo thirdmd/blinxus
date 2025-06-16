@@ -19,6 +19,7 @@ import LucidPostCard from '../../components/LucidPostCard';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +43,7 @@ export default function ProfileStructure({
   onResetToTop,
 }: Props) {
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [showLibrary, setShowLibrary] = useState(false);
@@ -166,18 +168,27 @@ export default function ProfileStructure({
     
     // Only show fullscreen for regular posts (Lucid posts navigate to dedicated screen)
     if (selectedPost && selectedPost.type !== 'lucid') {
-      return (
-        <SafeAreaView className="flex-1 bg-white">
-          <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
           
           {/* Back Button Header */}
-          <View className="px-6 pt-4 pb-4">
+          <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 16 }}>
             <TouchableOpacity
               onPress={() => setIsFullscreen(false)}
-              className="w-10 h-10 -ml-2 items-center justify-center"
+              style={{ 
+                width: 40, 
+                height: 40, 
+                marginLeft: -8, 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <ChevronLeft size={24} color="#000000" strokeWidth={2} />
+              <ChevronLeft size={24} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
@@ -196,11 +207,14 @@ export default function ProfileStructure({
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       <ScrollView 
         ref={scrollViewRef}
-        className="flex-1" 
+        style={{ flex: 1, backgroundColor: themeColors.background }}
         showsVerticalScrollIndicator={false}
         maintainVisibleContentPosition={{
           minIndexForVisible: 0,
@@ -208,62 +222,106 @@ export default function ProfileStructure({
         }}
       >
         {/* Header Bar - Minimal design */}
-        <View className="flex-row justify-between items-center px-6 pt-4 pb-2">
-          <Text className="text-xl font-normal text-black">
+        <View style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          paddingHorizontal: 24, 
+          paddingTop: 16, 
+          paddingBottom: 8 
+        }}>
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: '400', 
+            color: themeColors.text 
+          }}>
             {profileData?.username || '@username'}
           </Text>
-          <View className="flex-row items-center">
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {/* Create Button - More Intuitive */}
             <TouchableOpacity
               onPress={() => navigation.navigate('CreatePost' as never)}
-              className="w-10 h-10 items-center justify-center mr-3 bg-gray-100 rounded-xl border border-gray-200"
+              style={{ 
+                width: 40, 
+                height: 40, 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                marginRight: 12, 
+                backgroundColor: themeColors.backgroundSecondary, 
+                borderRadius: 12, 
+                borderWidth: 1, 
+                borderColor: themeColors.border 
+              }}
               activeOpacity={0.3}
             >
-              <Plus size={18} color="#000000" strokeWidth={2} />
+              <Plus size={18} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
             
             {/* Library Button */}
             <TouchableOpacity
               onPress={() => setShowLibrary(true)}
-              className="w-10 h-10 items-center justify-center mr-3"
+              style={{ 
+                width: 40, 
+                height: 40, 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                marginRight: 12 
+              }}
               activeOpacity={0.3}
             >
-              <Bookmark size={20} color="#000000" strokeWidth={1.8} />
+              <Bookmark size={20} color={themeColors.text} strokeWidth={1.8} />
             </TouchableOpacity>
             
             {/* Settings Button - More Appropriate */}
             <TouchableOpacity
-              className="w-10 h-10 items-center justify-center"
+              style={{ 
+                width: 40, 
+                height: 40, 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}
               activeOpacity={0.3}
               onPress={onSettingsPress}
             >
-              <Settings size={20} color="#000000" strokeWidth={1.8} />
+              <Settings size={20} color={themeColors.text} strokeWidth={1.8} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Profile Picture - Clean square with rounded edges */}
-        <View className="mt-12 items-center">
-          <View className="w-48 h-48 rounded-2xl overflow-hidden bg-gray-200">
+        <View style={{ marginTop: 48, alignItems: 'center' }}>
+          <View style={{ 
+            width: 192, 
+            height: 192, 
+            borderRadius: 16, 
+            overflow: 'hidden', 
+            backgroundColor: themeColors.backgroundSecondary 
+          }}>
             <Image
               source={{ uri: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop' }}
-              className="w-full h-full"
+              style={{ width: '100%', height: '100%' }}
               resizeMode="cover"
             />
           </View>
         </View>
 
         {/* Name & Flag - Minimal typography */}
-        <View className="mt-8 items-center">
-          <Text className="text-2xl text-black">
-            <Text className="font-medium">{profileData?.name || 'Loading'}</Text>
-            <Text className="font-light"> {profileData?.nationalityFlag || '🏳️'}</Text>
+        <View style={{ marginTop: 32, alignItems: 'center' }}>
+          <Text style={{ fontSize: 24, color: themeColors.text }}>
+            <Text style={{ fontWeight: '500' }}>{profileData?.name || 'Loading'}</Text>
+            <Text style={{ fontWeight: '300' }}> {profileData?.nationalityFlag || '🏳️'}</Text>
           </Text>
         </View>
 
         {/* Location - Subtle */}
-        <View className="mt-2 items-center">
-          <Text className="text-sm text-gray-500 font-light">{profileData?.country || 'Location'}</Text>
+        <View style={{ marginTop: 8, alignItems: 'center' }}>
+          <Text style={{ 
+            fontSize: 14, 
+            color: themeColors.textSecondary, 
+            fontWeight: '300' 
+          }}>
+            {profileData?.country || 'Location'}
+          </Text>
         </View>
 
         {/* Social Media Icons - Ultra minimal */}
@@ -286,22 +344,55 @@ export default function ProfileStructure({
         </View>
 
         {/* Interests Section - Clean tags */}
-        <View className="mt-16 px-6">
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-lg font-normal text-black">Interests</Text>
+        <View style={{ marginTop: 64, paddingHorizontal: 24 }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: 24 
+          }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '400', 
+              color: themeColors.text 
+            }}>
+              Interests
+            </Text>
             <TouchableOpacity activeOpacity={0.3}>
-              <Text className="text-sm text-gray-400 font-light">Edit</Text>
+              <Text style={{ 
+                fontSize: 14, 
+                color: themeColors.textSecondary, 
+                fontWeight: '300' 
+              }}>
+                Edit
+              </Text>
             </TouchableOpacity>
           </View>
           
-          <View className="flex-row flex-wrap gap-2">
+          <View style={{ 
+            flexDirection: 'row', 
+            flexWrap: 'wrap', 
+            gap: 8 
+          }}>
             {(profileData?.interests || []).map((interest, index) => (
               <View
                 key={index}
-                className="border border-gray-200 px-4 py-2 rounded-full flex-row items-center"
+                style={{ 
+                  borderWidth: 1, 
+                  borderColor: themeColors.border, 
+                  paddingHorizontal: 16, 
+                  paddingVertical: 8, 
+                  borderRadius: 20, 
+                  flexDirection: 'row', 
+                  alignItems: 'center' 
+                }}
               >
-                <Text className="text-sm mr-2">{interest.icon}</Text>
-                <Text className="text-sm font-light text-black">
+                <Text style={{ fontSize: 14, marginRight: 8 }}>{interest.icon}</Text>
+                <Text style={{ 
+                  fontSize: 14, 
+                  fontWeight: '300', 
+                  color: themeColors.text 
+                }}>
                   {interest.label}
                 </Text>
               </View>
@@ -310,53 +401,78 @@ export default function ProfileStructure({
         </View>
 
         {/* Tabs - Ultra minimal */}
-        <View className="flex-row mt-6 px-6">
+        <View style={{ 
+          flexDirection: 'row', 
+          marginTop: 24, 
+          paddingHorizontal: 24 
+        }}>
           <TouchableOpacity
-            className="flex-1 py-4"
+            style={{ flex: 1, paddingVertical: 16 }}
             onPress={() => setActiveTab('feed')}
             activeOpacity={0.3}
           >
             <Text
-              className={`text-center text-base ${
-                activeTab === 'feed' ? 'text-black font-medium' : 'text-gray-400 font-light'
-              }`}
+              style={{
+                textAlign: 'center',
+                fontSize: 16,
+                color: activeTab === 'feed' ? themeColors.text : themeColors.textSecondary,
+                fontWeight: activeTab === 'feed' ? '500' : '300'
+              }}
             >
               Feed
             </Text>
             {activeTab === 'feed' && (
-              <View className="h-0.5 bg-black mt-4" />
+              <View style={{ 
+                height: 2, 
+                backgroundColor: themeColors.text, 
+                marginTop: 16 
+              }} />
             )}
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 py-4"
+            style={{ flex: 1, paddingVertical: 16 }}
             onPress={() => setActiveTab('lucids')}
             activeOpacity={0.3}
           >
             <Text
-              className={`text-center text-base ${
-                activeTab === 'lucids' ? 'text-black font-medium' : 'text-gray-400 font-light'
-              }`}
+              style={{
+                textAlign: 'center',
+                fontSize: 16,
+                color: activeTab === 'lucids' ? themeColors.text : themeColors.textSecondary,
+                fontWeight: activeTab === 'lucids' ? '500' : '300'
+              }}
             >
               Lucids
             </Text>
             {activeTab === 'lucids' && (
-              <View className="h-0.5 bg-black mt-4" />
+              <View style={{ 
+                height: 2, 
+                backgroundColor: themeColors.text, 
+                marginTop: 16 
+              }} />
             )}
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 py-4"
+            style={{ flex: 1, paddingVertical: 16 }}
             onPress={() => setActiveTab('posts')}
             activeOpacity={0.3}
           >
             <Text
-              className={`text-center text-base ${
-                activeTab === 'posts' ? 'text-black font-medium' : 'text-gray-400 font-light'
-              }`}
+              style={{
+                textAlign: 'center',
+                fontSize: 16,
+                color: activeTab === 'posts' ? themeColors.text : themeColors.textSecondary,
+                fontWeight: activeTab === 'posts' ? '500' : '300'
+              }}
             >
               Posts
             </Text>
             {activeTab === 'posts' && (
-              <View className="h-0.5 bg-black mt-4" />
+              <View style={{ 
+                height: 2, 
+                backgroundColor: themeColors.text, 
+                marginTop: 16 
+              }} />
             )}
           </TouchableOpacity>
         </View>
@@ -364,15 +480,24 @@ export default function ProfileStructure({
         {/* Content based on active tab */}
         {activeTab === 'posts' ? (
           // Posts Tab - Clean list view
-          <View className="pt-8">
+          <View style={{ paddingTop: 32 }}>
             {(() => {
               const userPosts = (posts || []).filter(post => post.authorName === profileData?.name);
               
               if (userPosts.length === 0) {
                 // Empty state - minimal
                 return (
-                  <View className="flex-1 justify-center items-center py-20">
-                    <Text className="text-sm text-gray-400 font-light">
+                  <View style={{ 
+                    flex: 1, 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    paddingVertical: 80 
+                  }}>
+                    <Text style={{ 
+                      fontSize: 14, 
+                      color: themeColors.textSecondary, 
+                      fontWeight: '300' 
+                    }}>
                       All your Posts
                     </Text>
                   </View>
@@ -391,7 +516,7 @@ export default function ProfileStructure({
           </View>
         ) : (
           // Feed and Lucids Tabs - Clean grid
-          <View className="pt-8 px-6">
+          <View style={{ paddingTop: 32, paddingHorizontal: 24 }}>
             {(() => {
               const filteredPosts = (posts || []).filter(post => {
                 const isCurrentUser = post.authorName === profileData?.name;
@@ -415,8 +540,17 @@ export default function ProfileStructure({
                 }
                 
                 return (
-                  <View className="flex-1 justify-center items-center py-20">
-                    <Text className="text-sm text-gray-400 font-light">
+                  <View style={{ 
+                    flex: 1, 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    paddingVertical: 80 
+                  }}>
+                    <Text style={{ 
+                      fontSize: 14, 
+                      color: themeColors.textSecondary, 
+                      fontWeight: '300' 
+                    }}>
                       {emptyMessage}
                     </Text>
                   </View>
@@ -424,12 +558,20 @@ export default function ProfileStructure({
               }
 
               return (
-                <View className="flex-row flex-wrap -mx-0.5 pb-8">
+                <View style={{ 
+                  flexDirection: 'row', 
+                  flexWrap: 'wrap', 
+                  marginHorizontal: -2, 
+                  paddingBottom: 32 
+                }}>
                   {filteredPosts.map((post) => (
                     <TouchableOpacity
                       key={post.id}
-                      className="px-0.5 mb-1"
-                      style={{ width: width / 3 - 16 }}
+                      style={{ 
+                        paddingHorizontal: 2, 
+                        marginBottom: 4,
+                        width: width / 3 - 16 
+                      }}
                       onPress={() => {
                         if (activeTab === 'feed' || activeTab === 'lucids') {
                           // If it's a Lucid post, navigate to dedicated fullscreen
@@ -450,7 +592,11 @@ export default function ProfileStructure({
                     >
                       <Image
                         source={{ uri: post.images![0] }}
-                        className="w-full aspect-square bg-gray-100"
+                        style={{ 
+                          width: '100%', 
+                          aspectRatio: 1, 
+                          backgroundColor: themeColors.backgroundSecondary 
+                        }}
                         resizeMode="cover"
                       />
                     </TouchableOpacity>

@@ -17,6 +17,7 @@ import { useSavedPosts } from '../../store/SavedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import LibraryFeedView from '../../components/LibraryFeedView';
 import LucidAlbumView from '../../components/LucidAlbumView';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,8 @@ interface LibraryProps {
 }
 
 export default function Library({ onBackPress }: LibraryProps = {}) {
+  const themeColors = useThemeColors();
+  
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
   
@@ -374,12 +377,38 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   const renderRecentTab = () => {
     if (sortedByRecent.length === 0) {
       return (
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-6">
-            <Bookmark size={32} color="#9CA3AF" strokeWidth={1.5} />
+        <View style={{ 
+          flex: 1, 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          paddingHorizontal: 32 
+        }}>
+          <View style={{ 
+            width: 80, 
+            height: 80, 
+            backgroundColor: themeColors.backgroundSecondary, 
+            borderRadius: 40, 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            marginBottom: 24 
+          }}>
+            <Bookmark size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
           </View>
-          <Text className="text-xl font-normal text-gray-900 mb-3 text-center">No saved posts yet</Text>
-          <Text className="text-gray-500 text-center leading-6 font-light">
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: '400', 
+            color: themeColors.text, 
+            marginBottom: 12, 
+            textAlign: 'center' 
+          }}>
+            No saved posts yet
+          </Text>
+          <Text style={{ 
+            color: themeColors.textSecondary, 
+            textAlign: 'center', 
+            lineHeight: 24, 
+            fontWeight: '300' 
+          }}>
             Posts you save will appear here. Tap the bookmark icon on any post to save it to your library.
           </Text>
         </View>
@@ -511,77 +540,124 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
   // Otherwise render the main library screen
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       
       {/* Header - Modern minimalist */}
-      <View className="bg-white px-6 py-4">
-        <View className="flex-row items-center justify-between">
+      <View style={{ 
+        backgroundColor: themeColors.background, 
+        paddingHorizontal: 24, 
+        paddingVertical: 16 
+      }}>
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          justifyContent: 'space-between' 
+        }}>
           <TouchableOpacity
             onPress={onBackPress}
-            className="w-10 h-10 items-center justify-center -ml-2"
+            style={{ 
+              width: 40, 
+              height: 40, 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              marginLeft: -8 
+            }}
             activeOpacity={0.6}
           >
-            <ChevronLeft size={24} color="#000000" strokeWidth={2} />
+            <ChevronLeft size={24} color={themeColors.text} strokeWidth={2} />
           </TouchableOpacity>
           
-          <Text className="text-xl font-normal text-gray-900">Library</Text>
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: '400', 
+            color: themeColors.text 
+          }}>
+            Library
+          </Text>
           
-          <View className="w-10" />
+          <View style={{ width: 40 }} />
         </View>
       </View>
 
       {/* Tab Navigation - Clean design */}
-      <View className="bg-white">
-        <View className="flex-row px-6">
+      <View style={{ backgroundColor: themeColors.background }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: 24 }}>
           <TouchableOpacity 
-            className="flex-1 py-4"
+            style={{ flex: 1, paddingVertical: 16 }}
             onPress={() => setActiveTab('recent')}
             activeOpacity={0.6}
           >
             <Text
-              className={`text-center font-light text-base ${
-                activeTab === 'recent' ? 'text-black' : 'text-gray-400'
-              }`}
+              style={{
+                textAlign: 'center',
+                fontWeight: '300',
+                fontSize: 16,
+                color: activeTab === 'recent' ? themeColors.text : themeColors.textSecondary
+              }}
             >
               Recent
             </Text>
             {activeTab === 'recent' && (
-              <View className="w-full h-0.5 bg-black mt-3" />
+              <View style={{ 
+                width: '100%', 
+                height: 2, 
+                backgroundColor: themeColors.text, 
+                marginTop: 12 
+              }} />
             )}
           </TouchableOpacity>
           
           <TouchableOpacity 
-            className="flex-1 py-4"
+            style={{ flex: 1, paddingVertical: 16 }}
             onPress={() => setActiveTab('activities')}
             activeOpacity={0.6}
           >
             <Text
-              className={`text-center font-light text-base ${
-                activeTab === 'activities' ? 'text-black' : 'text-gray-400'
-              }`}
+              style={{
+                textAlign: 'center',
+                fontWeight: '300',
+                fontSize: 16,
+                color: activeTab === 'activities' ? themeColors.text : themeColors.textSecondary
+              }}
             >
               Activities
             </Text>
             {activeTab === 'activities' && (
-              <View className="w-full h-0.5 bg-black mt-3" />
+              <View style={{ 
+                width: '100%', 
+                height: 2, 
+                backgroundColor: themeColors.text, 
+                marginTop: 12 
+              }} />
             )}
           </TouchableOpacity>
           
           <TouchableOpacity 
-            className="flex-1 py-4"
+            style={{ flex: 1, paddingVertical: 16 }}
             onPress={() => setActiveTab('map')}
             activeOpacity={0.6}
           >
             <Text
-              className={`text-center font-light text-base ${
-                activeTab === 'map' ? 'text-black' : 'text-gray-400'
-              }`}
+              style={{
+                textAlign: 'center',
+                fontWeight: '300',
+                fontSize: 16,
+                color: activeTab === 'map' ? themeColors.text : themeColors.textSecondary
+              }}
             >
               Map
             </Text>
             {activeTab === 'map' && (
-              <View className="w-full h-0.5 bg-black mt-3" />
+              <View style={{ 
+                width: '100%', 
+                height: 2, 
+                backgroundColor: themeColors.text, 
+                marginTop: 12 
+              }} />
             )}
           </TouchableOpacity>
         </View>

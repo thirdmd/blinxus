@@ -4,6 +4,7 @@ import { ChevronLeft, MapPin, Share2, Heart, MessageCircle, Bookmark, X, Grid3X3
 import { PostCardProps } from '../types/structures/posts_structure';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
 }) => {
   const { likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
+  const themeColors = useThemeColors();
   
   const [showMap, setShowMap] = useState(false);
   const [appBarOpacity, setAppBarOpacity] = useState(1);
@@ -129,6 +131,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
         onSave={handleSave}
         isLiked={isLiked}
         isSaved={isPostSaved(post.id)}
+        themeColors={themeColors}
       />
     );
   }
@@ -139,40 +142,55 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
         album={albumData} 
         onBack={() => setShowGridView(false)}
         onPhotoSelect={setShowPhotoDetail}
+        themeColors={themeColors}
       />
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       
       {/* Custom App Bar */}
       <View 
-        className="absolute top-0 left-0 right-0 z-50"
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
           transform: [{ translateY: appBarTransform }],
           opacity: appBarOpacity,
         }}
       >
-        <View className="bg-white/70 px-4 py-3 flex-row items-center justify-between"
-              style={{ paddingTop: 50 }}>
-          <TouchableOpacity onPress={onBack} className="p-2 -ml-2">
-            <ChevronLeft size={24} color="#1F2937" />
+        <View style={{
+          backgroundColor: themeColors.isDark ? 'rgba(11, 20, 38, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingTop: 50
+        }}>
+          <TouchableOpacity onPress={onBack} style={{ padding: 8, marginLeft: -8 }}>
+            <ChevronLeft size={24} color={themeColors.text} />
           </TouchableOpacity>
-          <View className="flex-row items-center gap-2">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <TouchableOpacity 
               onPress={() => setShowMap(!showMap)}
-              className="p-2"
+              style={{ padding: 8 }}
             >
               {showMap ? (
-                <Grid3X3 size={20} color="#1F2937" />
+                <Grid3X3 size={20} color={themeColors.text} />
               ) : (
-                <MapPin size={20} color="#1F2937" />
+                <MapPin size={20} color={themeColors.text} />
               )}
             </TouchableOpacity>
-            <TouchableOpacity className="p-2">
-              <Share2 size={20} color="#1F2937" />
+            <TouchableOpacity style={{ padding: 8 }}>
+              <Share2 size={20} color={themeColors.text} />
             </TouchableOpacity>
           </View>
         </View>
@@ -183,7 +201,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
         ref={scrollRef}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        className="flex-1"
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
       >
         {showMap ? <SpaceView /> : <StoryView />}
@@ -193,28 +211,33 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
 
   function StoryView() {
     return (
-      <View className="pb-8">
+      <View style={{ paddingBottom: 32 }}>
         {/* Header */}
-        <View className="pt-24 px-6 pb-6">
-          <Text className="text-3xl font-bold text-gray-800 tracking-tight">
+        <View style={{ paddingTop: 96, paddingHorizontal: 24, paddingBottom: 24 }}>
+          <Text style={{ 
+            fontSize: 28, 
+            fontWeight: 'bold', 
+            color: themeColors.text, 
+            letterSpacing: -0.5 
+          }}>
             {albumData.title}
           </Text>
           <TouchableOpacity 
             onPress={() => setShowGridView(true)}
-            className="mt-2"
+            style={{ marginTop: 8 }}
           >
-            <Text className="text-gray-600 text-base">
+            <Text style={{ color: themeColors.textSecondary, fontSize: 16 }}>
               {dayLabel} · {momentLabel}
             </Text>
           </TouchableOpacity>
           
           {/* Author info */}
-          <View className="flex-row items-center mt-4">
-            <Text className="text-gray-700 font-medium">{albumData.authorName}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
+            <Text style={{ color: themeColors.text, fontWeight: '500' }}>{albumData.authorName}</Text>
             {albumData.authorNationalityFlag && (
-              <Text className="ml-2">{albumData.authorNationalityFlag}</Text>
+              <Text style={{ marginLeft: 8, color: themeColors.text }}>{albumData.authorNationalityFlag}</Text>
             )}
-            <Text className="ml-2 text-gray-500">• {albumData.timeAgo}</Text>
+            <Text style={{ marginLeft: 8, color: themeColors.textSecondary }}>• {albumData.timeAgo}</Text>
           </View>
         </View>
 
@@ -228,6 +251,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
             location={albumData.location}
             activityColor={albumData.activityColor}
             onPhotoClick={setShowPhotoDetail}
+            themeColors={themeColors}
           />
         ))}
       </View>
@@ -236,8 +260,14 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
 
   function SpaceView() {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-100" style={{ height: height - 200 }}>
-        <Text className="text-lg text-gray-600">SpaceView Coming Soon</Text>
+      <View style={{ 
+        flex: 1, 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        backgroundColor: themeColors.backgroundSecondary, 
+        height: height - 200 
+      }}>
+        <Text style={{ fontSize: 18, color: themeColors.textSecondary }}>SpaceView Coming Soon</Text>
       </View>
     );
   }
@@ -251,29 +281,32 @@ const DaySection: React.FC<{
   location: string;
   activityColor?: string;
   onPhotoClick: (photo: string) => void;
-}> = ({ dayIndex, photos, showDayLabel, location, activityColor, onPhotoClick }) => {
+  themeColors: any;
+}> = ({ dayIndex, photos, showDayLabel, location, activityColor, onPhotoClick, themeColors }) => {
   return (
-    <View className="mb-8">
+    <View style={{ marginBottom: 32 }}>
       {showDayLabel && (
-        <View className="px-6 py-4 flex-row items-center">
-          <Text className="text-2xl font-bold text-gray-800">Day {dayIndex + 1}</Text>
-          <View className="ml-3 h-px w-16 bg-gray-200" />
+        <View style={{ paddingHorizontal: 24, marginBottom: 16 }}>
+          <Text style={{ fontSize: 20, fontWeight: '600', color: themeColors.text }}>
+            Day {dayIndex + 1}
+          </Text>
         </View>
       )}
       
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        className="h-96"
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 24 }}
+        style={{ height: 280 }}
       >
-        {photos.map((photo, index) => (
-          <PhotoCard 
-            key={index} 
-            photoPath={photo} 
+        {photos.map((photo, photoIndex) => (
+          <PhotoCard
+            key={photoIndex}
+            photoPath={photo}
             location={location}
             activityColor={activityColor}
             onClick={() => onPhotoClick(photo)}
+            themeColors={themeColors}
           />
         ))}
       </ScrollView>
@@ -287,25 +320,25 @@ const PhotoCard: React.FC<{
   location: string;
   activityColor?: string;
   onClick: () => void;
-}> = ({ photoPath, location, activityColor, onClick }) => {
+  themeColors: any;
+}> = ({ photoPath, location, activityColor, onClick, themeColors }) => {
   return (
     <TouchableOpacity 
       onPress={onClick}
-      className="mr-4"
-      style={{ width: width * 0.7 }}
+      style={{ marginRight: 16, width: width * 0.7 }}
       activeOpacity={0.9}
     >
-      <View className="h-full flex-col">
-        <View className="flex-1 rounded-xl overflow-hidden">
+      <View style={{ height: '100%', flexDirection: 'column' }}>
+        <View style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}>
           <Image 
             source={{ uri: photoPath }}
-            className="w-full h-full"
+            style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
           />
         </View>
-        <View className="flex-row items-center mt-3">
-          <MapPin size={16} color="#6B7280" />
-          <Text className="ml-1 text-sm text-gray-600">{location}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+          <MapPin size={16} color={themeColors.textSecondary} />
+          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.textSecondary }}>{location}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -322,18 +355,34 @@ const PhotoDetailView: React.FC<{
   onSave: () => void;
   isLiked: boolean;
   isSaved: boolean;
-}> = ({ photoPath, location, onClose, onLike, onComment, onSave, isLiked, isSaved }) => {
+  themeColors: any;
+}> = ({ photoPath, location, onClose, onLike, onComment, onSave, isLiked, isSaved, themeColors }) => {
   return (
-    <View className="absolute inset-0 bg-white z-50">
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: themeColors.background, zIndex: 50 }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       
       {/* App Bar */}
-      <View className="absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between p-4"
-            style={{ paddingTop: 50 }}>
+      <View style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        paddingTop: 50
+      }}>
         <TouchableOpacity 
           onPress={onClose}
-          className="p-2 bg-white rounded-full"
           style={{
+            padding: 8,
+            backgroundColor: themeColors.backgroundSecondary,
+            borderRadius: 20,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.25,
@@ -341,11 +390,13 @@ const PhotoDetailView: React.FC<{
             elevation: 5,
           }}
         >
-          <X size={16} color="#1F2937" />
+          <X size={16} color={themeColors.text} />
         </TouchableOpacity>
         <TouchableOpacity 
-          className="p-3 bg-white rounded-full"
           style={{
+            padding: 12,
+            backgroundColor: themeColors.backgroundSecondary,
+            borderRadius: 20,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.25,
@@ -353,50 +404,57 @@ const PhotoDetailView: React.FC<{
             elevation: 5,
           }}
         >
-          <Share2 size={20} color="#1F2937" />
+          <Share2 size={20} color={themeColors.text} />
         </TouchableOpacity>
       </View>
 
       {/* Photo */}
-      <View className="h-full w-full flex items-center justify-center bg-black">
+      <View style={{ height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: themeColors.background }}>
         <Image 
           source={{ uri: photoPath }}
-          className="w-full h-full"
+          style={{ width: '100%', height: '100%' }}
           resizeMode="contain"
         />
       </View>
 
       {/* Bottom Actions */}
-      <View className="absolute bottom-0 left-0 right-0 p-6"
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.7)'
-            }}>
-        <View className="flex-row items-center mb-4">
-          <MapPin size={16} color="#FFFFFF" />
-          <Text className="ml-1 text-sm text-white opacity-90">{location}</Text>
+      <View style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 24,
+        backgroundColor: themeColors.isDark ? 'rgba(11, 20, 38, 0.7)' : 'rgba(255, 255, 255, 0.7)'
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+          <MapPin size={16} color={themeColors.text} />
+          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.text, opacity: 0.9 }}>{location}</Text>
         </View>
         
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row gap-6">
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', gap: 24 }}>
             <ActionButton 
-              icon={<Heart size={24} color="#FFFFFF" fill={isLiked ? "#EF4444" : "none"} />} 
+              icon={<Heart size={24} color={themeColors.text} fill={isLiked ? "#EF4444" : "none"} />} 
               label="Like" 
               onPress={onLike}
+              themeColors={themeColors}
             />
             <ActionButton 
-              icon={<MessageCircle size={24} color="#FFFFFF" />} 
+              icon={<MessageCircle size={24} color={themeColors.text} />} 
               label="Comment" 
               onPress={onComment}
+              themeColors={themeColors}
             />
             <ActionButton 
-              icon={<Bookmark size={24} color="#FFFFFF" fill={isSaved ? "#0047AB" : "none"} />} 
+              icon={<Bookmark size={24} color={themeColors.text} fill={isSaved ? "#0047AB" : "none"} />} 
               label="Save" 
               onPress={onSave}
+              themeColors={themeColors}
             />
           </View>
           
-          <TouchableOpacity className="bg-white px-6 py-3 rounded-lg">
-            <Text className="text-gray-800 font-medium">Add to Blinx</Text>
+          <TouchableOpacity style={{ backgroundColor: themeColors.backgroundSecondary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}>
+            <Text style={{ color: themeColors.text, fontWeight: '500' }}>Add to Blinx</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -409,11 +467,12 @@ const ActionButton: React.FC<{
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
-}> = ({ icon, label, onPress }) => {
+  themeColors: any;
+}> = ({ icon, label, onPress, themeColors }) => {
   return (
-    <TouchableOpacity onPress={onPress} className="flex-col items-center">
-      <View className="w-6 h-6">{icon}</View>
-      <Text className="text-xs mt-1 text-white">{label}</Text>
+    <TouchableOpacity onPress={onPress} style={{ flexDirection: 'column', alignItems: 'center' }}>
+      <View style={{ width: 24, height: 24 }}>{icon}</View>
+      <Text style={{ fontSize: 12, marginTop: 4, color: themeColors.text }}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -423,33 +482,45 @@ const AlbumGridView: React.FC<{
   album: LucidAlbumData;
   onBack: () => void;
   onPhotoSelect: (photo: string) => void;
-}> = ({ album, onBack, onPhotoSelect }) => {
+  themeColors: any;
+}> = ({ album, onBack, onPhotoSelect, themeColors }) => {
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       
       {/* App Bar */}
-      <View className="bg-white px-4 py-3 flex-row items-center border-b border-gray-100">
-        <TouchableOpacity onPress={onBack} className="p-2 -ml-2">
-          <ChevronLeft size={24} color="#1F2937" />
+      <View style={{ 
+        backgroundColor: themeColors.background, 
+        paddingHorizontal: 16, 
+        paddingVertical: 12, 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        borderBottomWidth: 1, 
+        borderBottomColor: themeColors.border 
+      }}>
+        <TouchableOpacity onPress={onBack} style={{ padding: 8, marginLeft: -8 }}>
+          <ChevronLeft size={24} color={themeColors.text} />
         </TouchableOpacity>
-        <Text className="ml-2 text-lg font-semibold text-gray-800">{album.title}</Text>
+        <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: '600', color: themeColors.text }}>{album.title}</Text>
       </View>
       
       {/* Grid */}
-      <ScrollView className="flex-1">
-        <View className="flex-row flex-wrap p-1">
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 4 }}>
           {album.allPhotos.map((photo, index) => (
             <TouchableOpacity 
               key={index}
               onPress={() => onPhotoSelect(photo)}
-              className="w-1/3 p-0.5"
+              style={{ width: '33.33%', padding: 2 }}
               activeOpacity={0.9}
             >
-              <View className="aspect-square bg-gray-200 overflow-hidden">
+              <View style={{ aspectRatio: 1, backgroundColor: themeColors.backgroundSecondary, overflow: 'hidden' }}>
                 <Image 
                   source={{ uri: photo }}
-                  className="w-full h-full"
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
               </View>

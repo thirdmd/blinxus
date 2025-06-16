@@ -8,6 +8,7 @@ import { activityTags, ActivityKey } from '../constants/activityTags';
 import type { ActivityTag } from '../constants/activityTags';
 import PillTag from './PillTag';
 import { useNavigation } from '@react-navigation/native';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface PostCardComponentProps extends PostCardProps {}
 
@@ -34,6 +35,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   const [openMenu, setOpenMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -212,89 +214,92 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
   return (
     <View>
-      {/* Edit Modal - Minimalist Design */}
+      {/* Edit Modal */}
       <Modal
         visible={showEditModal}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={handleCancelEdit}
       >
-        <View className="flex-1 bg-white">
-          {/* Header - Minimal */}
-          <View className="flex-row items-center justify-between px-6 pt-6 pb-4">
-            <TouchableOpacity
-              onPress={handleCancelEdit}
-              className="w-10 h-10 items-center justify-center"
-              activeOpacity={0.3}
-            >
-              <X size={20} color="#000000" />
+        <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+          {/* Header */}
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            paddingHorizontal: 24, 
+            paddingTop: 60, 
+            paddingBottom: 20,
+            backgroundColor: themeColors.background,
+            borderBottomWidth: 0.5,
+            borderBottomColor: themeColors.border
+          }}>
+            <TouchableOpacity onPress={handleCancelEdit}>
+              <X size={24} color={themeColors.textSecondary} />
             </TouchableOpacity>
             
-            <TouchableOpacity
-              onPress={handleSaveEdit}
-              className="w-10 h-10 items-center justify-center"
-              activeOpacity={0.3}
-              disabled={!hasChanges}
-            >
-              <Check size={20} color={hasChanges ? '#000000' : '#9CA3AF'} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Title Section */}
-          <View className="px-6 pb-8">
-            <Text className="text-2xl font-normal text-black">Edit Post</Text>
-            <Text className="text-sm text-gray-400 font-light mt-2">
-              Update your caption and location
+            <Text style={{ fontSize: 18, fontWeight: '600', color: themeColors.text }}>
+              Edit Post
             </Text>
             
-            {/* First-time edit warning - More opaque, consistent styling */}
-            {(canEditLocation || canEditActivity) && (
-              <View className="mt-6 p-4 rounded-lg" style={{ backgroundColor: '#FEF3C7' }}>
-                <Text className="text-sm font-light" style={{ color: '#92400E' }}>
-                  NOTE: ⚠️ LOCATION and ACTIVITY can only be changed once each per post
-                </Text>
-              </View>
-            )}
+            <TouchableOpacity 
+              onPress={handleSaveEdit}
+              disabled={!hasChanges}
+              style={{ opacity: hasChanges ? 1 : 0.5 }}
+            >
+                             <Check size={24} color={themeColors.isDark ? '#3B82F6' : '#0047AB'} />
+            </TouchableOpacity>
           </View>
 
-          {/* Modal Content */}
-          <View className="flex-1 px-6">
+          <View style={{ flex: 1, paddingHorizontal: 24 }}>
             {/* Caption Section */}
-            <View className="mb-10">
-              <Text className="text-base font-normal text-black mb-4">
+            <View style={{ marginBottom: 40 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'normal', color: themeColors.text, marginBottom: 16 }}>
                 CAPTION
               </Text>
               
-              <View className="border border-gray-200 rounded-lg p-4">
+              <View style={{ 
+                borderWidth: 1, 
+                borderColor: themeColors.border, 
+                borderRadius: 8, 
+                padding: 16,
+                backgroundColor: themeColors.backgroundSecondary
+              }}>
                 <TextInput
                   value={editContent}
                   onChangeText={setEditContent}
                   placeholder="Share your thoughts..."
                   multiline
                   numberOfLines={4}
-                  className="text-base text-black font-light"
                   style={{
+                    fontSize: 16,
+                    color: themeColors.text,
+                    fontWeight: '300',
                     minHeight: 100,
                     textAlignVertical: 'top'
                   }}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={themeColors.textSecondary}
                 />
               </View>
             </View>
 
             {/* Location Section */}
-            <View className="mb-10">
-              <Text className="text-base font-normal text-black mb-4">
+            <View style={{ marginBottom: 40 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'normal', color: themeColors.text, marginBottom: 16 }}>
                 LOCATION
               </Text>
               {!canEditLocation && (
-                <Text className="text-sm text-gray-500 font-light mb-3">
+                <Text style={{ fontSize: 14, color: themeColors.textSecondary, fontWeight: '300', marginBottom: 12 }}>
                   Location has already been edited
                 </Text>
               )}
               <View
-                className="border border-gray-200 rounded-lg p-4"
                 style={{
+                  borderWidth: 1,
+                  borderColor: themeColors.border,
+                  borderRadius: 8,
+                  padding: 16,
+                  backgroundColor: themeColors.backgroundSecondary,
                   opacity: canEditLocation ? 1 : 0.5
                 }}
               >
@@ -302,30 +307,34 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                   value={editLocation}
                   onChangeText={canEditLocation ? setEditLocation : undefined}
                   placeholder="Enter location"
-                  className="text-base text-black font-light"
-                  placeholderTextColor="#9CA3AF"
+                  style={{ fontSize: 16, color: themeColors.text, fontWeight: '300' }}
+                  placeholderTextColor={themeColors.textSecondary}
                   editable={canEditLocation}
                 />
               </View>
             </View>
 
             {/* Activity Section */}
-            <View className="mb-10">
-              <Text className="text-base font-normal text-black mb-4">
+            <View style={{ marginBottom: 40 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'normal', color: themeColors.text, marginBottom: 16 }}>
                 ACTIVITY
               </Text>
               {!canEditActivity && (
-                <Text className="text-sm text-gray-500 font-light mb-3">
+                <Text style={{ fontSize: 14, color: themeColors.textSecondary, fontWeight: '300', marginBottom: 12 }}>
                   Activity has already been edited
                 </Text>
               )}
               <View 
-                className="border border-gray-200 rounded-lg p-4"
                 style={{
+                  borderWidth: 1,
+                  borderColor: themeColors.border,
+                  borderRadius: 8,
+                  padding: 16,
+                  backgroundColor: themeColors.backgroundSecondary,
                   opacity: canEditActivity ? 1 : 0.5
                 }}
               >
-                <View className="flex-row flex-wrap gap-2">
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {activityTags.map((tag: ActivityTag) => (
                     <PillTag
                       key={tag.id}
@@ -335,6 +344,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
                       onPress={canEditActivity ? () => handleActivitySelect(tag.id) : undefined}
                       size="medium"
                       isCreatePage={true}
+
                     />
                   ))}
                 </View>
@@ -360,19 +370,19 @@ const PostCard: React.FC<PostCardComponentProps> = ({
         />
       )}
 
-      {/* Card Container - Pure white, minimal border */}
-      <View className="bg-white border-b border-gray-100">
+      {/* Card Container */}
+      <View style={{ backgroundColor: themeColors.background, borderBottomWidth: 1, borderBottomColor: themeColors.border }}>
         {/* Header */}
-        <View className="flex-row items-start justify-between p-6">
-          <View className="flex-row flex-1">
-            {/* Avatar - Simple circle */}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', padding: 24 }}>
+          <View style={{ flexDirection: 'row', flex: 1 }}>
+            {/* Avatar */}
             <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
-              <View className="h-12 w-12 rounded-full overflow-hidden mr-4">
+              <View style={{ height: 48, width: 48, borderRadius: 24, overflow: 'hidden', marginRight: 16 }}>
                 {authorProfileImage ? (
-                  <Image source={{ uri: authorProfileImage }} className="h-full w-full" />
+                  <Image source={{ uri: authorProfileImage }} style={{ height: '100%', width: '100%' }} />
                 ) : (
-                  <View className="h-full w-full bg-gray-100 items-center justify-center">
-                    <Text className="text-gray-600 text-base font-light">
+                  <View style={{ height: '100%', width: '100%', backgroundColor: themeColors.backgroundTertiary, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: themeColors.textSecondary, fontSize: 16, fontWeight: '300' }}>
                       {authorName.charAt(0).toUpperCase()}
                     </Text>
                   </View>
@@ -381,38 +391,42 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             </TouchableOpacity>
             
             {/* User Info */}
-            <View className="flex-1">
-              <View className="flex-row items-center">
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
-                  <Text className="font-normal text-black text-base">{authorName}</Text>
+                  <Text style={{ fontWeight: 'normal', color: themeColors.text, fontSize: 16 }}>{authorName}</Text>
                 </TouchableOpacity>
                 {authorNationalityFlag && (
-                  <Text className="ml-2 text-base font-light">{authorNationalityFlag}</Text>
+                  <Text style={{ marginLeft: 8, fontSize: 16, fontWeight: '300', color: themeColors.text }}>{authorNationalityFlag}</Text>
                 )}
               </View>
               
-              {/* Location Pill - Minimal with activity color */}
-              <View className="flex-row items-center mt-1">
+              {/* Location Pill */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                 <View 
-                  className="px-1.5 py-0.5 rounded-full mr-3"
                   style={{ 
+                    paddingHorizontal: 6, 
+                    paddingVertical: 2, 
+                    borderRadius: 12, 
+                    marginRight: 12,
                     backgroundColor: activityColor || 'transparent',
                     borderWidth: activityColor ? 0 : 0.5,
-                    borderColor: activityColor ? 'transparent' : '#000000'
+                    borderColor: activityColor ? 'transparent' : themeColors.text
                   }}
                 >
                   <Text 
-                    className="text-sm font-light"
                     style={{ 
-                      color: activityColor ? 'white' : '#000000'
+                      fontSize: 14, 
+                      fontWeight: '300',
+                      color: activityColor ? 'white' : themeColors.text
                     }}
                   >
                     {location}
                   </Text>
                 </View>
-                <Text className="text-gray-400 text-sm font-light">{timeAgo}</Text>
+                <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300' }}>{timeAgo}</Text>
                 {isEdited && (
-                  <Text className="text-gray-400 text-sm font-light ml-1">• edited</Text>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300', marginLeft: 4 }}>• edited</Text>
                 )}
               </View>
             </View>
@@ -421,63 +435,87 @@ const PostCard: React.FC<PostCardComponentProps> = ({
           {/* More Options */}
           <TouchableOpacity 
             onPress={() => setOpenMenu(!openMenu)}
-            className="p-2"
+            style={{ padding: 8 }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.3}
           >
-            <MoreVertical size={20} color="#9CA3AF" />
+            <MoreVertical size={20} color={themeColors.textSecondary} />
           </TouchableOpacity>
 
-          {/* Dropdown Menu - Minimal */}
+          {/* Dropdown Menu */}
           {openMenu && (
-            <View className="absolute top-14 right-6 bg-white border border-gray-200 rounded-lg py-2 z-10 min-w-32">
+            <View style={{ 
+              position: 'absolute', 
+              top: 56, 
+              right: 24, 
+              backgroundColor: themeColors.backgroundSecondary, 
+              borderWidth: 1, 
+              borderColor: themeColors.border, 
+              borderRadius: 8, 
+              paddingVertical: 8, 
+              zIndex: 10, 
+              minWidth: 128,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 5,
+            }}>
               {isCurrentUserPost ? (
                 <>
                   <TouchableOpacity
                     onPress={handleEdit}
-                    className="flex-row items-center px-4 py-3"
+                    style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 }}
                     activeOpacity={0.3}
                   >
-                    <Edit size={16} color="#6B7280" />
-                    <Text className="ml-3 text-black font-light">Edit</Text>
+                    <Edit size={16} color={themeColors.textSecondary} />
+                    <Text style={{ marginLeft: 12, color: themeColors.text, fontWeight: '300' }}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleDelete}
-                    className="flex-row items-center px-4 py-3"
+                    style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 }}
                     activeOpacity={0.3}
                   >
                     <Trash2 size={16} color="#EF4444" />
-                    <Text className="ml-3 text-red-500 font-light">Delete</Text>
+                    <Text style={{ marginLeft: 12, color: '#EF4444', fontWeight: '300' }}>Delete</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <TouchableOpacity
                   onPress={handleReport}
-                  className="flex-row items-center px-4 py-3"
+                  style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 }}
                   activeOpacity={0.3}
                 >
-                  <Flag size={16} color="#6B7280" />
-                  <Text className="ml-3 text-black font-light">Report</Text>
+                  <Flag size={16} color={themeColors.textSecondary} />
+                  <Text style={{ marginLeft: 12, color: themeColors.text, fontWeight: '300' }}>Report</Text>
                 </TouchableOpacity>
               )}
             </View>
           )}
         </View>
 
-
-
         {/* Image */}
         {images && images.length > 0 && (
-          <View className="relative">
+          <View style={{ position: 'relative' }}>
             <Image 
               source={{ uri: images[0] }} 
-              className="w-full h-80" 
+              style={{ width: '100%', height: 320 }} 
               resizeMode="cover" 
             />
             {device && (
-              <View className="absolute bottom-4 right-4 px-3 py-2 bg-white/90 rounded-full flex-row items-center">
+              <View style={{ 
+                position: 'absolute', 
+                bottom: 16, 
+                right: 16, 
+                paddingHorizontal: 12, 
+                paddingVertical: 8, 
+                backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                borderRadius: 20, 
+                flexDirection: 'row', 
+                alignItems: 'center' 
+              }}>
                 <Camera size={14} color="#000000" style={{ marginRight: 4 }} />
-                <Text className="text-black text-xs font-light">
+                <Text style={{ color: '#000000', fontSize: 12, fontWeight: '300' }}>
                   {device}
                 </Text>
               </View>
@@ -485,21 +523,35 @@ const PostCard: React.FC<PostCardComponentProps> = ({
           </View>
         )}
 
-        {/* Interaction Bar - Edge to Edge */}
-        <View className="flex-row items-center justify-between px-6 py-4">
+        {/* Content Text */}
+        {content && (
+          <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
+            <Text style={{ 
+              fontSize: 16, 
+              lineHeight: 24, 
+              color: themeColors.text, 
+              fontWeight: '300' 
+            }}>
+              {content}
+            </Text>
+          </View>
+        )}
+
+        {/* Interaction Bar */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingVertical: 16 }}>
           {/* Like Button */}
           <TouchableOpacity 
             onPress={handleLike}
-            className="flex-row items-center"
+            style={{ flexDirection: 'row', alignItems: 'center' }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.3}
           >
             <Heart 
               size={20} 
-              color={isLiked ? '#EF4444' : '#6B7280'}
+              color={isLiked ? '#EF4444' : themeColors.textSecondary}
               fill={isLiked ? '#EF4444' : 'none'}
             />
-            <Text className={`ml-2 text-sm font-light ${isLiked ? 'text-red-500' : 'text-gray-500'}`}>
+            <Text style={{ marginLeft: 8, fontSize: 14, fontWeight: '300', color: isLiked ? '#EF4444' : themeColors.textSecondary }}>
               {likes}
             </Text>
           </TouchableOpacity>
@@ -507,12 +559,12 @@ const PostCard: React.FC<PostCardComponentProps> = ({
           {/* Comment Button */}
           <TouchableOpacity 
             onPress={handleComment}
-            className="flex-row items-center"
+            style={{ flexDirection: 'row', alignItems: 'center' }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.3}
           >
-            <MessageCircle size={20} color="#6B7280" />
-            <Text className="ml-2 text-gray-500 text-sm font-light">{comments}</Text>
+            <MessageCircle size={20} color={themeColors.textSecondary} />
+            <Text style={{ marginLeft: 8, color: themeColors.textSecondary, fontSize: 14, fontWeight: '300' }}>{comments}</Text>
           </TouchableOpacity>
 
           {/* Share Button */}
@@ -520,7 +572,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.3}
           >
-            <Send size={20} color="#6B7280" />
+            <Send size={20} color={themeColors.textSecondary} />
           </TouchableOpacity>
 
           {/* Save Button */}
@@ -537,7 +589,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
           >
             <Bookmark 
               size={20} 
-              color={isPostSaved(id) ? '#0047AB' : '#6B7280'}
+              color={isPostSaved(id) ? '#0047AB' : themeColors.textSecondary}
               fill={isPostSaved(id) ? '#0047AB' : 'none'}
             />
           </TouchableOpacity>

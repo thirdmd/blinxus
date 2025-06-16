@@ -15,6 +15,7 @@ import { colors } from '../../constants';
 import CreateRegularPost from './CreateRegularPost';
 import CreateLucids from './CreateLucids';
 import CreateBlinx from './CreateBlinx';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const { width } = Dimensions.get('window');
 
@@ -25,9 +26,10 @@ interface TabButtonProps {
   icon: React.ReactNode;
   isActive: boolean;
   onPress: () => void;
+  themeColors: any;
 }
 
-function TabButton({ title, icon, isActive, onPress }: TabButtonProps) {
+function TabButton({ title, icon, isActive, onPress, themeColors }: TabButtonProps) {
   const scaleValue = useRef(new Animated.Value(isActive ? 1.15 : 0.95)).current;
   const underlineScale = useRef(new Animated.Value(isActive ? 1 : 0)).current;
   const opacityValue = useRef(new Animated.Value(isActive ? 1 : 0.6)).current;
@@ -58,29 +60,43 @@ function TabButton({ title, icon, isActive, onPress }: TabButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-1 py-3 px-1 mx-1"
+      style={{ 
+        flex: 1, 
+        paddingVertical: 12, 
+        paddingHorizontal: 4, 
+        marginHorizontal: 4 
+      }}
       activeOpacity={0.3}
     >
       <Animated.View 
-        className="items-center"
         style={{ 
+          alignItems: 'center',
           transform: [{ scale: scaleValue }],
           opacity: opacityValue 
         }}
       >
         {React.isValidElement(icon) && React.cloneElement(icon, {
           size: 18,
-          color: isActive ? '#000000' : '#6B7280',
+          color: isActive ? themeColors.text : themeColors.textSecondary,
           strokeWidth: 1.5
         } as any)}
-        <Text className={`font-light text-sm mt-1.5 ${
-          isActive ? 'text-black' : 'text-gray-600'
-        }`}>
+        <Text style={{
+          fontWeight: '300',
+          fontSize: 14,
+          marginTop: 6,
+          color: isActive ? themeColors.text : themeColors.textSecondary
+        }}>
           {title}
         </Text>
         <Animated.View 
-          className="w-6 h-0.5 bg-black mt-2 rounded-full"
-          style={{ transform: [{ scaleX: underlineScale }] }}
+          style={{
+            width: 24,
+            height: 2,
+            backgroundColor: themeColors.text,
+            marginTop: 8,
+            borderRadius: 1,
+            transform: [{ scaleX: underlineScale }]
+          }}
         />
       </Animated.View>
     </TouchableOpacity>
@@ -89,6 +105,7 @@ function TabButton({ title, icon, isActive, onPress }: TabButtonProps) {
 
 export default function CreatePost() {
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   const [activeTab, setActiveTab] = useState<PostType>('Post');
   const childRef = useRef<any>(null);
   const [isValid, setIsValid] = useState(false);
@@ -135,42 +152,64 @@ export default function CreatePost() {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       
       {/* Header */}
-      <View className="flex-row items-center justify-between px-6 py-4">
+      <View style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 24, 
+        paddingVertical: 16 
+      }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="w-10 h-10 items-center justify-center"
+          style={{ 
+            width: 40, 
+            height: 40, 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}
           activeOpacity={0.3}
         >
-          <X size={24} color="#000000" strokeWidth={2} />
+          <X size={24} color={themeColors.text} strokeWidth={2} />
         </TouchableOpacity>
         
-        <View className="flex-1" />
+        <View style={{ flex: 1 }} />
         
         <TouchableOpacity
           onPress={handleShare}
-          className={`w-10 h-10 rounded-full items-center justify-center ${
-            isValid 
-              ? 'bg-black' 
-              : 'bg-gray-100'
-          }`}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isValid 
+              ? (themeColors.isDark ? themeColors.text : '#000000')
+              : themeColors.backgroundSecondary
+          }}
           activeOpacity={0.3}
           disabled={!isValid}
         >
           <ArrowRight 
             size={18} 
-            color={isValid ? '#ffffff' : '#9CA3AF'} 
+            color={isValid 
+              ? (themeColors.isDark ? themeColors.background : '#ffffff')
+              : themeColors.textSecondary
+            } 
             strokeWidth={2} 
           />
         </TouchableOpacity>
       </View>
 
       {/* Tab Selection */}
-      <View className="px-6 py-4">
-        <View className="flex-row">
+      <View style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
+        <View style={{ flexDirection: 'row' }}>
           {getTabData().map((tab) => (
             <TabButton
               key={tab.key}
@@ -178,14 +217,24 @@ export default function CreatePost() {
               icon={tab.icon}
               isActive={activeTab === tab.key}
               onPress={() => setActiveTab(tab.key)}
+              themeColors={themeColors}
             />
           ))}
         </View>
       </View>
 
       {/* Content Area */}
-      <View className="flex-1 bg-gray-50">
-        <View className="bg-white rounded-t-3xl flex-1 pt-6">
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: themeColors.background 
+      }}>
+        <View style={{ 
+          backgroundColor: themeColors.background, 
+          borderTopLeftRadius: 24, 
+          borderTopRightRadius: 24, 
+          flex: 1, 
+          paddingTop: 24 
+        }}>
           {renderContent()}
         </View>
       </View>

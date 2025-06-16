@@ -14,6 +14,7 @@ import MediaGridItem from '../../components/MediaGridItem';
 import MasonryList from '../../components/MasonryList';
 import FullPostView from '../../components/FullPostView';
 import { useScrollContext } from '../../contexts/ScrollContext';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export interface ExploreScreenRef {
   resetToAll: () => void;
@@ -21,6 +22,7 @@ export interface ExploreScreenRef {
 
 const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -335,41 +337,85 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   
   return (
     <PanGestureHandler onGestureEvent={onGestureEvent}>
-      <SafeAreaView className="flex-1 bg-white">
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
         
         {/* Header - Minimal Design */}
         {headerVisible && (
-          <View className="bg-white py-4 px-6">
+          <View style={{ 
+            backgroundColor: themeColors.background, 
+            paddingVertical: 16, 
+            paddingHorizontal: 24 
+          }}>
             {isMediaMode ? (
               // Search bar for media mode - Minimal
-              <View className="flex-row items-center">
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity 
                   onPress={exitMediaMode}
-                  className="w-10 h-10 -ml-2 items-center justify-center"
+                  style={{ 
+                    width: 40, 
+                    height: 40, 
+                    marginLeft: -8, 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}
                   activeOpacity={0.3}
                 >
-                  <ArrowLeft size={20} color="#000000" />
+                  <ArrowLeft size={20} color={themeColors.text} />
                 </TouchableOpacity>
-                <View className="flex-1 flex-row items-center border border-gray-200 rounded-full px-4 py-2.5 ml-2">
-                  <Search size={18} color="#9CA3AF" />
+                <View style={{ 
+                  flex: 1, 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  borderWidth: 1, 
+                  borderColor: themeColors.border, 
+                  borderRadius: 20, 
+                  paddingHorizontal: 16, 
+                  paddingVertical: 10, 
+                  marginLeft: 8 
+                }}>
+                  <Search size={18} color={themeColors.textSecondary} />
                   <TextInput
                     placeholder="Search places..."
-                    className="flex-1 ml-3 text-base text-black font-light"
-                    placeholderTextColor="#9CA3AF"
+                    style={{ 
+                      flex: 1, 
+                      marginLeft: 12, 
+                      fontSize: 16, 
+                      color: themeColors.text, 
+                      fontWeight: '300' 
+                    }}
+                    placeholderTextColor={themeColors.textSecondary}
                   />
                 </View>
               </View>
             ) : (
               // Normal title with toggle button - Minimal
-              <View className="flex-row items-center justify-between">
-                <Text className="text-2xl font-normal text-black">Blinxus</Text>
+              <View style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'space-between' 
+              }}>
+                <Text style={{ 
+                  fontSize: 24, 
+                  fontWeight: '400', 
+                  color: themeColors.text 
+                }}>
+                  Blinxus
+                </Text>
                 <TouchableOpacity
                   onPress={enterMediaMode}
-                  className="w-10 h-10 items-center justify-center"
+                  style={{ 
+                    width: 40, 
+                    height: 40, 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}
                   activeOpacity={0.3}
                 >
-                  <Grid3X3 size={24} color="#000000" strokeWidth={2} />
+                  <Grid3X3 size={24} color={themeColors.text} strokeWidth={2} />
                 </TouchableOpacity>
               </View>
             )}
@@ -377,14 +423,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
         )}
 
         {/* Pills Layer - Minimal */}
-        <View className="bg-white pb-4">
+        <View style={{ backgroundColor: themeColors.background, paddingBottom: 16 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
-            <View className="flex-row">
+            <View style={{ flexDirection: 'row' }}>
               {/* All Filter Pill */}
-              <View className="mr-1.5">
+              <View style={{ marginRight: 6 }}>
                 <PillTag
                   label="All"
-                  color="#E5E7EB" // Light gray color for "All"
+                  color={themeColors.isDark ? themeColors.backgroundSecondary : "#E5E7EB"} // Adapt to theme
                   selected={selectedFilter === 'all'}
                   onPress={() => handleFilterSelect('all')}
                   alwaysFullColor={true}
@@ -394,7 +440,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
               {activityTags.map((tag, index) => {
                 const activityKey = activityKeyMap[tag.name];
                 return (
-                  <View key={tag.id} className="mr-1.5">
+                  <View key={tag.id} style={{ marginRight: 6 }}>
                     <PillTag
                       label={tag.name}
                       color={tag.color}
@@ -434,7 +480,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
                 <LucidPostCard {...item} /> : 
                 <PostCard {...item} />
             }
-            className="flex-1"
+            style={{ flex: 1, backgroundColor: themeColors.background }}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -463,12 +509,29 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
               }}
             >
               <TouchableOpacity
-                className="w-14 h-14 rounded-full bg-black justify-center items-center"
+                style={{ 
+                  width: 56, 
+                  height: 56, 
+                  borderRadius: 28, 
+                  backgroundColor: '#0047AB', // Always cobalt blue
+                  justifyContent: 'center', 
+                  alignItems: 'center' 
+                }}
                 onPress={() => navigation.navigate('CreatePost' as never)}
                 activeOpacity={0.7}
               >
-                <View className="w-5 h-0.5 bg-white absolute" />
-                <View className="w-0.5 h-5 bg-white absolute" />
+                <View style={{ 
+                  width: 20, 
+                  height: 2, 
+                  backgroundColor: '#FFFFFF', // Always white plus icon
+                  position: 'absolute' 
+                }} />
+                <View style={{ 
+                  width: 2, 
+                  height: 20, 
+                  backgroundColor: '#FFFFFF', // Always white plus icon
+                  position: 'absolute' 
+                }} />
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>

@@ -6,6 +6,7 @@ import LucidPostCard from './LucidPostCard';
 import { PostCardProps, mapPostToCardProps } from '../types/structures/posts_structure';
 import { usePosts } from '../store/PostsContext';
 import { useNavigation } from '@react-navigation/native';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface FullPostViewProps {
   post: PostCardProps;
@@ -16,6 +17,7 @@ interface FullPostViewProps {
 const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomComponent }) => {
   const { posts } = usePosts();
   const navigation = useNavigation();
+  const themeColors = useThemeColors();
   
   // Get the latest version of the post from the context
   const latestPost = posts.find(p => p.id === post.id);
@@ -46,9 +48,9 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
   }, [latestPost, currentPostProps, navigation, onBack]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <ScrollView 
-        className="flex-1"
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         bounces={true}
         scrollEventThrottle={32}
@@ -69,9 +71,15 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
       {/* Floating Back Button - Clean Minimalist Design */}
       <TouchableOpacity
         onPress={onBack}
-        className="absolute top-16 left-6 w-10 h-10 justify-center items-center"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark semi-transparent
+          position: 'absolute',
+          top: 64,
+          left: 24,
+          width: 40,
+          height: 40,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: themeColors.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.8)',
           borderRadius: 20,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
@@ -81,7 +89,7 @@ const FullPostView: React.FC<FullPostViewProps> = ({ post, onBack, bottomCompone
         }}
         activeOpacity={0.7}
       >
-        <ChevronLeft size={20} color="#FFFFFF" />
+        <ChevronLeft size={20} color={themeColors.isDark ? '#FFFFFF' : '#FFFFFF'} />
       </TouchableOpacity>
     </SafeAreaView>
   );

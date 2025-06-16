@@ -12,6 +12,7 @@ import { colors } from '../../constants';
 import { activityTags, ActivityKey } from '../../constants/activityTags';
 import Button from '../../components/Button';
 import { usePosts } from '../../store/PostsContext';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface CreateLucidsProps {
   navigation: {
@@ -22,6 +23,7 @@ interface CreateLucidsProps {
 
 const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucidsProps, ref) => {
   const { addPost } = usePosts();
+  const themeColors = useThemeColors();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [durationMode, setDurationMode] = useState<'days' | 'dates'>('days');
   const [duration, setDuration] = useState<number>(1);
@@ -206,42 +208,42 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
         <TouchableOpacity
           onPress={handleLocationPress}
           style={{
-            backgroundColor: colors.lightGrayBg,
+            backgroundColor: themeColors.backgroundSecondary,
             borderRadius: 16,
             padding: 16,
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: selectedLocation ? 2 : 0,
-            borderColor: selectedLocation ? colors.richBlack : 'transparent',
+            borderColor: selectedLocation ? themeColors.text : 'transparent',
           }}
           activeOpacity={0.7}
         >
           <Navigation 
             size={16} 
-            color={selectedLocation ? colors.richBlack : colors.mediumGray} 
+            color={selectedLocation ? themeColors.text : themeColors.textSecondary} 
             strokeWidth={1.5} 
           />
           <Text style={{
             marginLeft: 12,
             flex: 1,
             fontSize: 16,
-            color: selectedLocation ? colors.richBlack : colors.mediumGray,
+            color: selectedLocation ? themeColors.text : themeColors.textSecondary,
             fontWeight: '400',
           }}>
             {selectedLocation || 'Destination'}
           </Text>
-          <ChevronRight size={20} color={colors.mediumGray} strokeWidth={1.5} />
+          <ChevronRight size={20} color={themeColors.textSecondary} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
 
       {/* Duration Mode Selection */}
       <View style={{ marginBottom: 24 }}>
-        <Text style={{ fontSize: 16, fontWeight: '400', color: colors.richBlack, marginBottom: 12 }}>
+        <Text style={{ fontSize: 16, fontWeight: '400', color: themeColors.text, marginBottom: 12 }}>
           Duration
         </Text>
         
         {/* Mode Toggle */}
-        <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: colors.subtleGray, borderRadius: 12, padding: 4 }}>
+        <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: themeColors.backgroundSecondary, borderRadius: 12, padding: 4 }}>
           <TouchableOpacity
             onPress={() => setDurationMode('days')}
             style={{
@@ -249,13 +251,13 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
               paddingVertical: 12,
               paddingHorizontal: 16,
               borderRadius: 8,
-              backgroundColor: durationMode === 'days' ? colors.white : 'transparent',
+              backgroundColor: durationMode === 'days' ? themeColors.background : 'transparent',
               alignItems: 'center',
             }}
             activeOpacity={0.7}
           >
             <Text style={{
-              color: durationMode === 'days' ? colors.richBlack : colors.mediumGray,
+              color: durationMode === 'days' ? themeColors.text : themeColors.textSecondary,
               fontWeight: '500',
             }}>
               Days
@@ -268,13 +270,13 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
               paddingVertical: 12,
               paddingHorizontal: 16,
               borderRadius: 8,
-              backgroundColor: durationMode === 'dates' ? colors.white : 'transparent',
+              backgroundColor: durationMode === 'dates' ? themeColors.background : 'transparent',
               alignItems: 'center',
             }}
             activeOpacity={0.7}
           >
             <Text style={{
-              color: durationMode === 'dates' ? colors.richBlack : colors.mediumGray,
+              color: durationMode === 'dates' ? themeColors.text : themeColors.textSecondary,
               fontWeight: '500',
             }}>
               Dates
@@ -284,23 +286,23 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
 
         {/* Duration Input */}
         {durationMode === 'days' ? (
-          <View style={{ backgroundColor: colors.lightGrayBg, borderRadius: 16, padding: 16 }}>
+          <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 18, fontWeight: '400', color: colors.richBlack }}>
+              <Text style={{ fontSize: 18, fontWeight: '400', color: themeColors.text }}>
                 {duration} days
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity
                   onPress={() => duration > minDuration && setDuration(duration - 1)}
                   style={{
-                    backgroundColor: colors.white,
+                    backgroundColor: themeColors.background,
                     borderRadius: 8,
                     padding: 8,
                     marginRight: 8,
                     opacity: duration > minDuration ? 1 : 0.5,
                   }}
                 >
-                  <Text style={{ fontSize: 16, color: colors.richBlack, fontWeight: 'bold' }}>-</Text>
+                  <Text style={{ fontSize: 16, color: themeColors.text, fontWeight: 'bold' }}>-</Text>
                 </TouchableOpacity>
                 
                 <TextInput
@@ -324,13 +326,13 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                     }
                   }}
                   style={{
-                    backgroundColor: colors.white,
+                    backgroundColor: themeColors.background,
                     borderRadius: 8,
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                     textAlign: 'center',
                     fontSize: 16,
-                    color: colors.richBlack,
+                    color: themeColors.text,
                     fontWeight: '400',
                     minWidth: 50,
                     marginRight: 8,
@@ -343,19 +345,19 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                 <TouchableOpacity
                   onPress={() => duration < maxDuration && setDuration(duration + 1)}
                   style={{
-                    backgroundColor: colors.white,
+                    backgroundColor: themeColors.background,
                     borderRadius: 8,
                     padding: 8,
                     opacity: duration < maxDuration ? 1 : 0.5,
                   }}
                 >
-                  <Text style={{ fontSize: 16, color: colors.richBlack, fontWeight: 'bold' }}>+</Text>
+                  <Text style={{ fontSize: 16, color: themeColors.text, fontWeight: 'bold' }}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         ) : (
-          <View style={{ backgroundColor: colors.lightGrayBg, borderRadius: 16, padding: 16 }}>
+          <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
               <TouchableOpacity
                 onPress={() => handleDateSelection('start')}
@@ -363,16 +365,16 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                   flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.background,
                   borderRadius: 12,
                   padding: 12,
                 }}
                 activeOpacity={0.7}
               >
-                <Calendar size={16} color={colors.mediumGray} strokeWidth={1.5} />
+                <Calendar size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
                 <Text style={{ 
                   marginLeft: 8, 
-                  color: startDate ? colors.richBlack : colors.mediumGray,
+                  color: startDate ? themeColors.text : themeColors.textSecondary,
                   fontSize: 14,
                   fontWeight: '400',
                 }}>
@@ -386,16 +388,16 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                   flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.background,
                   borderRadius: 12,
                   padding: 12,
                 }}
                 activeOpacity={0.7}
               >
-                <Calendar size={16} color={colors.mediumGray} strokeWidth={1.5} />
+                <Calendar size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
                 <Text style={{ 
                   marginLeft: 8, 
-                  color: endDate ? colors.richBlack : colors.mediumGray,
+                  color: endDate ? themeColors.text : themeColors.textSecondary,
                   fontSize: 14,
                   fontWeight: '400',
                 }}>
@@ -407,7 +409,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
             {startDate && endDate && (
               <Text style={{ 
                 textAlign: 'center', 
-                color: colors.mediumGray, 
+                color: themeColors.textSecondary, 
                 fontSize: 14,
                 fontWeight: '400',
               }}>
@@ -420,13 +422,13 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
 
       {/* Days Preview */}
       <View style={{ marginBottom: 32 }}>
-        <Text style={{ fontSize: 16, fontWeight: '400', color: colors.richBlack, marginBottom: 12 }}>
+        <Text style={{ fontSize: 16, fontWeight: '400', color: themeColors.text, marginBottom: 12 }}>
           Days
         </Text>
         <View>
           {Array.from({ length: durationMode === 'dates' ? calculateDurationFromDates() : duration }, (_, i) => (
             <View key={i} style={{
-              backgroundColor: colors.lightGrayBg,
+              backgroundColor: themeColors.backgroundSecondary,
               borderRadius: 16,
               padding: 16,
               flexDirection: 'row',
@@ -435,16 +437,16 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
               marginBottom: 8,
             }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.richBlack, fontWeight: '400' }}>
+                <Text style={{ color: themeColors.text, fontWeight: '400' }}>
                   Day {i + 1}
                   {durationMode === 'dates' && startDate && (
-                    <Text style={{ color: colors.mediumGray, fontSize: 14 }}>
+                    <Text style={{ color: themeColors.textSecondary, fontSize: 14 }}>
                       {' '}• {formatDate(new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000))}
                     </Text>
                   )}
                 </Text>
                 {dayPhotos[i] && (
-                  <Text style={{ color: colors.mediumGray, fontSize: 12, marginTop: 2 }}>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 12, marginTop: 2 }}>
                     {dayPhotos[i].length} photos added
                   </Text>
                 )}
@@ -452,7 +454,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
               <TouchableOpacity 
                 onPress={() => handleDayPhotoSelection(i)}
                 style={{
-                  backgroundColor: dayPhotos[i] ? colors.cobalt : colors.subtleGray,
+                  backgroundColor: dayPhotos[i] ? themeColors.cobalt : themeColors.backgroundTertiary,
                   borderRadius: 20,
                   padding: 8,
                   flexDirection: 'row',
@@ -473,7 +475,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                     </Text>
                   </>
                 ) : (
-                  <Plus size={16} color={colors.mediumGray} strokeWidth={1.5} />
+                  <Plus size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
                 )}
               </TouchableOpacity>
             </View>

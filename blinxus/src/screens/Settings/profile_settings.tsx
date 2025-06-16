@@ -13,14 +13,19 @@ import {
   Shield, 
   BarChart3, 
   UserX, 
-  LogOut 
+  LogOut,
+  Moon
 } from 'lucide-react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { ThemeToggle } from '../../components/ThemeToggle';
 
 interface Props {
   onBackPress?: () => void;
 }
 
 export default function ProfileSettings({ onBackPress }: Props = {}) {
+  const themeColors = useThemeColors();
+  
   const handleMenuItemPress = (item: string) => {
     if (item === 'signout') {
       // Handle sign out
@@ -35,6 +40,11 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
   };
 
   const settingsItems = [
+    {
+      id: 'theme',
+      title: 'Theme',
+      subtitle: 'Switch between light and dark mode'
+    },
     {
       id: 'account',
       title: 'Account',
@@ -64,68 +74,144 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
 
   const getIcon = (id: string) => {
     switch (id) {
-      case 'account': return <User size={20} color="#000000" strokeWidth={2} />;
-      case 'privacy': return <Shield size={20} color="#000000" strokeWidth={2} />;
-      case 'activity': return <BarChart3 size={20} color="#000000" strokeWidth={2} />;
-      case 'blocked': return <UserX size={20} color="#000000" strokeWidth={2} />;
+      case 'theme': return <Moon size={20} color={themeColors.text} strokeWidth={2} />;
+      case 'account': return <User size={20} color={themeColors.text} strokeWidth={2} />;
+      case 'privacy': return <Shield size={20} color={themeColors.text} strokeWidth={2} />;
+      case 'activity': return <BarChart3 size={20} color={themeColors.text} strokeWidth={2} />;
+      case 'blocked': return <UserX size={20} color={themeColors.text} strokeWidth={2} />;
       case 'signout': return <LogOut size={20} color="#dc2626" strokeWidth={2} />;
       default: return null;
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
       
       {/* Header */}
-      <View className="px-6 pt-4 pb-8">
+      <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 }}>
         <TouchableOpacity
           onPress={onBackPress}
-          className="w-10 h-10 -ml-2 items-center justify-center"
+          style={{ 
+            width: 40, 
+            height: 40, 
+            marginLeft: -8, 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <ChevronLeft size={24} color="#000000" strokeWidth={2} />
+          <ChevronLeft size={24} color={themeColors.text} strokeWidth={2} />
         </TouchableOpacity>
         
-        <Text className="text-2xl font-normal text-black mt-8">Settings</Text>
+        <Text style={{ 
+          fontSize: 24, 
+          fontWeight: '400', 
+          color: themeColors.text, 
+          marginTop: 32 
+        }}>
+          Settings
+        </Text>
       </View>
 
       {/* Settings List */}
       <ScrollView 
-        className="flex-1" 
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View className="px-6">
+        <View style={{ paddingHorizontal: 24 }}>
           {settingsItems.map((item, index) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => handleMenuItemPress(item.id)}
-              className="flex-row items-center py-5"
-              activeOpacity={0.3}
-            >
-              {/* Icon */}
-              <View className="w-6 h-6 mr-4">
-                {getIcon(item.id)}
-              </View>
-              
-              {/* Text Content */}
-              <View className="flex-1">
-                <Text className={`text-base ${item.id === 'signout' ? 'text-black' : 'text-black'}`}>
-                  {item.title}
-                </Text>
-                {item.id !== 'signout' && (
-                  <Text className="text-sm text-gray-400 mt-0.5">
-                    {item.subtitle}
-                  </Text>
-                )}
-              </View>
-              
-              {/* Arrow */}
-              <View className="w-4 h-4 items-center justify-center">
-                <View className="w-2 h-2 border-t border-r border-gray-300 rotate-45" />
-              </View>
-            </TouchableOpacity>
+            <View key={item.id}>
+              {item.id === 'theme' ? (
+                // Special handling for theme toggle
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  paddingVertical: 20 
+                }}>
+                  {/* Icon */}
+                  <View style={{ width: 24, height: 24, marginRight: 16 }}>
+                    {getIcon(item.id)}
+                  </View>
+                  
+                  {/* Text Content */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ 
+                      fontSize: 16, 
+                      color: themeColors.text 
+                    }}>
+                      {item.title}
+                    </Text>
+                    <Text style={{ 
+                      fontSize: 14, 
+                      color: themeColors.textSecondary, 
+                      marginTop: 2 
+                    }}>
+                      {item.subtitle}
+                    </Text>
+                  </View>
+                  
+                  {/* Theme Toggle */}
+                  <ThemeToggle showLabel={false} size="small" />
+                </View>
+              ) : (
+                // Regular menu items
+                <TouchableOpacity
+                  onPress={() => handleMenuItemPress(item.id)}
+                  style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    paddingVertical: 20 
+                  }}
+                  activeOpacity={0.3}
+                >
+                  {/* Icon */}
+                  <View style={{ width: 24, height: 24, marginRight: 16 }}>
+                    {getIcon(item.id)}
+                  </View>
+                  
+                  {/* Text Content */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ 
+                      fontSize: 16, 
+                      color: themeColors.text 
+                    }}>
+                      {item.title}
+                    </Text>
+                    {item.id !== 'signout' && (
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: themeColors.textSecondary, 
+                        marginTop: 2 
+                      }}>
+                        {item.subtitle}
+                      </Text>
+                    )}
+                  </View>
+                  
+                  {/* Arrow */}
+                  <View style={{ 
+                    width: 16, 
+                    height: 16, 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
+                    <View style={{ 
+                      width: 8, 
+                      height: 8, 
+                      borderTopWidth: 1, 
+                      borderRightWidth: 1, 
+                      borderColor: themeColors.textSecondary, 
+                      transform: [{ rotate: '45deg' }] 
+                    }} />
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
           ))}
         </View>
       </ScrollView>

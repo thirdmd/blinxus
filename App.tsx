@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from './blinxus/src/constants';
 import { Home, Users2, UserCircle } from 'lucide-react-native';
 import ScrollContext from './blinxus/src/contexts/ScrollContext';
+import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
 
 // Import screens
 import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
@@ -18,6 +19,7 @@ import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
 import { SavedPostsProvider } from './blinxus/src/store/SavedPostsContext';
+import { ThemeProvider } from './blinxus/src/contexts/ThemeContext';
 
 // Create navigators
 const Tab = createBottomTabNavigator();
@@ -41,19 +43,46 @@ function TabIcon({ name, color }: { name: string; color: string }) {
 
 // Temporary Pods Screen
 function PodsScreen() {
+  const themeColors = useThemeColors();
+  
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View className="p-4 border-b border-gray-200">
-        <Text className="text-2xl font-semibold text-gray-900">
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background} 
+      />
+      <View style={{ 
+        padding: 16, 
+        borderBottomWidth: 1, 
+        borderBottomColor: themeColors.border 
+      }}>
+        <Text style={{ 
+          fontSize: 24, 
+          fontWeight: '600', 
+          color: themeColors.text 
+        }}>
           Pods
         </Text>
       </View>
-      <View className="flex-1 justify-center items-center px-8">
-        <Text className="text-lg text-gray-600 text-center mb-4">
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        paddingHorizontal: 32 
+      }}>
+        <Text style={{ 
+          fontSize: 18, 
+          color: themeColors.textSecondary, 
+          textAlign: 'center', 
+          marginBottom: 16 
+        }}>
           Location-based communities
         </Text>
-        <Text className="text-base text-gray-600 text-center">
+        <Text style={{ 
+          fontSize: 16, 
+          color: themeColors.textSecondary, 
+          textAlign: 'center' 
+        }}>
           Connect with travelers in specific destinations
         </Text>
       </View>
@@ -63,6 +92,7 @@ function PodsScreen() {
 
 // Tab Navigator
 function TabNavigator() {
+  const themeColors = useThemeColors();
   const exploreScrollRef = useRef<FlatList>(null);
   const podsScrollRef = useRef<ScrollView>(null);
   const profileScrollRef = useRef<ScrollView>(null);
@@ -113,8 +143,8 @@ function TabNavigator() {
           <TabIcon name={route.name} color={color} />
         ),
         tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.borderGray,
+          backgroundColor: themeColors.background,
+          borderTopColor: themeColors.border,
           borderTopWidth: 1,
           height: 80,
           paddingBottom: 20,
@@ -124,8 +154,8 @@ function TabNavigator() {
           fontSize: 12,
           fontWeight: '500',
         },
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: colors.mediumGray,
+        tabBarActiveTintColor: themeColors.text,
+        tabBarInactiveTintColor: themeColors.textSecondary,
         tabBarLabel: ({ focused }) => !focused ? '' : undefined,
       })}
         screenListeners={({ route, navigation }) => ({
@@ -174,14 +204,16 @@ function RootNavigator() {
 // Main App Component
 export default function App() {
   return (
-    <PostsProvider>
-      <SavedPostsProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        </GestureHandlerRootView>
-      </SavedPostsProvider>
-    </PostsProvider>
+    <ThemeProvider>
+      <PostsProvider>
+        <SavedPostsProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </GestureHandlerRootView>
+        </SavedPostsProvider>
+      </PostsProvider>
+    </ThemeProvider>
   );
 } 

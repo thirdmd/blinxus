@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface MediaGridItemProps {
   id: string;
@@ -25,19 +26,20 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   aspectRatio = 1,
 }) => {
   const imageHeight = columnWidth / aspectRatio;
+  const themeColors = useThemeColors();
 
   return (
     <TouchableOpacity 
       onPress={onPress} 
-      className="mb-3"
+      style={{ marginBottom: 12 }}
       activeOpacity={0.9}
     >
       <View>
         {/* Image with soft corners */}
         <Image
           source={{ uri: imageUri }}
-          className="w-full"
           style={{ 
+            width: '100%',
             height: imageHeight,
             borderRadius: 20,
           }}
@@ -45,35 +47,42 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
         />
         
         {/* Username and Location overlay */}
-        <View className="flex-row items-center justify-between mt-2 px-1">
-          {/* Username with Flag */}
-          <View className="flex-row items-center flex-shrink">
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingHorizontal: 4 }}>
+          {/* Username with Flag - More visible */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
             <Text 
-              className="text-xs font-normal text-gray-700"
+              style={{ 
+                fontSize: 12, // Back to original size
+                fontWeight: 'normal', // Back to original weight
+                color: themeColors.text, // Theme-aware color
+                flex: 1
+              }}
               numberOfLines={1}
             >
               {username}
             </Text>
             {nationalityFlag && (
-              <Text className="ml-1 text-xs font-light">{nationalityFlag}</Text>
+              <Text style={{ marginLeft: 4, fontSize: 12, fontWeight: '300', color: themeColors.text }}>{nationalityFlag}</Text>
             )}
           </View>
           
           {/* Location Pill */}
           <View 
-            className="ml-2 px-2 py-1"
             style={{ 
+              paddingHorizontal: 8, 
+              paddingVertical: 4,
               backgroundColor: activityColor || 'transparent',
               borderRadius: 12,
               maxWidth: '60%',
               borderWidth: activityColor ? 0 : 0.5,
-              borderColor: activityColor ? 'transparent' : '#000000'
+              borderColor: activityColor ? 'transparent' : themeColors.text
             }}
           >
             <Text 
-              className="text-xs font-light"
               style={{ 
-                color: activityColor ? 'white' : '#000000'
+                fontSize: 12,
+                fontWeight: '300',
+                color: activityColor ? 'white' : themeColors.text
               }}
               numberOfLines={1}
             >

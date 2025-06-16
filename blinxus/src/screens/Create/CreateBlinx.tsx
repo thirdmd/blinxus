@@ -12,6 +12,7 @@ import { colors, activityTags } from '../../constants';
 import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface CreateBlinxProps {
   navigation: {
@@ -21,9 +22,10 @@ interface CreateBlinxProps {
 }
 
 const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxProps, ref) => {
+  const themeColors = useThemeColors();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleLocationPress = () => {
     Alert.prompt(
@@ -45,10 +47,10 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
     );
   };
 
-  const handleCameraCapture = () => {
+  const handleImagePicker = () => {
     // For demo, add a random image
-    if (!capturedPhoto) {
-      setCapturedPhoto(`https://picsum.photos/400/400?random=${Date.now()}`);
+    if (!selectedImage) {
+      setSelectedImage(`https://picsum.photos/400/400?random=${Date.now()}`);
     }
   };
 
@@ -58,64 +60,84 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
 
   useImperativeHandle(ref, () => ({
     handleSubmit: handleCreateBlinx
-  }), [selectedLocation, selectedActivity, capturedPhoto]);
+  }), [selectedLocation, selectedActivity, selectedImage]);
 
   useEffect(() => {
-    const isValid = selectedLocation && capturedPhoto;
+    const isValid = selectedLocation && selectedImage;
     onValidationChange(!!isValid);
-  }, [selectedLocation, capturedPhoto]);
+  }, [selectedLocation, selectedImage]);
 
   const handleCreateBlinx = () => {
-    if (!selectedLocation || !capturedPhoto) {
+    if (!selectedLocation || !selectedImage) {
       return;
     }
     
     console.log('Creating Blinx...', {
       location: selectedLocation,
       activity: selectedActivity,
-      photo: capturedPhoto,
+      photo: selectedImage,
     });
     
     navigation.goBack();
   };
 
   return (
-    <ScrollView className="flex-1 px-6 pt-2" showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
       {/* Location */}
-      <View className="mb-6">
+      <View style={{ marginBottom: 24 }}>
         <TouchableOpacity
           onPress={handleLocationPress}
-          className={`bg-gray-50 rounded-2xl p-4 flex-row items-center ${
-            selectedLocation ? 'border-2 border-black' : ''
-          }`}
+          style={{
+            backgroundColor: themeColors.backgroundSecondary,
+            borderRadius: 16,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: selectedLocation ? 2 : 0,
+            borderColor: selectedLocation ? themeColors.text : 'transparent'
+          }}
           activeOpacity={0.3}
         >
           <Navigation 
             size={16} 
-            color={selectedLocation ? '#000000' : '#6B7280'} 
+            color={selectedLocation ? themeColors.text : themeColors.textSecondary} 
             strokeWidth={1.5} 
           />
-          <Text className={`ml-3 flex-1 text-base ${
-            selectedLocation ? 'text-black font-light' : 'text-gray-500 font-light'
-          }`}>
-            {selectedLocation || 'Current location'}
+          <Text style={{
+            marginLeft: 12,
+            flex: 1,
+            fontSize: 16,
+            color: selectedLocation ? themeColors.text : themeColors.textSecondary,
+            fontWeight: selectedLocation ? 'normal' : '300'
+          }}>
+            {selectedLocation || 'Add location'}
           </Text>
-          <ChevronRight size={20} color="#6B7280" strokeWidth={1.5} />
+          <ChevronRight size={20} color={themeColors.textSecondary} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       {/* Photo */}
-      <View className="mb-6">
-        {capturedPhoto ? (
-          <View className="relative">
+      <View style={{ marginBottom: 24 }}>
+        {selectedImage ? (
+          <View style={{ position: 'relative' }}>
             <Image
-              source={{ uri: capturedPhoto }}
-              className="w-full h-48 rounded-2xl"
+              source={{ uri: selectedImage }}
+              style={{ width: '100%', height: 192, borderRadius: 16 }}
               resizeMode="cover"
             />
             <TouchableOpacity
-              onPress={() => setCapturedPhoto(null)}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black bg-opacity-70 items-center justify-center"
+              onPress={() => setSelectedImage(null)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
               activeOpacity={0.3}
             >
               <X size={16} color="#ffffff" strokeWidth={2} />
@@ -123,20 +145,29 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
           </View>
         ) : (
           <TouchableOpacity
-            onPress={handleCameraCapture}
-            className="h-32 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-200"
+            onPress={handleImagePicker}
+            style={{
+              height: 128,
+              backgroundColor: themeColors.backgroundSecondary,
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 2,
+              borderStyle: 'dashed',
+              borderColor: themeColors.border
+            }}
             activeOpacity={0.3}
           >
-            <Camera size={24} color="#6B7280" strokeWidth={2} />
-            <Text className="text-gray-500 text-sm font-light mt-2">Open camera</Text>
+            <Camera size={24} color={themeColors.textSecondary} strokeWidth={2} />
+            <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300', marginTop: 8 }}>Add photo</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Activity Tags */}
-      <View className="mb-8">
-        <Text className="text-base font-light text-black mb-3">Activity</Text>
-        <View className="flex-row flex-wrap gap-2">
+      <View style={{ marginBottom: 32 }}>
+        <Text style={{ fontSize: 16, fontWeight: '300', color: themeColors.text, marginBottom: 12 }}>Activity</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {activityTags.map((tag: ActivityTag) => (
             <PillTag
               key={tag.id}

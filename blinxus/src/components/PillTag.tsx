@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { colors } from '../constants';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface PillTagProps {
   label: string;
@@ -23,6 +24,8 @@ export default function PillTag({
   alwaysFullColor = false,
   isCreatePage = false,
 }: PillTagProps) {
+  const themeColors = useThemeColors();
+
   const getContainerStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
       borderRadius: 8,
@@ -39,17 +42,16 @@ export default function PillTag({
     };
 
     // Special handling for colorless pills (All, Snow)
-    const isColorlessPill = color === '#E5E7EB' || color === colors.activities.snow;
+    const isColorlessPill = color === '#E5E7EB' || color === colors.activities.snow || color === themeColors.backgroundSecondary;
     
     if (isColorlessPill) {
-      // Colorless pills: always white background with black text and border
-      // Make border thicker when selected
+      // Colorless pills: adapt to theme
       return {
         ...baseStyle,
         ...sizeStyles[size],
-        backgroundColor: '#FFFFFF',
+        backgroundColor: themeColors.backgroundSecondary,
         borderWidth: selected ? 1.5 : 0.5,
-        borderColor: '#000000',
+        borderColor: themeColors.text,
         ...style,
       };
     }
@@ -57,11 +59,11 @@ export default function PillTag({
     // For colored pills: implement alternate color styling when alwaysFullColor is true
     if (alwaysFullColor) {
       if (selected) {
-        // Selected: white background with colored text and bold border
+        // Selected: theme background with colored text and bold border
         return {
           ...baseStyle,
           ...sizeStyles[size],
-          backgroundColor: '#FFFFFF',
+          backgroundColor: themeColors.backgroundSecondary,
           borderWidth: 1.5, // Bold border when selected
           borderColor: color,
           ...style,
@@ -114,15 +116,15 @@ export default function PillTag({
 
     // Text color and weight logic
     const getTextColor = () => {
-      // Colorless pills always use black text
-      if (color === '#E5E7EB' || color === colors.activities.snow) {
-        return '#000000';
+      // Colorless pills use theme text color
+      if (color === '#E5E7EB' || color === colors.activities.snow || color === themeColors.backgroundSecondary) {
+        return themeColors.text;
       }
       
       // For colored pills with alwaysFullColor (ExploreScreen)
       if (alwaysFullColor) {
         if (selected) {
-          // Selected: colored text on white background
+          // Selected: colored text on theme background
           return color;
         } else {
           // Unselected: white text on colored background
@@ -137,7 +139,7 @@ export default function PillTag({
     // Make text bold when selected
     const getFontWeight = () => {
       // Colorless pills: make text bold when selected to match border thickness
-      if ((color === '#E5E7EB' || color === colors.activities.snow) && selected) {
+      if ((color === '#E5E7EB' || color === colors.activities.snow || color === themeColors.backgroundSecondary) && selected) {
         return '600'; // Semi-bold for colorless pills when selected
       }
       

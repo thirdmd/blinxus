@@ -4,15 +4,43 @@ export const colors = {
   cobaltLight: '#3B82F6',
   cobaltBg: 'rgba(0, 71, 171, 0.1)',
   
-  // Backgrounds
+  // Light Theme
+  light: {
+    // Backgrounds
+    background: '#FFFFFF',
+    backgroundSecondary: '#F8F9FA',
+    
+    // Text Colors
+    text: '#1A1A1A',
+    textSecondary: '#6B7280',
+    
+    // Borders & Lines
+    border: '#E5E7EB',
+    subtle: '#F3F4F6',
+  },
+  
+  // Dark Theme - Dark Night Blue like in the image
+  dark: {
+    // Backgrounds - Dark night blue gradient
+    background: '#0B1426',        // Very dark navy blue (main background)
+    backgroundSecondary: '#1A2332',      // Slightly lighter navy blue (cards, sections)
+    backgroundTertiary: '#243040',       // Medium navy blue (elevated elements)
+    
+    // Text Colors
+    text: '#FFFFFF',        // White text
+    textSecondary: '#B8C5D1',      // Light blue-gray text
+    textTertiary: '#8A9BA8',       // Muted blue-gray text
+    
+    // Borders & Lines
+    border: '#2A3441',         // Dark blue-gray borders
+    subtle: '#1F2937',         // Subtle dark blue
+  },
+  
+  // Legacy colors (for backward compatibility)
   white: '#FFFFFF',
   lightGrayBg: '#F8F9FA',
-  
-  // Text Colors
   richBlack: '#1A1A1A',
   mediumGray: '#6B7280',
-  
-  // Borders & Lines
   borderGray: '#E5E7EB',
   subtleGray: '#F3F4F6',
   
