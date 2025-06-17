@@ -216,7 +216,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
         <View style={{ paddingTop: 96, paddingHorizontal: 24, paddingBottom: 24 }}>
           <Text style={{ 
             fontSize: 28, 
-            fontWeight: 'bold', 
+            fontWeight: '500', 
             color: themeColors.text, 
             letterSpacing: -0.5 
           }}>
@@ -226,18 +226,18 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
             onPress={() => setShowGridView(true)}
             style={{ marginTop: 8 }}
           >
-            <Text style={{ color: themeColors.textSecondary, fontSize: 16 }}>
+            <Text style={{ color: themeColors.textSecondary, fontSize: 16, fontWeight: '300' }}>
               {dayLabel} · {momentLabel}
             </Text>
           </TouchableOpacity>
           
           {/* Author info */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
-            <Text style={{ color: themeColors.text, fontWeight: '500' }}>{albumData.authorName}</Text>
+            <Text style={{ color: themeColors.text, fontWeight: 'normal' }}>{albumData.authorName}</Text>
             {albumData.authorNationalityFlag && (
-              <Text style={{ marginLeft: 8, color: themeColors.text }}>{albumData.authorNationalityFlag}</Text>
+              <Text style={{ marginLeft: 8, color: themeColors.text, fontWeight: '300' }}>{albumData.authorNationalityFlag}</Text>
             )}
-            <Text style={{ marginLeft: 8, color: themeColors.textSecondary }}>• {albumData.timeAgo}</Text>
+            <Text style={{ marginLeft: 8, color: themeColors.textSecondary, fontWeight: '300' }}>• {albumData.timeAgo}</Text>
           </View>
         </View>
 
@@ -287,7 +287,7 @@ const DaySection: React.FC<{
     <View style={{ marginBottom: 32 }}>
       {showDayLabel && (
         <View style={{ paddingHorizontal: 24, marginBottom: 16 }}>
-          <Text style={{ fontSize: 20, fontWeight: '600', color: themeColors.text }}>
+          <Text style={{ fontSize: 20, fontWeight: '500', color: themeColors.text }}>
             Day {dayIndex + 1}
           </Text>
         </View>
@@ -338,7 +338,7 @@ const PhotoCard: React.FC<{
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
           <MapPin size={16} color={themeColors.textSecondary} />
-          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.textSecondary }}>{location}</Text>
+          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.textSecondary, fontWeight: '300' }}>{location}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -428,7 +428,7 @@ const PhotoDetailView: React.FC<{
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <MapPin size={16} color={themeColors.text} />
-          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.text, opacity: 0.9 }}>{location}</Text>
+          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.text, opacity: 0.9, fontWeight: '300' }}>{location}</Text>
         </View>
         
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -472,7 +472,7 @@ const ActionButton: React.FC<{
   return (
     <TouchableOpacity onPress={onPress} style={{ flexDirection: 'column', alignItems: 'center' }}>
       <View style={{ width: 24, height: 24 }}>{icon}</View>
-      <Text style={{ fontSize: 12, marginTop: 4, color: themeColors.text }}>{label}</Text>
+      <Text style={{ fontSize: 12, marginTop: 4, color: themeColors.text, fontWeight: '300' }}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -504,7 +504,7 @@ const AlbumGridView: React.FC<{
         <TouchableOpacity onPress={onBack} style={{ padding: 8, marginLeft: -8 }}>
           <ChevronLeft size={24} color={themeColors.text} />
         </TouchableOpacity>
-        <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: '600', color: themeColors.text }}>{album.title}</Text>
+        <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: '500', color: themeColors.text }}>{album.title}</Text>
       </View>
       
       {/* Grid */}

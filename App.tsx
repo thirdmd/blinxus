@@ -13,6 +13,7 @@ import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
 // Import screens
 import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
 import ProfileScreen, { ProfileScreenRef } from './blinxus/src/screens/Profile/ProfileScreen';
+import PodsMainScreen from './blinxus/src/screens/Pods/PodsMainScreen';
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
 import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
 
@@ -41,54 +42,7 @@ function TabIcon({ name, color }: { name: string; color: string }) {
   }
 }
 
-// Temporary Pods Screen
-function PodsScreen() {
-  const themeColors = useThemeColors();
-  
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-      <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.background} 
-      />
-      <View style={{ 
-        padding: 16, 
-        borderBottomWidth: 1, 
-        borderBottomColor: themeColors.border 
-      }}>
-        <Text style={{ 
-          fontSize: 24, 
-          fontWeight: '600', 
-          color: themeColors.text 
-        }}>
-          Pods
-        </Text>
-      </View>
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        paddingHorizontal: 32 
-      }}>
-        <Text style={{ 
-          fontSize: 18, 
-          color: themeColors.textSecondary, 
-          textAlign: 'center', 
-          marginBottom: 16 
-        }}>
-          Location-based communities
-        </Text>
-        <Text style={{ 
-          fontSize: 16, 
-          color: themeColors.textSecondary, 
-          textAlign: 'center' 
-        }}>
-          Connect with travelers in specific destinations
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
-}
+// Pods Screen now uses our actual implementation
 
 // Tab Navigator
 function TabNavigator() {
@@ -167,7 +121,7 @@ function TabNavigator() {
       <Tab.Screen name="Explore">
         {() => <ExploreScreen ref={exploreScreenRef} />}
       </Tab.Screen>
-      <Tab.Screen name="Pods" component={PodsScreen} />
+      <Tab.Screen name="Pods" component={PodsMainScreen} />
       <Tab.Screen name="Profile">
         {() => <ProfileScreen ref={profileScreenRef} />}
       </Tab.Screen>
