@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, Image, Dimensions, StatusBar } from 'react-native';
-import { ChevronLeft, MapPin, Share2, Heart, MessageCircle, Bookmark, X, Grid3X3 } from 'lucide-react-native';
+import { ChevronLeft, Send, Heart, MessageCircle, X, Grid3X3, Map } from 'lucide-react-native';
 import { PostCardProps } from '../types/structures/posts_structure';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
@@ -178,21 +178,16 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
           <TouchableOpacity onPress={onBack} style={{ padding: 8, marginLeft: -8 }}>
             <ChevronLeft size={24} color={themeColors.text} />
           </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <TouchableOpacity 
-              onPress={() => setShowMap(!showMap)}
-              style={{ padding: 8 }}
-            >
-              {showMap ? (
-                <Grid3X3 size={20} color={themeColors.text} />
-              ) : (
-                <MapPin size={20} color={themeColors.text} />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={{ padding: 8 }}>
-              <Share2 size={20} color={themeColors.text} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            onPress={() => setShowMap(!showMap)}
+            style={{ padding: 8 }}
+          >
+            {showMap ? (
+              <Grid3X3 size={20} color={themeColors.text} />
+            ) : (
+              <Map size={20} color={themeColors.text} />
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -337,8 +332,8 @@ const PhotoCard: React.FC<{
           />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-          <MapPin size={16} color={themeColors.textSecondary} />
-          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.textSecondary, fontWeight: '300' }}>{location}</Text>
+          <Text style={{ fontSize: 16, marginRight: 2 }}>📍</Text>
+          <Text style={{ marginLeft: 2, fontSize: 14, color: themeColors.textSecondary, fontWeight: '300' }}>{location}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -358,11 +353,29 @@ const PhotoDetailView: React.FC<{
   themeColors: any;
 }> = ({ photoPath, location, onClose, onLike, onComment, onSave, isLiked, isSaved, themeColors }) => {
   return (
-    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: themeColors.background, zIndex: 50 }}>
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.background} 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
       />
+      
+      {/* Frosted Background Image */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+        <Image 
+          source={{ uri: photoPath }}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
+          blurRadius={8}
+        />
+        <View style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          backgroundColor: 'rgba(0, 0, 0, 0.15)' 
+        }} />
+      </View>
       
       {/* App Bar */}
       <View style={{
@@ -373,7 +386,7 @@ const PhotoDetailView: React.FC<{
         zIndex: 10,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         padding: 16,
         paddingTop: 50
       }}>
@@ -381,82 +394,27 @@ const PhotoDetailView: React.FC<{
           onPress={onClose}
           style={{
             padding: 8,
-            backgroundColor: themeColors.backgroundSecondary,
-            borderRadius: 20,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
           }}
         >
-          <X size={16} color={themeColors.text} />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={{
-            padding: 12,
-            backgroundColor: themeColors.backgroundSecondary,
-            borderRadius: 20,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
-          }}
-        >
-          <Share2 size={20} color={themeColors.text} />
+          <ChevronLeft size={24} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* Photo */}
-      <View style={{ height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: themeColors.background }}>
+      {/* Photo - Pure Fullscreen */}
+      <View style={{ 
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
         <Image 
           source={{ uri: photoPath }}
           style={{ width: '100%', height: '100%' }}
           resizeMode="contain"
         />
-      </View>
-
-      {/* Bottom Actions */}
-      <View style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 24,
-        backgroundColor: themeColors.isDark ? 'rgba(11, 20, 38, 0.7)' : 'rgba(255, 255, 255, 0.7)'
-      }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <MapPin size={16} color={themeColors.text} />
-          <Text style={{ marginLeft: 4, fontSize: 14, color: themeColors.text, opacity: 0.9, fontWeight: '300' }}>{location}</Text>
-        </View>
-        
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', gap: 24 }}>
-            <ActionButton 
-              icon={<Heart size={24} color={themeColors.text} fill={isLiked ? "#EF4444" : "none"} />} 
-              label="Like" 
-              onPress={onLike}
-              themeColors={themeColors}
-            />
-            <ActionButton 
-              icon={<MessageCircle size={24} color={themeColors.text} />} 
-              label="Comment" 
-              onPress={onComment}
-              themeColors={themeColors}
-            />
-            <ActionButton 
-              icon={<Bookmark size={24} color={themeColors.text} fill={isSaved ? "#FFD700" : "none"} />} 
-              label="Save" 
-              onPress={onSave}
-              themeColors={themeColors}
-            />
-          </View>
-          
-          <TouchableOpacity style={{ backgroundColor: themeColors.backgroundSecondary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}>
-            <Text style={{ color: themeColors.text, fontWeight: '500' }}>Add to Blinx</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
   );

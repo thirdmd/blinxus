@@ -7,7 +7,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
-import { ChevronLeft, ArrowUpRight, MapPin, Calendar, Users } from 'lucide-react-native';
+import { ChevronLeft, ArrowUpRight, MapPinned, Calendar, Users } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -110,7 +110,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
             alignItems: 'center',
             marginBottom: 16,
           }}>
-            <MapPin size={16} color={theme.colors.textSecondary} strokeWidth={2} />
+            <Text style={{ fontSize: 16 }}>📍</Text>
             <Text style={{ 
               color: theme.colors.textSecondary,
               fontSize: 14,

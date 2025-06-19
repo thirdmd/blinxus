@@ -10,7 +10,7 @@ import {
 
 // Create animated SectionList component with proper typing
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList<Country, {title: string, data: Country[]}>);
-import { Search, MapPin, Plane } from 'lucide-react-native';
+import { Search, MapPinned, Plane } from 'lucide-react-native';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, Country } from '../../../constants/placesData';
 
@@ -132,7 +132,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
               
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MapPin size={14} color={theme.colors.textSecondary} />
+                  <Text style={{ fontSize: 14 }}>📍</Text>
                   <Text 
                     style={{ 
                       color: theme.colors.textSecondary,

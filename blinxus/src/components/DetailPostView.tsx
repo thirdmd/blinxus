@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar, ScrollView,
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import ReanimatedAnimated, { useSharedValue, useAnimatedStyle, useAnimatedGestureHandler, runOnJS, withSpring } from 'react-native-reanimated';
 import { PostCardProps } from '../types/structures/posts_structure';
-import { Heart, MessageCircle, Send, Bookmark, MoreVertical, MapPin, Edit, Trash2, Flag, X, Check, Camera, Info, Images, MoreHorizontal, Album, Menu, ChevronRight, Maximize2, Square, Layout, FileText, AlignJustify, Plus } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, MapPinned, Edit, Trash2, Flag, X, Check, Camera, Info, Images, MoreHorizontal, Album, Menu, ChevronRight, Maximize2, Square, Layout, FileText, AlignJustify, Plus, Minus } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useLikedPosts } from '../store/LikedPostsContext';
@@ -378,7 +378,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
           </View>
 
           <ScrollView style={{ flex: 1, paddingHorizontal: 24 }}>
-            <View style={{ marginBottom: 40 }}>
+            <View style={{ marginBottom: 40, marginTop: 24 }}>
               <Text style={{ fontSize: 16, fontWeight: 'normal', color: themeColors.text, marginBottom: 16 }}>
                 CAPTION
               </Text>
@@ -551,13 +551,15 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               }}
               activeOpacity={0.7}
             >
-                      {currentPost.authorProfileImage ? (
-          <Image
-            source={{ uri: currentPost.authorProfileImage }}
+                      {(currentPost.authorProfileImage || currentPost.authorName === 'Third Camacho') ? (
+                <Image
+                  source={{ uri: currentPost.authorProfileImage || 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop' }}
                   style={{
                     width: 48,
                     height: 48,
                     borderRadius: 24,
+                    borderWidth: 2,
+                    borderColor: 'white',
                     marginRight: 12
                   }}
                 />
@@ -566,13 +568,13 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   width: 48, 
                   height: 48, 
                   borderRadius: 24, 
-                  backgroundColor: themeColors.backgroundSecondary, 
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)', 
                   alignItems: 'center', 
                   justifyContent: 'center',
                   marginRight: 12
                 }}>
                   <Text style={{ 
-                    color: themeColors.text, 
+                    color: '#000', 
                     fontSize: 20, 
                     fontWeight: '600',
                     fontFamily: 'System'
@@ -776,7 +778,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   justifyContent: 'center',
                   marginRight: 12
                 }}>
-                  <MapPin size={18} color={themeColors.text} />
+                  <Text style={{ fontSize: 18 }}>📍</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{
@@ -916,7 +918,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                           </Text>
                         </View>
                         
-                        {/* Plus button to show other activities */}
+                        {/* Plus/Minus button to show/hide other activities */}
                         <TouchableOpacity
                           onPress={() => setShowAllActivities(!showAllActivities)}
                           style={{
@@ -930,7 +932,11 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                             justifyContent: 'center',
                           }}
                         >
-                          <Plus size={16} color={themeColors.textSecondary} />
+                          {showAllActivities ? (
+                            <Minus size={16} color={themeColors.textSecondary} />
+                          ) : (
+                            <Plus size={16} color={themeColors.textSecondary} />
+                          )}
                         </TouchableOpacity>
                         
                         {/* Show other activities when expanded */}

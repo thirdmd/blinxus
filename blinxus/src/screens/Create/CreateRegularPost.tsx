@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { MapPin, Camera, Plus, X, ChevronRight, Navigation } from 'lucide-react-native';
+import { Camera, Plus, X, ChevronRight, Navigation } from 'lucide-react-native';
 import { colors } from '../../constants';
 import { activityTags, activityNames, ActivityKey } from '../../constants/activityTags';
 import type { ActivityTag } from '../../constants/activityTags';
@@ -74,7 +74,7 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
   const addImages = (count: number) => {
     const newImages: string[] = [];
     for (let i = 0; i < count; i++) {
-      newImages.push(`https://picsum.photos/400/600?random=${Date.now() + i}`);
+      newImages.push(`https://picsum.photos/800/600?random=${Date.now() + i}`);
     }
     setSelectedImages(newImages);
   };

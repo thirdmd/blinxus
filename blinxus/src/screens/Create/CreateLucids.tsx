@@ -190,10 +190,10 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
       // Automatically add 4 photos without popup
       const timestamp = Date.now();
       const mockPhotos = [
-        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 1}`,
-        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 2}`,
-        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 3}`,
-        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 4}`,
+        `https://picsum.photos/800/600?random=${timestamp + dayIndex * 100 + 1}`,
+        `https://picsum.photos/800/600?random=${timestamp + dayIndex * 100 + 2}`,
+        `https://picsum.photos/800/600?random=${timestamp + dayIndex * 100 + 3}`,
+        `https://picsum.photos/800/600?random=${timestamp + dayIndex * 100 + 4}`,
       ];
       console.log('Generated mockPhotos:', mockPhotos);
       setDayPhotos(prev => {

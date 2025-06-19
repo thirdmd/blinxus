@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar, ScrollView, Alert, Modal, TextInput, Animated } from 'react-native';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import ReanimatedAnimated, { useSharedValue, useAnimatedStyle, useAnimatedGestureHandler, runOnJS, withSpring } from 'react-native-reanimated';
+import { PanGestureHandler } from 'react-native-gesture-handler';
+import ReanimatedAnimated, { useSharedValue, useAnimatedStyle, useAnimatedGestureHandler, runOnJS, withSpring, withTiming } from 'react-native-reanimated';
 import { PostCardProps } from '../types/structures/posts_structure';
-import { Heart, MessageCircle, Send, Bookmark, MoreVertical, MapPin, Edit, Trash2, Flag, X, Check, Camera, Info, Images, MoreHorizontal, Album, Menu, ChevronRight, Maximize2, Square, Layout, FileText, AlignJustify } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, MapPinned, Edit, Trash2, Flag, X, Check, Camera, Info, Images, MoreHorizontal, Album, Menu, ChevronRight, Maximize2, Square, Layout, FileText, AlignJustify, Maximize, Minimize } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useLikedPosts } from '../store/LikedPostsContext';
@@ -32,11 +32,42 @@ const ImmersiveImageCarousel: React.FC<{
   onGestureStart?: () => void;
   onGestureEnd?: (shouldOpen: boolean) => void;
   onLucidPress?: () => void;
-}> = React.memo(({ images, onImageChange, onSwipeLeftOnFirst, onDoubleTap, isLucid = false, detailsTranslateX, onGestureStart, onGestureEnd, onLucidPress }) => {
+  onZoomToggle?: (toggleFn: () => void, isZoomedOut: boolean) => void;
+}> = React.memo(({ images, onImageChange, onSwipeLeftOnFirst, onDoubleTap, isLucid = false, detailsTranslateX, onGestureStart, onGestureEnd, onLucidPress, onZoomToggle }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lastTap, setLastTap] = useState(0);
   const [showHeart, setShowHeart] = useState(false);
   const heartScale = useRef(new Animated.Value(0)).current;
+  
+  // Zoom state management for free zoom
+  const scale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const [isZoomedOut, setIsZoomedOut] = useState(false);
+  
+  // Toggle zoom mode with button
+  const toggleZoomMode = useCallback(() => {
+    if (isZoomedOut) {
+      // Return to fullscreen cover mode
+      scale.value = withTiming(1);
+      translateX.value = withTiming(0);
+      translateY.value = withTiming(0);
+      setIsZoomedOut(false);
+    } else {
+      // Switch to original aspect ratio (contain mode)
+      scale.value = withTiming(0.7);
+      translateX.value = withTiming(0);
+      translateY.value = withTiming(0);
+      setIsZoomedOut(true);
+    }
+  }, [isZoomedOut, scale, translateX, translateY]);
+
+  // Pass toggle function to parent
+  useEffect(() => {
+    if (onZoomToggle) {
+      onZoomToggle(toggleZoomMode, isZoomedOut);
+    }
+  }, [onZoomToggle, toggleZoomMode, isZoomedOut]);
   
   // CLEANUP: Reset state when component unmounts or images change
   useEffect(() => {
@@ -46,22 +77,34 @@ const ImmersiveImageCarousel: React.FC<{
       setShowHeart(false);
       setCurrentIndex(0);
       setLastTap(0);
+      // Reset zoom state
+      scale.value = 1;
+      translateX.value = 0;
+      translateY.value = 0;
+      setIsZoomedOut(false);
     };
-  }, [heartScale]);
+  }, [heartScale, scale, translateX, translateY]);
 
-  // SUPER SENSITIVE: Gesture handling for details page - maximum responsiveness
-  const gestureHandler = useAnimatedGestureHandler({
+  // Reset zoom when image changes
+  useEffect(() => {
+    scale.value = withTiming(1);
+    translateX.value = withTiming(0);
+    translateY.value = withTiming(0);
+    setIsZoomedOut(false);
+  }, [currentIndex, scale, translateX, translateY]);
+
+  // Pan gesture handler for details panel (original functionality)
+  const panGestureHandler = useAnimatedGestureHandler({
     onStart: () => {
-      if (onGestureStart) {
+      if (onGestureStart && scale.value <= 1.1) {
         runOnJS(onGestureStart)();
       }
     },
     onActive: (event) => {
-      // INSTANT GESTURES: Work during transitions with balanced detection
-      const isHorizontalSwipe = Math.abs(event.translationX) > Math.abs(event.translationY) * 1.2; // Balanced for instant response
+      // Original details panel logic
+      const isHorizontalSwipe = Math.abs(event.translationX) > Math.abs(event.translationY) * 1.2;
       const isRightSwipe = event.translationX > 0;
       
-      // INSTANT RESPONSE: Lower threshold for immediate activation during transitions
       if (isRightSwipe && Math.abs(event.translationX) > 20 && isHorizontalSwipe) {
         const canSwipeToDetails = isLucid || currentIndex === 0;
         if (canSwipeToDetails && onGestureStart) {
@@ -69,30 +112,35 @@ const ImmersiveImageCarousel: React.FC<{
         }
       }
       
-      // DETAILS VIEW LOGIC: Work immediately during transitions
       const canSwipeToDetails = isLucid ? isRightSwipe : (currentIndex === 0 && isRightSwipe);
       
       if (canSwipeToDetails && isHorizontalSwipe && detailsTranslateX && Math.abs(event.translationX) > 15) {
-        // INSTANT FEEDBACK: Visual response during transitions
         const progress = Math.max(0, event.translationX / screenWidth);
         detailsTranslateX.value = -screenWidth + (progress * screenWidth);
       }
     },
     onEnd: (event) => {
-      // SCROLL FIX: Conservative end detection
+      // Original details panel logic
       const isHorizontalSwipe = Math.abs(event.translationX) > Math.abs(event.translationY) * 1.5;
       const isRightSwipe = event.translationX > 0;
-      
-      // Reasonable threshold that doesn't interfere with scrolling
       const shouldOpen = isHorizontalSwipe && isRightSwipe && Math.abs(event.translationX) > screenWidth * 0.15;
-      
-      // Apply conditions only after determining if gesture should trigger
       const finalShouldOpen = shouldOpen && (isLucid || currentIndex === 0);
       
       if (onGestureEnd) {
         runOnJS(onGestureEnd)(finalShouldOpen);
       }
     }
+  });
+
+  // Animated style for zoom and pan
+  const animatedImageStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: scale.value },
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+      ],
+    };
   });
 
   // MEMORY OPTIMIZATION: Memoize scroll handlers
@@ -130,39 +178,39 @@ const ImmersiveImageCarousel: React.FC<{
 
   const handleImagePress = useCallback(() => {
     const now = Date.now();
-    const DOUBLE_PRESS_DELAY = 300; // Slightly increased for better detection
+    const DOUBLE_PRESS_DELAY = 300;
     
     if (lastTap && now - lastTap < DOUBLE_PRESS_DELAY) {
-      // Double tap detected - INSTANT RESPONSE
+      // Double tap detected - ONLY FOR HEART REACT (removed zoom conflict)
       if (onDoubleTap) {
-        // Prevent the single tap action from firing
-        setLastTap(0);
-        
-        onDoubleTap();
-        
-        // CLEANUP: Stop any existing animation before starting new one
-        heartScale.stopAnimation();
-        
-        // FASTER ANIMATION: Reduced duration for instant feedback
-        setShowHeart(true);
-        Animated.sequence([
-          Animated.timing(heartScale, {
-            toValue: 1.2,
-            duration: 150,
-            useNativeDriver: true,
-          }),
-          Animated.timing(heartScale, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start((finished) => {
-          if (finished) {
-            setShowHeart(false);
-            heartScale.setValue(0);
-          }
-        });
+        onDoubleTap(); // Original like functionality
       }
+      
+      // Prevent the single tap action from firing
+      setLastTap(0);
+      
+      // CLEANUP: Stop any existing animation before starting new one
+      heartScale.stopAnimation();
+      
+      // FASTER ANIMATION: Reduced duration for instant feedback
+      setShowHeart(true);
+      Animated.sequence([
+        Animated.timing(heartScale, {
+          toValue: 1.2,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(heartScale, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start((finished) => {
+        if (finished) {
+          setShowHeart(false);
+          heartScale.setValue(0);
+        }
+      });
     } else {
       // Single tap - INSTANT RESPONSE for Lucids
       if (isLucid && onLucidPress) {
@@ -174,78 +222,97 @@ const ImmersiveImageCarousel: React.FC<{
 
   if (!images || images.length === 0) return null;
 
+  const currentImage = images[currentIndex];
+
   return (
     <View style={{ flex: 1, position: 'relative' }}>
+      {/* Frosted Background - Only show when zoomed out */}
+      {isZoomedOut && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
+          <Image 
+            source={{ uri: currentImage }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+            blurRadius={8}
+          />
+          <View style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            backgroundColor: 'rgba(0, 0, 0, 0.15)' 
+          }} />
+        </View>
+      )}
+
       <PanGestureHandler 
-        onGestureEvent={gestureHandler} 
+        onGestureEvent={panGestureHandler}
         enabled={true}
-        // INSTANT GESTURES: Work during scroll transitions
-        activeOffsetX={[-15, 15]} // Balanced for instant response during transitions
-        failOffsetY={[-8, 8]} // Allow vertical scrolling to pass through
-        simultaneousHandlers={[]} // Allow simultaneous with parent scroll
+        activeOffsetX={[-15, 15]}
+        failOffsetY={[-8, 8]}
+        simultaneousHandlers={[]}
         shouldCancelWhenOutside={false}
         minPointers={1}
         maxPointers={1}
         avgTouches={false}
-        // CONCURRENT GESTURES: Work during transitions
-        waitFor={[]} // Don't wait for other gestures to fail
+        waitFor={[]}
       >
         <ReanimatedAnimated.View style={{ flex: 1 }}>
           <ScrollView
             horizontal
-            pagingEnabled={!isLucid} // Disable paging for Lucids
+            pagingEnabled={!isLucid && scale.value <= 1.1}
             showsHorizontalScrollIndicator={false}
             onScroll={!isLucid ? handleScroll : undefined}
             onScrollEndDrag={!isLucid ? handleScrollEnd : undefined}
             onMomentumScrollBegin={!isLucid ? handleMomentumScrollBegin : undefined}
-            scrollEventThrottle={8} // SUPER RESPONSIVE: Reduced for instant detection
+            scrollEventThrottle={8}
             style={{ flex: 1 }}
-            bounces={true} // CHANGED: Enable bounces for left swipe detection
-            scrollEnabled={!isLucid} // Disable scrolling for Lucids
-            // PERFORMANCE OPTIMIZATIONS
+            bounces={true}
+            scrollEnabled={!isLucid && scale.value <= 1.1}
             removeClippedSubviews={true}
             contentInsetAdjustmentBehavior="never"
-            // INSTANT RESPONSE OPTIMIZATIONS
             decelerationRate="fast"
             directionalLockEnabled={true}
           >
-        {images.map((image, index) => (
-          <View
-            key={index}
-            style={{
-              width: screenWidth,
-              height: '100%',
-              position: 'relative'
-            }}
-          >
-            <Image
-              source={{ uri: image }}
-              style={{
-                width: screenWidth,
-                height: '100%',
-                resizeMode: 'cover'
-              }}
-            />
-            {/* SUPER SENSITIVE: Full-area touchable overlay for instant gesture handling */}
-            <TouchableOpacity
-              onPress={handleImagePress}
-              activeOpacity={0.95} // Slight feedback for instant response
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'transparent'
-              }}
-              // ULTRA RESPONSIVE: Zero delay for instant touch response
-              delayPressIn={0}
-              delayPressOut={0}
-              delayLongPress={800} // Longer delay to prevent accidental triggers
-              hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }} // Larger hit area
-            />
-          </View>
-        ))}
+            {images.map((image, index) => (
+              <View
+                key={index}
+                style={{
+                  width: screenWidth,
+                  height: '100%',
+                  position: 'relative'
+                }}
+              >
+                <ReanimatedAnimated.View style={[animatedImageStyle, { width: '100%', height: '100%' }]}>
+                  <Image
+                    source={{ uri: image }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      resizeMode: isZoomedOut ? 'contain' : 'cover'
+                    }}
+                  />
+                </ReanimatedAnimated.View>
+                {/* SUPER SENSITIVE: Full-area touchable overlay for instant gesture handling */}
+                <TouchableOpacity
+                  onPress={handleImagePress}
+                  activeOpacity={0.95}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'transparent'
+                  }}
+                  delayPressIn={0}
+                  delayPressOut={0}
+                  delayLongPress={800}
+                  hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                />
+              </View>
+            ))}
           </ScrollView>
         </ReanimatedAnimated.View>
       </PanGestureHandler>
@@ -296,7 +363,6 @@ const ImmersiveImageCarousel: React.FC<{
         </View>
       )}
 
-
     </View>
   );
 });
@@ -344,6 +410,9 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const [shareCount, setShareCount] = useState(0);
   const [savedCount, setSavedCount] = useState(0);
 
+  // Zoom state from carousel
+  const [zoomToggleFn, setZoomToggleFn] = useState<(() => void) | null>(null);
+  const [isZoomedOut, setIsZoomedOut] = useState(false);
 
   // Check if this is a Lucid post
   const isLucid = type === 'lucid';
@@ -378,15 +447,6 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     setLikeCount(likes);
     setCommentCount(comments);
   }, [likes, comments]);
-
-  // INSTANT GESTURES: Remove visibility dependency to allow gestures during transitions
-  // useEffect(() => {
-  //   if (isVisible === false && showDetails) {
-  //     // Card is no longer visible and details are open - close them
-  //     detailsTranslateX.value = -screenWidth;
-  //     setShowDetails(false);
-  //   }
-  // }, [isVisible, showDetails, detailsTranslateX]);
 
   // CLEANUP: Comprehensive cleanup when component unmounts or changes
   useEffect(() => {
@@ -470,21 +530,21 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const handleLike = useCallback(() => {
     // Prevent multiple rapid likes by adding a small debounce check
     const now = Date.now();
-    if (now - lastLikeTime.current < 300) {
-      return; // Ignore rapid successive calls
+    if (now - lastLikeTime.current < 500) {
+      return;
     }
     lastLikeTime.current = now;
 
     if (isLiked) {
-      // Unlike the post - update both contexts
-      unlikePost(id); // Update like count in PostsContext
-      userUnlikePost(id); // Remove from user's liked posts
+      // Unlike the post
+      userUnlikePost(id);
+      unlikePost(id);
       setIsLiked(false);
-      setLikeCount(prev => Math.max(0, prev - 1)); // Ensure count doesn't go negative
+      setLikeCount(prev => Math.max(0, prev - 1));
     } else {
-      // Like the post - update both contexts
-      likePost(id); // Update like count in PostsContext
-      userLikePost(id); // Add to user's liked posts
+      // Like the post
+      userLikePost(id);
+      likePost(id);
       setIsLiked(true);
       setLikeCount(prev => prev + 1);
     }
@@ -578,7 +638,11 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     }
   }, [isLucid, navigation, postData]);
 
-
+  // Handle zoom toggle from carousel
+  const handleZoomToggle = useCallback((toggleFn: () => void, zoomedOut: boolean) => {
+    setZoomToggleFn(() => toggleFn);
+    setIsZoomedOut(zoomedOut);
+  }, []);
 
   return (
     <View 
@@ -600,6 +664,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           onGestureStart={handleGestureStart}
           onGestureEnd={handleGestureEnd}
           onLucidPress={handleLucidPress}
+          onZoomToggle={handleZoomToggle}
         />
       ) : (
         <View style={{
@@ -695,10 +760,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                 alignSelf: 'flex-start'
               }}
             >
-              <MapPin 
-                size={12} 
-                color="white" 
-              />
+              <Text style={{ fontSize: 12, color: 'white' }}>📍</Text>
               <Text 
                 style={{ 
                   fontSize: 13, 
@@ -718,8 +780,6 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         </View>
       </View>
 
-
-
       {/* Bottom Right Action Buttons - Stacked vertically with better positioning */}
       <View style={{
         position: 'absolute',
@@ -728,7 +788,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: isLucid ? 260 : 220
+        height: isLucid ? 300 : 260
       }}>
         {/* Lucid Album Indicator - Only show for Lucids */}
         {isLucid && (
@@ -754,6 +814,23 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           </TouchableOpacity>
         )}
         
+        {/* Zoom Toggle Button - Above heart react */}
+        <TouchableOpacity
+          onPress={zoomToggleFn || (() => {})}
+          style={{
+            alignItems: 'center',
+            marginBottom: 8
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+        >
+          {isZoomedOut ? (
+            <Maximize size={26} color="white" strokeWidth={2} />
+          ) : (
+            <Minimize size={26} color="white" strokeWidth={2} />
+          )}
+        </TouchableOpacity>
+        
         {/* Like Button - Moved higher */}
         <TouchableOpacity
           onPress={handleLike}
@@ -768,16 +845,16 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             color={isLiked ? '#ff3040' : 'white'}
             fill={isLiked ? '#ff3040' : 'none'}
           />
-                  <Text style={{
-          color: 'white',
-          fontSize: 12,
-          fontWeight: '600',
-          fontFamily: 'System',
-          marginTop: 4,
-          textShadowColor: 'rgba(0,0,0,0.7)',
-          textShadowOffset: { width: 0, height: 1 },
-          textShadowRadius: 3
-        }}>
+          <Text style={{
+            color: 'white',
+            fontSize: 12,
+            fontWeight: '600',
+            fontFamily: 'System',
+            marginTop: 4,
+            textShadowColor: 'rgba(0,0,0,0.7)',
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 3
+          }}>
             {likeCount}
           </Text>
         </TouchableOpacity>
@@ -791,7 +868,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
         >
-          <AlignJustify size={26} color="white" strokeWidth={2} />
+          <Square size={26} color="white" strokeWidth={2} strokeDasharray="4 4" />
         </TouchableOpacity>
 
         {/* Share Button */}
@@ -822,8 +899,6 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           />
         </TouchableOpacity>
       </View>
-
-
 
       {/* Details Page */}
       <DetailPostView
