@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, TouchableOpacity, View, Dimensions } from 'react-native';
+import { Image, TouchableOpacity, View, Dimensions, Animated } from 'react-native';
 import { Album } from 'lucide-react-native';
 import { getResponsiveDimensions, ri, rs, RESPONSIVE_SCREEN } from '../utils/responsive';
 
@@ -17,17 +17,47 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   onPress,
   isLucid = false,
 }) => {
+  const scaleValue = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.98,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 10,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 10,
+    }).start();
+  };
+
   return (
     <TouchableOpacity
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       style={{ 
         width: responsiveDimensions.mediaGrid.itemWidth,
         aspectRatio: responsiveDimensions.mediaGrid.aspectRatio,
         padding: responsiveDimensions.mediaGrid.padding
       }}
-      activeOpacity={0.8}
+      activeOpacity={1}
+      delayPressIn={0}
+      delayPressOut={0}
     >
-      <View style={{ position: 'relative', flex: 1 }}>
+      <Animated.View 
+        style={{ 
+          position: 'relative', 
+          flex: 1,
+          transform: [{ scale: scaleValue }]
+        }}
+      >
         <Image
           source={{ uri: imageUri }}
           style={{ 
@@ -60,7 +90,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
             <Album size={ri(14)} color="white" strokeWidth={2.5} />
           </View>
         )}
-      </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 };

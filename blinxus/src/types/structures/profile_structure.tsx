@@ -210,10 +210,7 @@ export default function ProfileStructure({
         <ScrollView 
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          pagingEnabled={true}
-          snapToInterval={screenHeight - 180}
-          snapToAlignment="end"
-          decelerationRate="fast"
+          decelerationRate="normal"
           contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
         >
           {filteredPosts.map((post, index) => {

@@ -177,7 +177,7 @@ const ImmersiveImageCarousel: React.FC<{
 
   const handleImagePress = useCallback(() => {
     const now = Date.now();
-    const DOUBLE_PRESS_DELAY = 300;
+    const DOUBLE_PRESS_DELAY = 250; // INSTANT: Faster double-tap recognition
     
     if (lastTap && now - lastTap < DOUBLE_PRESS_DELAY) {
       // Double tap detected - ONLY FOR HEART REACT (removed zoom conflict)
@@ -191,17 +191,17 @@ const ImmersiveImageCarousel: React.FC<{
       // CLEANUP: Stop any existing animation before starting new one
       heartScale.stopAnimation();
       
-      // FASTER ANIMATION: Reduced duration for instant feedback
+      // ULTRA FAST ANIMATION: Even faster for instant feedback
       setShowHeart(true);
       Animated.sequence([
         Animated.timing(heartScale, {
-          toValue: 1.2,
-          duration: 120, // INSTANT: Reduced from 150
+          toValue: 1.3,
+          duration: 100, // INSTANT: Even faster scale up
           useNativeDriver: true,
         }),
         Animated.timing(heartScale, {
           toValue: 0,
-          duration: 180, // INSTANT: Reduced from 200
+          duration: 150, // INSTANT: Faster fade out
           useNativeDriver: true,
         }),
       ]).start((finished) => {
@@ -293,7 +293,7 @@ const ImmersiveImageCarousel: React.FC<{
                     }}
                   />
                 </ReanimatedAnimated.View>
-                {/* SUPER SENSITIVE: Full-area touchable overlay for instant gesture handling */}
+                {/* ULTRA SENSITIVE: Full-area touchable overlay for instant gesture handling */}
                 <TouchableOpacity
                   onPress={handleImagePress}
                   activeOpacity={1} // INSTANT: No opacity change
@@ -307,7 +307,7 @@ const ImmersiveImageCarousel: React.FC<{
                   }}
                   delayPressIn={0}
                   delayPressOut={0}
-                  delayLongPress={800}
+                  delayLongPress={600} // INSTANT: Faster long press detection
                   hitSlop={{ top: 0, bottom: 0, left: 0, right: 0 }} // INSTANT: No extra hit area needed
                 />
               </View>
@@ -542,14 +542,33 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
   // Add ref for debouncing likes
   const lastLikeTime = useRef(0);
+  const lastSaveTime = useRef(0);
+
+  // Add animation refs for button feedback
+  const likeButtonScale = useRef(new Animated.Value(1)).current;
+  const saveButtonScale = useRef(new Animated.Value(1)).current;
 
   const handleLike = useCallback(() => {
     // Prevent multiple rapid likes by adding a small debounce check
     const now = Date.now();
-    if (now - lastLikeTime.current < 100) { // ULTRA FAST: Reduced from 300 to 100ms
+    if (now - lastLikeTime.current < 50) { // ULTRA FAST: Reduced from 100 to 50ms
       return;
     }
     lastLikeTime.current = now;
+
+    // INSTANT FEEDBACK: Trigger scale animation immediately
+    Animated.sequence([
+      Animated.timing(likeButtonScale, {
+        toValue: 0.85,
+        duration: 80, // INSTANT: Very fast scale down
+        useNativeDriver: true,
+      }),
+      Animated.timing(likeButtonScale, {
+        toValue: 1,
+        duration: 120, // INSTANT: Quick bounce back
+        useNativeDriver: true,
+      }),
+    ]).start();
 
     if (isLiked) {
       // Unlike the post
@@ -564,7 +583,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       setIsLiked(true);
       setLikeCount(prev => prev + 1);
     }
-  }, [isLiked, id, unlikePost, likePost, userLikePost, userUnlikePost]);
+  }, [isLiked, id, unlikePost, likePost, userLikePost, userUnlikePost, likeButtonScale]);
 
   const handleGestureStart = useCallback(() => {
     setShowDetails(true);
@@ -631,6 +650,27 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   }, [id]);
 
   const handleSave = useCallback(() => {
+    // Add debounce for save button too
+    const now = Date.now();
+    if (now - lastSaveTime.current < 50) { // ULTRA FAST: 50ms debounce
+      return;
+    }
+    lastSaveTime.current = now;
+
+    // INSTANT FEEDBACK: Trigger scale animation immediately
+    Animated.sequence([
+      Animated.timing(saveButtonScale, {
+        toValue: 0.85,
+        duration: 80, // INSTANT: Very fast scale down
+        useNativeDriver: true,
+      }),
+      Animated.timing(saveButtonScale, {
+        toValue: 1,
+        duration: 120, // INSTANT: Quick bounce back
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     if (isSaved) {
       unsavePost(id);
       setIsSaved(false);
@@ -640,7 +680,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       setIsSaved(true);
       setSavedCount(prev => prev + 1);
     }
-  }, [isSaved, id, unsavePost, savePost]);
+  }, [isSaved, id, unsavePost, savePost, saveButtonScale]);
 
   const handleSwipeLeftOnFirst = useCallback(() => {
     handleShowDetails();
@@ -793,7 +833,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         alignItems: 'center'
       }}>
         {/* Profile Pic */}
-        <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
+        <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.5}>
           {authorProfileImage ? (
             <Image
               source={{ uri: authorProfileImage }}
@@ -825,7 +865,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
         {/* Name, Flag and Location */}
         <View>
-          <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
+          <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.5}>
             <Text style={{
               color: 'white',
               fontSize: typography.userName,
@@ -945,27 +985,32 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             alignItems: 'center'
           }}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.5}
+          activeOpacity={0.3}
           delayPressIn={0}
           delayPressOut={0}
         >
-          <Heart
-            size={ri(26)}
-            color={isLiked ? '#ff3040' : 'white'}
-            fill={isLiked ? '#ff3040' : 'none'}
-          />
-          <Text style={{
-            color: 'white',
-            fontSize: typography.counter,
-            fontWeight: '600',
-            fontFamily: 'System',
-            marginTop: rs(4),
-            textShadowColor: 'rgba(0,0,0,0.7)',
-            textShadowOffset: { width: 0, height: rs(1) },
-            textShadowRadius: rs(3)
+          <Animated.View style={{ 
+            alignItems: 'center',
+            transform: [{ scale: likeButtonScale }]
           }}>
-            {likeCount}
-          </Text>
+            <Heart
+              size={ri(26)}
+              color={isLiked ? '#ff3040' : 'white'}
+              fill={isLiked ? '#ff3040' : 'none'}
+            />
+            <Text style={{
+              color: 'white',
+              fontSize: typography.counter,
+              fontWeight: '600',
+              fontFamily: 'System',
+              marginTop: rs(4),
+              textShadowColor: 'rgba(0,0,0,0.7)',
+              textShadowOffset: { width: 0, height: rs(1) },
+              textShadowRadius: rs(3)
+            }}>
+              {likeCount}
+            </Text>
+          </Animated.View>
         </TouchableOpacity>
 
         {/* Details Button (changed from Comment) */}
@@ -975,7 +1020,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             alignItems: 'center'
           }}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.5}
+          activeOpacity={0.3}
           delayPressIn={0}
           delayPressOut={0}
         >
@@ -989,7 +1034,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             alignItems: 'center'
           }}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.5}
+          activeOpacity={0.3}
           delayPressIn={0}
           delayPressOut={0}
         >
@@ -1003,15 +1048,20 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             alignItems: 'center'
           }}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.5}
+          activeOpacity={0.3}
           delayPressIn={0}
           delayPressOut={0}
         >
-          <Bookmark
-            size={ri(26)}
-            color={isSaved ? '#FFD700' : 'white'}
-            fill={isSaved ? '#FFD700' : 'none'}
-          />
+          <Animated.View style={{ 
+            alignItems: 'center',
+            transform: [{ scale: saveButtonScale }]
+          }}>
+            <Bookmark
+              size={ri(26)}
+              color={isSaved ? '#FFD700' : 'white'}
+              fill={isSaved ? '#FFD700' : 'none'}
+            />
+          </Animated.View>
         </TouchableOpacity>
       </View>
 

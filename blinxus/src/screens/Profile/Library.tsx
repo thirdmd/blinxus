@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   ScrollView,
   Dimensions,
   Image,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
@@ -35,7 +37,12 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   // State for TravelFeedCard fullscreen view
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
-  const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent'); // Track which tab context
+  const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent');
+  const [selectedActivityCategory, setSelectedActivityCategory] = useState<string | null>(null); // Track which tab context
+  
+  // Scroll position tracking for Activities tab
+  const [activitiesScrollPosition, setActivitiesScrollPosition] = useState(0);
+  const activitiesScrollRef = useRef<FlatList>(null);
   
   // Get posts and saved posts
   const { posts } = usePosts();
@@ -86,8 +93,21 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
 
   // Handle post press - navigate to TravelFeedCard view with context
-  const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent') => {
-    const postsToShow = context === 'recent' ? sortedByRecent : allActivityPosts;
+  const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent', categoryName?: string) => {
+    let postsToShow: PostCardProps[];
+    
+    if (context === 'recent') {
+      postsToShow = sortedByRecent;
+    } else if (context === 'activities' && categoryName) {
+      // For activities tab, only show posts from the specific category
+      postsToShow = getPostsForActivity(categoryName);
+      setSelectedActivityCategory(categoryName);
+    } else {
+      // Fallback to all activity posts
+      postsToShow = allActivityPosts;
+      setSelectedActivityCategory(null);
+    }
+    
     const postIndex = postsToShow.findIndex(p => p.id === post.id);
     setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
     setFeedContext(context);
@@ -97,19 +117,31 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   // Handle back from fullscreen
   const handleBackFromFullscreen = () => {
     setIsFullscreen(false);
+    
+    // Restore scroll position for Activities tab after a short delay
+    if (feedContext === 'activities' && activitiesScrollRef.current && activitiesScrollPosition > 0) {
+      setTimeout(() => {
+        activitiesScrollRef.current?.scrollToOffset({ 
+          offset: activitiesScrollPosition, 
+          animated: false 
+        });
+      }, 100);
+    }
+    
+    setSelectedActivityCategory(null); // Reset category selection
   };
 
 
 
 
 
-  // Render item for Activities Tab (grid-based)
-  const renderActivityPostItem = ({ item }: { item: PostCardProps }) => (
+  // Render item for Activities Tab (grid-based) - needs category context
+  const renderActivityPostItem = (categoryName: string) => ({ item }: { item: PostCardProps }) => (
     <View style={{ width: width / 3 - 8 }}>
       <MediaGridItem
         imageUri={item.images![0]}
         isLucid={item.type === 'lucid'}
-        onPress={() => handlePostPress(item, 'activities')}
+        onPress={() => handlePostPress(item, 'activities', categoryName)}
       />
     </View>
   );
@@ -220,9 +252,14 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
     return (
       <FlatList
+        ref={activitiesScrollRef}
         data={activitiesWithPosts}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: 8, paddingHorizontal: 16 }}
+        onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+          setActivitiesScrollPosition(event.nativeEvent.contentOffset.y);
+        }}
+        scrollEventThrottle={16}
         renderItem={({ item: category }) => {
           const postsInCategory = getPostsForActivity(category.name);
           
@@ -261,7 +298,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
               {/* Posts Horizontal Scroll */}
               <FlatList
                 data={postsInCategory}
-                renderItem={renderActivityPostItem}
+                renderItem={renderActivityPostItem(category.name)}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 0 }}
@@ -357,7 +394,17 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
   // If in fullscreen mode, show TravelFeedCard view
   if (isFullscreen) {
-    const postsToShow = feedContext === 'recent' ? sortedByRecent : allActivityPosts;
+    let postsToShow: PostCardProps[];
+    
+    if (feedContext === 'recent') {
+      postsToShow = sortedByRecent;
+    } else if (feedContext === 'activities' && selectedActivityCategory) {
+      // For activities tab with specific category, only show posts from that category
+      postsToShow = getPostsForActivity(selectedActivityCategory);
+    } else {
+      // Fallback to all activity posts
+      postsToShow = allActivityPosts;
+    }
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
@@ -399,10 +446,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         <ScrollView 
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          pagingEnabled={true}
-          snapToInterval={screenHeight - 180}
-          snapToAlignment="end"
-          decelerationRate="fast"
+          decelerationRate="normal"
           contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
         >
           {postsToShow.map((post, index) => {

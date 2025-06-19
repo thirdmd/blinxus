@@ -96,6 +96,10 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
     editLocation !== originalLocation || 
     editActivity !== originalActivity;
 
+  // Add animation refs for button feedback
+  const likeButtonScale = useRef(new Animated.Value(1)).current;
+  const saveButtonScale = useRef(new Animated.Value(1)).current;
+
   const handleProfilePress = () => {
     if (currentPost.authorName === 'Third Camacho') {
       navigation.navigate('Profile' as never);
@@ -229,7 +233,20 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   };
 
   const handleLike = () => {
-    // Call the parent component's like handler to update both context and local state
+    // INSTANT FEEDBACK: Trigger scale animation immediately
+    Animated.sequence([
+      Animated.timing(likeButtonScale, {
+        toValue: 0.9,
+        duration: 80, // INSTANT: Very fast scale down
+        useNativeDriver: true,
+      }),
+      Animated.timing(likeButtonScale, {
+        toValue: 1,
+        duration: 120, // INSTANT: Quick bounce back
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     onLike();
   };
 
@@ -290,7 +307,20 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   };
 
   const handleSave = () => {
-    // Call the parent component's save handler to update both context and local state
+    // INSTANT FEEDBACK: Trigger scale animation immediately
+    Animated.sequence([
+      Animated.timing(saveButtonScale, {
+        toValue: 0.9,
+        duration: 80, // INSTANT: Very fast scale down
+        useNativeDriver: true,
+      }),
+      Animated.timing(saveButtonScale, {
+        toValue: 1,
+        duration: 120, // INSTANT: Quick bounce back
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     onSave();
   };
 
@@ -1199,9 +1229,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             }} />
             <TouchableOpacity
               onPress={handleLike}
-              activeOpacity={0.6}
-              delayPressIn={0}
-              delayPressOut={0}
+              activeOpacity={0.4}
               style={{
                 flex: 1,
                 flexDirection: 'row',
@@ -1212,20 +1240,26 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 backgroundColor: isLiked ? 'rgba(255, 48, 64, 0.1)' : 'transparent'
               }}
             >
-              <Heart
-                size={20}
-                color={isLiked ? '#ff3040' : themeColors.textSecondary}
-                fill={isLiked ? '#ff3040' : 'none'}
-              />
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '600',
-                fontFamily: 'System',
-                color: isLiked ? '#ff3040' : themeColors.text,
-                marginLeft: 6
+              <Animated.View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                transform: [{ scale: likeButtonScale }]
               }}>
-                {likeCount}
-              </Text>
+                <Heart
+                  size={20}
+                  color={isLiked ? '#ff3040' : themeColors.textSecondary}
+                  fill={isLiked ? '#ff3040' : 'none'}
+                />
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  fontFamily: 'System',
+                  color: isLiked ? '#ff3040' : themeColors.text,
+                  marginLeft: 6
+                }}>
+                  {likeCount}
+                </Text>
+              </Animated.View>
             </TouchableOpacity>
 
             <View style={{
@@ -1291,9 +1325,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
 
             <TouchableOpacity
               onPress={handleSave}
-              activeOpacity={0.6}
-              delayPressIn={0}
-              delayPressOut={0}
+              activeOpacity={0.4}
               style={{
                 flex: 1,
                 flexDirection: 'row',
@@ -1304,20 +1336,26 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 backgroundColor: isSaved ? 'rgba(255, 215, 0, 0.1)' : 'transparent'
               }}
             >
-              <Bookmark
-                size={20}
-                color={isSaved ? '#FFD700' : themeColors.textSecondary}
-                fill={isSaved ? '#FFD700' : 'none'}
-              />
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '600',
-                fontFamily: 'System',
-                color: isSaved ? '#FFD700' : themeColors.text,
-                marginLeft: 6
+              <Animated.View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                transform: [{ scale: saveButtonScale }]
               }}>
-                {savedCount}
-              </Text>
+                <Bookmark
+                  size={20}
+                  color={isSaved ? '#FFD700' : themeColors.textSecondary}
+                  fill={isSaved ? '#FFD700' : 'none'}
+                />
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  fontFamily: 'System',
+                  color: isSaved ? '#FFD700' : themeColors.text,
+                  marginLeft: 6
+                }}>
+                  {savedCount}
+                </Text>
+              </Animated.View>
             </TouchableOpacity>
           </View>
 

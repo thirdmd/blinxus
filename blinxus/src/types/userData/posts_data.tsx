@@ -29,15 +29,15 @@ export const initialPostsData: Post[] = [
   {
     id: '1',
     authorId: 'user123',
-    authorName: 'Jessica Martinez',
-    authorNationalityFlag: '🇪🇸',
-    authorProfileImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=400&q=80',
+    authorName: 'Aria Nakamura',
+    authorNationalityFlag: '🇯🇵',
+    authorProfileImage: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop',
     type: 'regular',
     content: 'Found paradise today! The crystal clear waters of El Nido are absolutely breathtaking. Island hopping through hidden lagoons and secret beaches - this place never fails to amaze me! 🏝️✨',
     images: [
-      'https://picsum.photos/800/600?random=1',
-      'https://picsum.photos/800/600?random=11',
-      'https://picsum.photos/800/600?random=21'
+      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop'
     ],
     device: 'iPhone 16 ProMax',
     location: 'El Nido, Palawan',
@@ -57,8 +57,8 @@ export const initialPostsData: Post[] = [
     type: 'regular',
     content: 'Sunrise hike at Mount Pulag was absolutely incredible! The sea of clouds below and the golden light hitting the peaks - nature at its finest. The 4am wake up call was totally worth it! 🌄⛰️',
     images: [
-      'https://picsum.photos/800/600?random=2',
-      'https://picsum.photos/800/600?random=12'
+      'https://images.unsplash.com/photo-1464822759844-d150baec0494?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop'
     ],
     device: 'Samsung Galaxy S24 Ultra',
     location: 'Mount Pulag, Benguet',
@@ -77,7 +77,7 @@ export const initialPostsData: Post[] = [
     authorProfileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
     type: 'regular',
     content: 'Beach yoga session at sunset in Boracay was pure bliss! The sound of waves, warm sand beneath my feet, and this incredible orange sky - exactly what my soul needed. Namaste! 🧘‍♂️🌅',
-    images: ['https://picsum.photos/800/600?random=3'],
+    images: ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=600&fit=crop'],
     location: 'Boracay, Aklan',
     activity: 'wellness',
     timestamp: '2025-01-08T18:30:00Z',
@@ -95,10 +95,10 @@ export const initialPostsData: Post[] = [
     type: 'regular',
     content: 'Standing before the 2000-year-old Banaue Rice Terraces - a true wonder of the world! The engineering and artistry of our ancestors is mind-blowing. These "stairways to heaven" are living proof of Filipino ingenuity! 🏞️🇵🇭',
     images: [
-      'https://picsum.photos/800/600?random=4',
-      'https://picsum.photos/800/600?random=14',
-      'https://picsum.photos/800/600?random=24',
-      'https://picsum.photos/800/600?random=34'
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1464822759844-d150baec0494?w=800&h=600&fit=crop'
     ],
     location: 'Banaue, Ifugao',
     activity: 'heritage',
@@ -117,9 +117,9 @@ export const initialPostsData: Post[] = [
     title: 'Siargao Island',
     content: 'Surfing paradise found! Siargao\'s world-class waves and laid-back island vibes have completely stolen my heart. From Cloud 9 breaks to hidden surf spots, this place is pure magic! 🏄‍♂️🌊',
     images: [
-      'https://picsum.photos/800/600?random=100',
-      'https://picsum.photos/800/600?random=101',
-      'https://picsum.photos/800/600?random=102'
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop'
     ],
     location: 'Siargao Island, Philippines',
     activity: 'aquatics',
@@ -139,9 +139,9 @@ export const initialPostsData: Post[] = [
     title: 'Kyoto',
     content: 'Lost in the timeless beauty of Kyoto! Walking through bamboo forests, ancient temples, and traditional streets feels like stepping into a living museum. The cherry blossoms are the perfect finishing touch! 🌸⛩️',
     images: [
-      'https://picsum.photos/800/600?random=200',
-      'https://picsum.photos/800/600?random=201',
-      'https://picsum.photos/800/600?random=202'
+      'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&h=600&fit=crop'
     ],
     location: 'Kyoto, Japan',
     activity: 'cultural',
@@ -159,7 +159,7 @@ export const initialPostsData: Post[] = [
     authorProfileImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
     type: 'regular',
     content: 'BGC never fails to impress! The modern skyline, world-class restaurants, and vibrant nightlife make this the perfect urban playground. Manila\'s business district has such incredible energy! 🏙️✨',
-    images: ['https://picsum.photos/800/600?random=7'],
+    images: ['https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop'],
     location: 'BGC, Taguig',
     activity: 'city',
     timestamp: '2025-01-06T10:15:00Z',
@@ -177,11 +177,11 @@ export const initialPostsData: Post[] = [
     type: 'regular',
     content: 'Food heaven at Mercato Centrale! From authentic Italian pasta to Filipino street food classics - this place has it all. The fusion of flavors and cultures in one market is absolutely incredible! 🍝🌮',
     images: [
-      'https://picsum.photos/800/600?random=8',
-      'https://picsum.photos/800/600?random=18',
-      'https://picsum.photos/800/600?random=28',
-      'https://picsum.photos/800/600?random=38',
-      'https://picsum.photos/800/600?random=48'
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=600&fit=crop'
     ],
     location: 'Mercato Centrale, BGC',
     activity: 'food',
@@ -199,7 +199,7 @@ export const initialPostsData: Post[] = [
     authorProfileImage: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop',
     type: 'regular',
     content: 'Living the dream at Amanpulo! This private island resort is pure luxury - overwater villas, pristine beaches, and service that\'s simply out of this world. Sometimes you just need to treat yourself! 🏝️🥂',
-    images: ['https://picsum.photos/800/600?random=9'],
+    images: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop'],
     location: 'Amanpulo, Palawan',
     activity: 'stays',
     timestamp: '2025-01-05T08:45:00Z',
@@ -213,10 +213,10 @@ export const initialPostsData: Post[] = [
     authorId: 'user707',
     authorName: 'Jake Wilson',
     authorNationalityFlag: '🇺🇸',
-    authorProfileImage: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=400&fit=crop',
+    authorProfileImage: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=800&h=600&fit=crop',
     type: 'regular',
     content: 'Reliving my childhood at Enchanted Kingdom! The roller coasters, carnival games, and that magical atmosphere never gets old. Sometimes you just need to embrace your inner kid! 🎢🎠',
-    images: ['https://picsum.photos/800/600?random=10'],
+    images: ['https://images.unsplash.com/photo-1594736797933-d0e3e8b08f2d?w=800&h=600&fit=crop'],
     location: 'Enchanted Kingdom, Laguna',
     activity: 'amusements',
     timestamp: '2025-01-04T15:20:00Z',
@@ -235,9 +235,9 @@ export const initialPostsData: Post[] = [
     title: 'Northern Lights',
     content: 'Witnessing the Aurora Borealis in Iceland was absolutely life-changing! Dancing green lights across the Arctic sky - nature\'s most spectacular light show. No photo can capture how magical this moment truly was! 🌌💚',
     images: [
-      'https://picsum.photos/800/600?random=300',
-      'https://picsum.photos/800/600?random=301',
-      'https://picsum.photos/800/600?random=302'
+      'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop'
     ],
     location: 'Iceland',
     activity: 'special',
@@ -255,12 +255,113 @@ export const initialPostsData: Post[] = [
     authorProfileImage: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&h=400&fit=crop',
     type: 'regular',
     content: 'Adrenaline rush at Danao Adventure Park! Zip-lining through the jungle canopy and bungee jumping over crystal clear waters - Bohol knows how to get your heart racing! Pure thrill seeker paradise! 🪂⚡',
-    images: ['https://picsum.photos/800/600?random=12'],
+    images: ['https://images.unsplash.com/photo-1464822759844-d150baec0494?w=800&h=600&fit=crop'],
     location: 'Danao, Bohol',
     activity: 'thrill',
     timestamp: '2025-01-03T14:10:00Z',
     timeAgo: '6d',
     likes: 178,
     comments: 25
+  },
+  // Third Camacho - Outdoors Regular Post
+  {
+    id: '13',
+    authorId: 'current_user',
+    authorName: 'Third Camacho',
+    authorNationalityFlag: '🇵🇭',
+    type: 'regular',
+    content: 'Conquered Mount Apo at sunrise! Philippines\' highest peak at 2,954 meters - the journey was tough but this view is absolutely worth every step. Standing on top of the world right here in Mindanao! 🏔️🇵🇭',
+    images: [
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop'
+    ],
+    device: 'iPhone 16 ProMax',
+    location: 'Mount Apo, Davao',
+    activity: 'outdoors',
+    timestamp: '2025-01-03T06:00:00Z',
+    timeAgo: '6d',
+    likes: 892,
+    comments: 67
+  },
+  // Third Camacho - Cultural Lucid Post
+  {
+    id: '14',
+    authorId: 'current_user',
+    authorName: 'Third Camacho',
+    authorNationalityFlag: '🇵🇭',
+    type: 'lucid',
+    title: 'Vigan Heritage',
+    content: 'Walking through Vigan feels like traveling back in time! These cobblestone streets and Spanish colonial houses have witnessed 500 years of history. UNESCO got it right - this place is pure cultural treasure! 🏛️✨',
+    images: [
+      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1464822759844-d150baec0494?w=800&h=600&fit=crop'
+    ],
+    location: 'Vigan, Ilocos Sur',
+    activity: 'heritage',
+    timestamp: '2025-01-02T15:30:00Z',
+    timeAgo: '1w',
+    likes: 645,
+    comments: 43
+  },
+  // Third Camacho - Food Regular Post
+  {
+    id: '15',
+    authorId: 'current_user',
+    authorName: 'Third Camacho',
+    authorNationalityFlag: '🇵🇭',
+    type: 'regular',
+    content: 'Cebu lechon experience level: LEGENDARY! 🐷🔥 This crispy skin, tender meat perfection at CNT Lechon is hands down the best I\'ve ever tasted. No wonder they call Cebu the lechon capital of the Philippines!',
+    images: [
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&h=600&fit=crop'
+    ],
+    device: 'iPhone 16 ProMax',
+    location: 'Cebu City, Cebu',
+    activity: 'food',
+    timestamp: '2025-01-01T18:45:00Z',
+    timeAgo: '1w',
+    likes: 1247,
+    comments: 89
+  },
+  // Third Camacho - Wellness Lucid Post
+  {
+    id: '16',
+    authorId: 'current_user',
+    authorName: 'Third Camacho',
+    authorNationalityFlag: '🇵🇭',
+    type: 'lucid',
+    title: 'Bataan Meditation',
+    content: 'Found my zen at the historic Mount Samat! Meditating where heroes once stood, surrounded by lush mountains and peaceful silence. Sometimes the best therapy is just being present in nature\'s embrace. 🧘‍♂️🌿',
+    images: [
+      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop'
+    ],
+    location: 'Mount Samat, Bataan',
+    activity: 'wellness',
+    timestamp: '2024-12-31T07:15:00Z',
+    timeAgo: '1w',
+    likes: 534,
+    comments: 32
+  },
+  // Third Camacho - City Regular Post
+  {
+    id: '17',
+    authorId: 'current_user',
+    authorName: 'Third Camacho',
+    authorNationalityFlag: '🇵🇭',
+    type: 'regular',
+    content: 'Makati skyline hits different at golden hour! From Ayala Triangle to the towering skyscrapers, this concrete jungle has its own kind of beauty. The energy here is infectious - pure Manila vibes! 🏙️⚡',
+    images: [
+      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop'
+    ],
+    device: 'iPhone 16 ProMax',
+    location: 'Makati City, Metro Manila',
+    activity: 'city',
+    timestamp: '2024-12-30T17:30:00Z',
+    timeAgo: '1w',
+    likes: 723,
+    comments: 45
   }
 ];
