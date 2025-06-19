@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, ViewStyle, TextStyle } from 'react-native';
 import { colors } from '../constants';
+import { rs, rf } from '../utils/responsive';
 
 interface ButtonProps {
   title: string;
@@ -21,16 +22,16 @@ export default function Button({
 }: ButtonProps) {
   const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      borderRadius: 20,
+      borderRadius: rs(20),
       alignItems: 'center',
       justifyContent: 'center',
     };
 
     // Size styles
     const sizeStyles = {
-      small: { paddingHorizontal: 16, paddingVertical: 8 },
-      medium: { paddingHorizontal: 24, paddingVertical: 12 },
-      large: { paddingHorizontal: 32, paddingVertical: 16 },
+      small: { paddingHorizontal: rs(16), paddingVertical: rs(8) },
+      medium: { paddingHorizontal: rs(24), paddingVertical: rs(12) },
+      large: { paddingHorizontal: rs(32), paddingVertical: rs(16) },
     };
 
     // Variant styles
@@ -43,7 +44,7 @@ export default function Button({
       },
       outline: {
         backgroundColor: 'transparent',
-        borderWidth: 1,
+        borderWidth: rs(1),
         borderColor: disabled ? colors.borderGray : colors.cobalt,
       },
     };
@@ -63,9 +64,9 @@ export default function Button({
 
     // Size text styles
     const sizeTextStyles = {
-      small: { fontSize: 14 },
-      medium: { fontSize: 16 },
-      large: { fontSize: 18 },
+      small: { fontSize: rf(14) },
+      medium: { fontSize: rf(16) },
+      large: { fontSize: rf(18) },
     };
 
     // Variant text styles

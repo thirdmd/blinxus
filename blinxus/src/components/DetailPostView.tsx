@@ -9,7 +9,7 @@ import { useSavedPosts } from '../store/SavedPostsContext';
 import { useLikedPosts } from '../store/LikedPostsContext';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useNavigation } from '@react-navigation/native';
-import { activityTags, ActivityKey, type ActivityTag } from '../constants/activityTags';
+import { activityTags, ActivityKey, type ActivityTag, activityColors } from '../constants/activityTags';
 import PillTag from './PillTag';
 
 interface DetailPostViewProps {
@@ -491,10 +491,55 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             left: 0,
             width: screenWidth,
             height: screenHeight - 180,
-            backgroundColor: themeColors.background,
             zIndex: 1000,
           }, animatedStyle]}
         >
+          {/* Frosted Glass Background Layer */}
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(26, 26, 26, 0.75)' // Dark theme with transparency
+              : 'rgba(255, 255, 255, 0.75)', // Light theme with transparency
+            // Frosted glass border
+            borderTopWidth: 0.5,
+            borderTopColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.1)' // Subtle light border on dark
+              : 'rgba(0, 0, 0, 0.05)', // Subtle dark border on light
+            // Additional shadow for depth
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: themeColors.isDark ? 0.3 : 0.1,
+            shadowRadius: 8,
+            elevation: 8,
+          }} />
+          
+          {/* Subtle gradient overlay for extra frosted effect */}
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(40, 40, 40, 0.15)' // Subtle dark overlay
+              : 'rgba(240, 240, 240, 0.15)', // Subtle light overlay
+          }} />
+          
+          {/* Additional frosted layer for depth */}
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 1,
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.08)' // Subtle highlight on top
+              : 'rgba(255, 255, 255, 0.8)', // Stronger highlight on light theme
+          }} />
         {/* Overlay to close menu when tapping outside */}
         {openMenu && (
           <TouchableOpacity
@@ -529,12 +574,20 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
 
         {/* Header */}
         <View style={{
-          backgroundColor: themeColors.background,
+          backgroundColor: currentPost.activity ? activityColors[currentPost.activity] : themeColors.backgroundSecondary, // Use activity color or default section color
           paddingTop: 20,
-          paddingBottom: 8,
+          paddingBottom: 16,
           paddingHorizontal: 20,
-          borderBottomWidth: 1,
-          borderBottomColor: themeColors.border,
+          borderTopLeftRadius: 16, // Soft rounded corners
+          borderTopRightRadius: 16,
+          // Subtle shadow for depth
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 4,
+          zIndex: 1000, // High z-index for entire header
+          position: 'relative', // Ensure z-index works
         }}>
           <View style={{
             flexDirection: 'row',
@@ -587,7 +640,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={{
-                    color: themeColors.text,
+                    color: currentPost.activity ? 'white' : themeColors.text, // White for activity colors, theme text for default
                     fontSize: 16,
                     fontWeight: '600',
                     fontFamily: 'System'
@@ -603,7 +656,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                   <Text style={{ 
-                    color: themeColors.textSecondary, 
+                    color: currentPost.activity ? 'rgba(255, 255, 255, 0.8)' : themeColors.textSecondary, // White for activity colors, theme secondary for default
                     fontSize: 13, 
                     fontWeight: '400',
                     fontFamily: 'System'
@@ -612,7 +665,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   </Text>
                   {currentPost.isEdited && (
                     <Text style={{ 
-                      color: themeColors.textSecondary, 
+                      color: currentPost.activity ? 'rgba(255, 255, 255, 0.8)' : themeColors.textSecondary, // White for activity colors, theme secondary for default
                       fontSize: 13, 
                       fontWeight: '400',
                       fontFamily: 'System',
@@ -636,7 +689,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
               >
-                <MoreVertical size={22} color={themeColors.text} />
+                <MoreVertical size={22} color={currentPost.activity ? "white" : themeColors.text} />
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -648,7 +701,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
               >
-                <X size={22} color={themeColors.text} />
+                <X size={22} color={currentPost.activity ? "white" : themeColors.text} />
               </TouchableOpacity>
             </View>
           </View>
@@ -664,13 +717,13 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               borderColor: themeColors.border, 
               borderRadius: 12, 
               paddingVertical: 4, 
-              zIndex: 20, 
+              zIndex: 9999, // SUPER HIGH Z-INDEX to appear above everything
               minWidth: 160,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.15,
               shadowRadius: 12,
-              elevation: 15,
+              elevation: 25, // Higher elevation for Android
             }}>
               {isCurrentUserPost ? (
                 <>
@@ -757,11 +810,47 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
         >
           {/* Info Card */}
           <View style={{
-            backgroundColor: themeColors.backgroundSecondary,
             margin: 20,
             borderRadius: 16,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative',
           }}>
+            {/* Frosted Background Layer */}
+            <View style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: themeColors.isDark 
+                ? 'rgba(26, 35, 50, 0.75)' // Same as backgroundSecondary with transparency
+                : 'rgba(248, 249, 250, 0.75)',
+              borderRadius: 16,
+              // Frosted glass border
+              borderWidth: 0.5,
+              borderColor: themeColors.isDark 
+                ? 'rgba(255, 255, 255, 0.05)' 
+                : 'rgba(0, 0, 0, 0.03)',
+              // Subtle shadow
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: themeColors.isDark ? 0.2 : 0.05,
+              shadowRadius: 4,
+              elevation: 2,
+            }} />
+            
+            {/* Subtle gradient overlay */}
+            <View style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: themeColors.isDark 
+                ? 'rgba(40, 40, 40, 0.1)' 
+                : 'rgba(240, 240, 240, 0.1)',
+              borderRadius: 16,
+            }} />
             {/* Location */}
             <View style={{
               padding: 16,
@@ -996,28 +1085,72 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
           {currentPost.content && (
             <View style={{
               marginHorizontal: 20,
-              marginBottom: 24
+              marginBottom: 24,
+              position: 'relative',
             }}>
-              <Text style={{
-                fontSize: 11,
-                color: themeColors.textSecondary,
-                fontWeight: '500',
-                fontFamily: 'System',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                marginBottom: 8
+              {/* Frosted Background Layer */}
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(26, 35, 50, 0.75)' // Same as other bubbles
+                  : 'rgba(248, 249, 250, 0.75)', // Same as other bubbles
+                borderRadius: 16,
+                // Frosted glass border
+                borderWidth: 0.5,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.03)',
+                // Subtle shadow
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: themeColors.isDark ? 0.2 : 0.05,
+                shadowRadius: 4,
+                elevation: 2,
+              }} />
+              
+              {/* Subtle gradient overlay */}
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(40, 40, 40, 0.1)' // Same as other bubbles
+                  : 'rgba(240, 240, 240, 0.1)', // Same as other bubbles
+                borderRadius: 16,
+              }} />
+              
+              {/* Content */}
+              <View style={{
+                padding: 16,
+                zIndex: 1,
               }}>
-                Caption
-              </Text>
-              <Text style={{
-                fontSize: 16,
-                lineHeight: 24,
-                color: themeColors.text,
-                fontWeight: '400',
-                fontFamily: 'System'
-              }}>
-                {currentPost.content}
-              </Text>
+                <Text style={{
+                  fontSize: 11,
+                  color: themeColors.textSecondary,
+                  fontWeight: '500',
+                  fontFamily: 'System',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  marginBottom: 8
+                }}>
+                  Caption
+                </Text>
+                <Text style={{
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: themeColors.text,
+                  fontWeight: '400',
+                  fontFamily: 'System'
+                }}>
+                  {currentPost.content}
+                </Text>
+              </View>
             </View>
           )}
 
@@ -1026,12 +1159,49 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             flexDirection: 'row',
             marginHorizontal: 20,
             marginBottom: 24,
-            backgroundColor: themeColors.backgroundSecondary,
             borderRadius: 16,
-            padding: 4
+            padding: 4,
+            position: 'relative',
           }}>
+            {/* Frosted Background Layer */}
+            <View style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: themeColors.isDark 
+                ? 'rgba(26, 35, 50, 0.75)' 
+                : 'rgba(248, 249, 250, 0.75)',
+              borderRadius: 16,
+              borderWidth: 0.5,
+              borderColor: themeColors.isDark 
+                ? 'rgba(255, 255, 255, 0.05)' 
+                : 'rgba(0, 0, 0, 0.03)',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: themeColors.isDark ? 0.2 : 0.05,
+              shadowRadius: 4,
+              elevation: 2,
+            }} />
+            
+            {/* Gradient overlay */}
+            <View style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: themeColors.isDark 
+                ? 'rgba(40, 40, 40, 0.1)' 
+                : 'rgba(240, 240, 240, 0.1)',
+              borderRadius: 16,
+            }} />
             <TouchableOpacity
               onPress={handleLike}
+              activeOpacity={0.6}
+              delayPressIn={0}
+              delayPressOut={0}
               style={{
                 flex: 1,
                 flexDirection: 'row',
@@ -1121,6 +1291,9 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
 
             <TouchableOpacity
               onPress={handleSave}
+              activeOpacity={0.6}
+              delayPressIn={0}
+              delayPressOut={0}
               style={{
                 flex: 1,
                 flexDirection: 'row',
@@ -1168,11 +1341,45 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             <View style={{
               flexDirection: 'row',
               alignItems: 'flex-end',
-              backgroundColor: themeColors.backgroundSecondary,
               borderRadius: 16,
               padding: 12,
-              marginBottom: 16
+              marginBottom: 16,
+              position: 'relative',
             }}>
+              {/* Frosted Background Layer */}
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(26, 35, 50, 0.75)' 
+                  : 'rgba(248, 249, 250, 0.75)',
+                borderRadius: 16,
+                borderWidth: 0.5,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.03)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: themeColors.isDark ? 0.2 : 0.05,
+                shadowRadius: 4,
+                elevation: 2,
+              }} />
+              
+              {/* Gradient overlay */}
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(40, 40, 40, 0.1)' 
+                  : 'rgba(240, 240, 240, 0.1)',
+                borderRadius: 16,
+              }} />
               <TextInput
                 value={commentText}
                 onChangeText={setCommentText}
@@ -1209,12 +1416,45 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             {/* Comments List */}
             {localComments.map((comment) => (
               <View key={comment.id} style={{
-                backgroundColor: themeColors.backgroundSecondary,
                 padding: 16,
                 borderRadius: 16,
                 marginBottom: 12,
                 position: 'relative'
               }}>
+                {/* Frosted Background Layer */}
+                <View style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: themeColors.isDark 
+                    ? 'rgba(26, 35, 50, 0.75)' 
+                    : 'rgba(248, 249, 250, 0.75)',
+                  borderRadius: 16,
+                  borderWidth: 0.5,
+                  borderColor: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'rgba(0, 0, 0, 0.03)',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: themeColors.isDark ? 0.2 : 0.05,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }} />
+                
+                {/* Gradient overlay */}
+                <View style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: themeColors.isDark 
+                    ? 'rgba(40, 40, 40, 0.1)' 
+                    : 'rgba(240, 240, 240, 0.1)',
+                  borderRadius: 16,
+                }} />
                 <View style={{ 
                   flexDirection: 'row', 
                   alignItems: 'center', 
@@ -1329,12 +1569,46 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             {/* Load More Comments */}
             {currentPost.comments > 0 && (
               <TouchableOpacity style={{
-                backgroundColor: themeColors.backgroundSecondary,
                 paddingVertical: 14,
                 borderRadius: 16,
                 alignItems: 'center',
-                marginBottom: 20
+                marginBottom: 20,
+                position: 'relative',
               }}>
+                {/* Frosted Background Layer */}
+                <View style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: themeColors.isDark 
+                    ? 'rgba(26, 35, 50, 0.75)' 
+                    : 'rgba(248, 249, 250, 0.75)',
+                  borderRadius: 16,
+                  borderWidth: 0.5,
+                  borderColor: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.05)' 
+                    : 'rgba(0, 0, 0, 0.03)',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: themeColors.isDark ? 0.2 : 0.05,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }} />
+                
+                {/* Gradient overlay */}
+                <View style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: themeColors.isDark 
+                    ? 'rgba(40, 40, 40, 0.1)' 
+                    : 'rgba(240, 240, 240, 0.1)',
+                  borderRadius: 16,
+                }} />
                 <Text style={{
                   color: themeColors.cobalt,
                   fontSize: 14,

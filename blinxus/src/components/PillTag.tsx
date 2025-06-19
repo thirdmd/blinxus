@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { colors } from '../constants';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { rs, rf } from '../utils/responsive';
 
 interface PillTagProps {
   label: string;
@@ -28,7 +29,7 @@ export default function PillTag({
 
   const getContainerStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      borderRadius: 8,
+      borderRadius: rs(8),
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'flex-start',
@@ -36,9 +37,9 @@ export default function PillTag({
 
     // Size styles
     const sizeStyles = {
-      small: { paddingHorizontal: 4, paddingVertical: 2 },
-      medium: { paddingHorizontal: 6, paddingVertical: 2.5 },
-      large: { paddingHorizontal: 8, paddingVertical: 3 },
+      small: { paddingHorizontal: rs(4), paddingVertical: rs(2) },
+      medium: { paddingHorizontal: rs(6), paddingVertical: rs(2.5) },
+      large: { paddingHorizontal: rs(8), paddingVertical: rs(3) },
     };
 
     // Special handling for colorless pills (All, Snow)
@@ -50,7 +51,7 @@ export default function PillTag({
         ...baseStyle,
         ...sizeStyles[size],
         backgroundColor: themeColors.backgroundSecondary,
-        borderWidth: selected ? 1.5 : 0.5,
+        borderWidth: selected ? rs(1.5) : rs(0.5),
         borderColor: themeColors.text,
         ...style,
       };
@@ -64,7 +65,7 @@ export default function PillTag({
           ...baseStyle,
           ...sizeStyles[size],
           backgroundColor: themeColors.backgroundSecondary,
-          borderWidth: 1.5, // Bold border when selected
+          borderWidth: rs(1.5), // Bold border when selected
           borderColor: color,
           ...style,
         };
@@ -74,7 +75,7 @@ export default function PillTag({
           ...baseStyle,
           ...sizeStyles[size],
           backgroundColor: color,
-          borderWidth: 0.5,
+          borderWidth: rs(0.5),
           borderColor: color,
           ...style,
         };
@@ -96,7 +97,7 @@ export default function PillTag({
       ...baseStyle,
       ...sizeStyles[size],
       backgroundColor,
-      borderWidth: 0.5,
+      borderWidth: rs(0.5),
       borderColor: color,
       ...style,
     };
@@ -109,9 +110,9 @@ export default function PillTag({
 
     // Size text styles
     const sizeTextStyles = {
-      small: { fontSize: 12 },
-      medium: { fontSize: 14 },
-      large: { fontSize: 16 },
+      small: { fontSize: rf(12) },
+      medium: { fontSize: rf(14) },
+      large: { fontSize: rf(16) },
     };
 
     // Text color and weight logic

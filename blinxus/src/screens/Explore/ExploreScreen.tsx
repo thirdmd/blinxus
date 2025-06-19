@@ -1,5 +1,5 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions } from 'react-native';
+import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo, useEffect } from 'react';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ChevronLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
@@ -12,8 +12,13 @@ import { useScrollContext } from '../../contexts/ScrollContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useSettings } from '../../contexts/SettingsContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 
-const { width, height: screenHeight } = Dimensions.get('window');
+
+const { width, height: screenHeight } = RESPONSIVE_SCREEN;
+const responsiveDimensions = getResponsiveDimensions();
+const typography = getTypographyScale();
+const spacing = getSpacingScale();
 
 export interface ExploreScreenRef {
   resetToAll: () => void;
@@ -55,6 +60,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Track currently visible post index for immersive feed - OPTIMIZED
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const currentVisibleIndexRef = useRef(0); // Use ref to avoid re-renders during scroll
+  
+
 
   // Expose reset function for double-tap
   useImperativeHandle(ref, () => ({
@@ -102,7 +109,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     [filteredPosts]
   );
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentScrollY = event.nativeEvent.contentOffset.y;
     setScrollY(currentScrollY);
     
@@ -125,7 +132,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     
     // OPTIMIZED: Update current visible index for immersive feed - Use ref to prevent re-renders
     if (isImmersiveFeedEnabled && !isMediaMode) {
-      const cardHeight = Dimensions.get('window').height - 180;
+      const cardHeight = responsiveDimensions.feedCard.height;
       // Simplified calculation for better performance
       const newIndex = Math.max(0, Math.round(currentScrollY / cardHeight));
       // Only update state when actually changed to prevent unnecessary re-renders
@@ -153,7 +160,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     }
     
     lastScrollY.current = currentScrollY;
-  };
+  }, [isImmersiveFeedEnabled, isMediaMode, selectedFilter]);
 
   // Handle filter selection with scroll position restoration and double-tap detection
   // HIDDEN PILLS LOGIC - keeping for future use
@@ -299,29 +306,29 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         {/* Back Button Header */}
         <View style={{ 
           position: 'absolute', 
-          top: 50, 
-          left: 16, 
+          top: rs(50), 
+          left: rs(16), 
           zIndex: 1000,
-          width: 32, 
-          height: 32, 
+          width: responsiveDimensions.button.small.width, 
+          height: responsiveDimensions.button.small.height, 
           alignItems: 'center', 
           justifyContent: 'center',
           backgroundColor: themeColors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-          borderWidth: 0.5,
+          borderWidth: rs(0.5),
           borderColor: themeColors.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-          borderRadius: 16
+          borderRadius: rs(16)
         }}>
           <TouchableOpacity
             onPress={handleBackFromFullscreen}
             style={{ 
-              width: 32, 
-              height: 32, 
+              width: responsiveDimensions.button.small.width, 
+              height: responsiveDimensions.button.small.height, 
               alignItems: 'center', 
               justifyContent: 'center' 
             }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: rs(8), bottom: rs(8), left: rs(8), right: rs(8) }}
           >
-            <ChevronLeft size={20} color="white" strokeWidth={2.5} />
+            <ChevronLeft size={ri(20)} color="white" strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
 
@@ -330,10 +337,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           pagingEnabled={true}
-          snapToInterval={screenHeight - 180}
+          snapToInterval={responsiveDimensions.feedCard.height}
           snapToAlignment="end"
           decelerationRate="fast"
-          contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
+          contentOffset={{ x: 0, y: selectedPostIndex * responsiveDimensions.feedCard.height }}
         >
           {postsWithImages.map((post, index) => {
             const postCardProps = post;
@@ -365,15 +372,15 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         
         {/* Fixed Minimal App Bar - Positioned at Safe Area Edge */}
         <View style={{
-          height: 44, // Fixed height - exactly like the brown section
+          height: responsiveDimensions.appBar.height,
           backgroundColor: scrollY > 50 
             ? 'transparent' 
             : themeColors.background,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 20,
-          borderBottomWidth: scrollY > 20 && scrollY < 50 ? 0.5 : 0,
+          paddingHorizontal: responsiveDimensions.appBar.paddingHorizontal,
+          borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
           borderBottomColor: `${themeColors.border}20`,
         }}>
           {isMediaMode ? (
@@ -381,27 +388,27 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             <TouchableOpacity 
               onPress={exitMediaMode}
               style={{ 
-                width: 32, 
-                height: 32, 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                borderRadius: 16,
+                borderRadius: rs(16),
                 backgroundColor: scrollY > 20 ? `${themeColors.backgroundSecondary}40` : 'transparent',
                 opacity: scrollY > 50 ? 0 : 1,
               }}
               activeOpacity={0.7}
             >
-              <ChevronLeft size={18} color={themeColors.text} strokeWidth={2} />
+              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
           ) : (
             // Blinxus title - fades out when scrolling
             <Text style={{ 
-              fontSize: 18, 
+              fontSize: typography.appTitle, 
               fontWeight: '600', 
               color: themeColors.text,
               opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
             }}>
-              Blinxus
+              blinxus
             </Text>
           )}
           
@@ -410,11 +417,11 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             <TouchableOpacity
               onPress={enterMediaMode}
               style={{ 
-                width: 32, 
-                height: 32, 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                borderRadius: 16,
+                borderRadius: rs(16),
                 backgroundColor: scrollY > 20 
                   ? `${themeColors.backgroundSecondary}40` 
                   : `${themeColors.backgroundSecondary}20`,
@@ -423,7 +430,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               activeOpacity={0.7}
             >
               <Grid3X3 
-                size={20} 
+                size={ri(20)} 
                 color={themeColors.text} 
                 strokeWidth={2} 
               />
@@ -500,7 +507,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                   <TravelFeedCard
                     {...item}
                     onDetailsPress={() => handleShowTravelDetails(item)}
-                    isVisible={true} // INSTANT GESTURES: Always visible so gestures work during transitions
+                    isVisible={index >= currentVisibleIndex - 1 && index <= currentVisibleIndex + 1} // INSTANT: Pre-render adjacent cards
                   />
                 );
               } else {
@@ -511,23 +518,29 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             style={{ flex: 1, backgroundColor: themeColors.background }}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
-            scrollEventThrottle={16} // OPTIMIZED: Changed from 1 to 16 for better performance
+            scrollEventThrottle={1} // ULTRA FAST: Maximum responsiveness
             bounces={true}
             pagingEnabled={isImmersiveFeedEnabled}
-            snapToInterval={isImmersiveFeedEnabled ? Dimensions.get('window').height - 180 : undefined}
+            snapToInterval={isImmersiveFeedEnabled ? responsiveDimensions.feedCard.height : undefined}
             snapToAlignment={isImmersiveFeedEnabled ? "end" : undefined}
-            decelerationRate={isImmersiveFeedEnabled ? "fast" : "normal"}
-            // INSTANT GESTURES: Allow simultaneous gestures during transitions
+            decelerationRate="fast" // ULTRA FAST: Always use fastest deceleration
+            // ULTRA FAST GESTURES: Instant response
             scrollsToTop={false}
-            disableIntervalMomentum={isImmersiveFeedEnabled ? true : false}
-            // PERFORMANCE OPTIMIZATIONS
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={2}
-            windowSize={3}
-            initialNumToRender={1}
+            disableIntervalMomentum={true} // ULTRA FAST: No momentum delays
+            // ULTRA FAST PERFORMANCE OPTIMIZATIONS
+            removeClippedSubviews={false} // ULTRA FAST: Keep all views ready
+            maxToRenderPerBatch={15} // ULTRA FAST: Render even more items at once
+            windowSize={21} // ULTRA FAST: Keep way more items in memory
+            initialNumToRender={8} // ULTRA FAST: Start with more items ready
+            updateCellsBatchingPeriod={1} // ULTRA FAST: Fastest possible batch updates
+            legacyImplementation={false} // ULTRA FAST: Use new optimized implementation
+            maintainVisibleContentPosition={{
+              minIndexForVisible: 0,
+              autoscrollToTopThreshold: 100
+            }} // ULTRA FAST: Maintain position during updates
             getItemLayout={isImmersiveFeedEnabled ? (data, index) => ({
-              length: Dimensions.get('window').height - 180,
-              offset: (Dimensions.get('window').height - 180) * index,
+              length: responsiveDimensions.feedCard.height,
+              offset: responsiveDimensions.feedCard.height * index,
               index,
             }) : undefined}
           />

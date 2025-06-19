@@ -9,6 +9,8 @@ import { colors } from './blinxus/src/constants';
 import { Home, Users2, UserCircle, Bell, Plus } from 'lucide-react-native';
 import ScrollContext from './blinxus/src/contexts/ScrollContext';
 import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
+import { getResponsiveDimensions, getTypographyScale, ri, rs, rf } from './blinxus/src/utils/responsive';
+
 
 // Import screens
 import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
@@ -31,7 +33,7 @@ const RootStack = createStackNavigator();
 
 // Tab Icons - Updated for 5 tabs
 function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
-  const iconSize = name === 'Create' ? 28 : 24;
+  const iconSize = name === 'Create' ? ri(28) : ri(24);
   const strokeWidth = focused ? 2 : 1.5;
   
   switch (name) {
@@ -53,28 +55,35 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
 // Special Create Tab Button
 function CreateTabButton({ onPress, accessibilityState }: any) {
   const themeColors = useThemeColors();
+  const responsiveDimensions = getResponsiveDimensions();
   const focused = accessibilityState?.selected;
   
   return (
     <TouchableOpacity
       onPress={onPress}
       style={{
-        top: -8, // Slightly elevated
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: focused ? '#0047AB' : '#0047AB', // Always cobalt blue
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
+        top: rs(-8), // Slightly elevated
       }}
       activeOpacity={0.8}
     >
-      <Plus size={24} color="#FFFFFF" strokeWidth={2} />
+      <View style={{
+        width: responsiveDimensions.fab.size,
+        height: responsiveDimensions.fab.size,
+        borderRadius: responsiveDimensions.fab.borderRadius,
+        backgroundColor: '#0047AB', // Always cobalt blue
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: rs(4) },
+        shadowOpacity: 0.3,
+        shadowRadius: rs(8),
+        elevation: responsiveDimensions.fab.elevation,
+      }}>
+        <Plus size={ri(24)} color="#FFFFFF" strokeWidth={2} />
+      </View>
     </TouchableOpacity>
   );
 }
@@ -82,6 +91,8 @@ function CreateTabButton({ onPress, accessibilityState }: any) {
 // Tab Navigator
 function TabNavigator() {
   const themeColors = useThemeColors();
+  const responsiveDimensions = getResponsiveDimensions();
+  const typography = getTypographyScale();
   const exploreScrollRef = useRef<FlatList>(null);
   const podsScrollRef = useRef<ScrollView>(null);
   const profileScrollRef = useRef<ScrollView>(null);
@@ -153,15 +164,15 @@ function TabNavigator() {
           tabBarStyle: {
             backgroundColor: themeColors.background,
             borderTopColor: themeColors.border,
-            borderTopWidth: 1,
-            height: 80,
-            paddingBottom: 20,
-            paddingTop: 10,
+            borderTopWidth: rs(1),
+            height: responsiveDimensions.tabBar.height,
+            paddingBottom: responsiveDimensions.tabBar.paddingBottom,
+            paddingTop: responsiveDimensions.tabBar.paddingTop,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: rf(11),
             fontWeight: '500',
-            marginTop: route.name === 'Create' ? 4 : 2,
+            marginTop: route.name === 'Create' ? rs(4) : rs(2),
           },
           tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : themeColors.text,
           tabBarInactiveTintColor: themeColors.textSecondary,
@@ -169,10 +180,10 @@ function TabNavigator() {
             if (route.name === 'Create') {
               return (
                 <Text style={{
-                  fontSize: 11,
+                  fontSize: rf(11),
                   fontWeight: '500',
                   color: '#0047AB',
-                  marginTop: 4
+                  marginTop: rs(4)
                 }}>
                   Create
                 </Text>

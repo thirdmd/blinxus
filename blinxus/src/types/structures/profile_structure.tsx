@@ -21,8 +21,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 
-const { width, height: screenHeight } = Dimensions.get('window');
+const { width, height: screenHeight } = RESPONSIVE_SCREEN;
+const responsiveDimensions = getResponsiveDimensions();
+const typography = getTypographyScale();
+const spacing = getSpacingScale();
 
 interface Props {
   profileData: ProfileDataType;

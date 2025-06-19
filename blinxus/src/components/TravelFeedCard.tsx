@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar, ScrollView, Alert, Modal, TextInput, Animated } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar, ScrollView, Alert, Modal, TextInput, Animated, ImageBackground } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import ReanimatedAnimated, { useSharedValue, useAnimatedStyle, useAnimatedGestureHandler, runOnJS, withSpring, withTiming } from 'react-native-reanimated';
 import { PostCardProps } from '../types/structures/posts_structure';
@@ -12,6 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { activityTags, ActivityKey, type ActivityTag, activityColors, activityNames } from '../constants/activityTags';
 import PillTag from './PillTag';
 import DetailPostView from './DetailPostView';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../utils/responsive';
+import { useOrientation, Orientation } from '../hooks/useOrientation';
 
 interface TravelFeedCardProps extends PostCardProps {
   onDetailsPress: () => void;
@@ -19,7 +21,10 @@ interface TravelFeedCardProps extends PostCardProps {
   isVisible?: boolean;
 }
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = RESPONSIVE_SCREEN;
+const responsiveDimensions = getResponsiveDimensions();
+const typography = getTypographyScale();
+const spacing = getSpacingScale();
 
 // Immersive Swipeable Image Carousel Component
 const ImmersiveImageCarousel: React.FC<{
@@ -93,11 +98,11 @@ const ImmersiveImageCarousel: React.FC<{
       }
     },
     onActive: (event) => {
-      // Original details panel logic
+      // INSTANT: Reduced threshold from 20 to 5 for immediate response
       const isHorizontalSwipe = Math.abs(event.translationX) > Math.abs(event.translationY) * 1.2;
       const isRightSwipe = event.translationX > 0;
       
-      if (isRightSwipe && Math.abs(event.translationX) > 20 && isHorizontalSwipe) {
+      if (isRightSwipe && Math.abs(event.translationX) > 5 && isHorizontalSwipe) {
         const canSwipeToDetails = isLucid || currentIndex === 0;
         if (canSwipeToDetails && onGestureStart) {
           runOnJS(onGestureStart)();
@@ -106,7 +111,8 @@ const ImmersiveImageCarousel: React.FC<{
       
       const canSwipeToDetails = isLucid ? isRightSwipe : (currentIndex === 0 && isRightSwipe);
       
-      if (canSwipeToDetails && isHorizontalSwipe && detailsTranslateX && Math.abs(event.translationX) > 15) {
+      // INSTANT: Reduced threshold from 15 to 5
+      if (canSwipeToDetails && isHorizontalSwipe && detailsTranslateX && Math.abs(event.translationX) > 5) {
         const progress = Math.max(0, event.translationX / screenWidth);
         detailsTranslateX.value = -screenWidth + (progress * screenWidth);
       }
@@ -115,7 +121,8 @@ const ImmersiveImageCarousel: React.FC<{
       // Original details panel logic
       const isHorizontalSwipe = Math.abs(event.translationX) > Math.abs(event.translationY) * 1.5;
       const isRightSwipe = event.translationX > 0;
-      const shouldOpen = isHorizontalSwipe && isRightSwipe && Math.abs(event.translationX) > screenWidth * 0.15;
+      // INSTANT: Reduced threshold from 0.15 to 0.08
+      const shouldOpen = isHorizontalSwipe && isRightSwipe && Math.abs(event.translationX) > screenWidth * 0.08;
       const finalShouldOpen = shouldOpen && (isLucid || currentIndex === 0);
       
       if (onGestureEnd) {
@@ -141,7 +148,7 @@ const ImmersiveImageCarousel: React.FC<{
     const index = Math.round(scrollPosition / screenWidth);
     
     // INSTANT DETECTION: Check for left swipe during scroll for immediate response
-    if (scrollPosition < -25 && currentIndex === 0) {
+    if (scrollPosition < -10 && currentIndex === 0) { // INSTANT: Reduced from -25 to -10
       onSwipeLeftOnFirst?.();
       return;
     }
@@ -155,7 +162,7 @@ const ImmersiveImageCarousel: React.FC<{
   const handleScrollEnd = useCallback((event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     // SUPER SENSITIVE: If we're swiping left on the first image (negative scroll)
-    if (scrollPosition < -15 && currentIndex === 0) {
+    if (scrollPosition < -5 && currentIndex === 0) { // INSTANT: Reduced from -15 to -5
       onSwipeLeftOnFirst?.();
     }
   }, [currentIndex, onSwipeLeftOnFirst]);
@@ -163,7 +170,7 @@ const ImmersiveImageCarousel: React.FC<{
   const handleMomentumScrollBegin = useCallback((event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     // Even more sensitive detection during momentum start
-    if (scrollPosition < -10 && currentIndex === 0) {
+    if (scrollPosition < -5 && currentIndex === 0) { // INSTANT: Reduced from -10 to -5
       onSwipeLeftOnFirst?.();
     }
   }, [currentIndex, onSwipeLeftOnFirst]);
@@ -189,12 +196,12 @@ const ImmersiveImageCarousel: React.FC<{
       Animated.sequence([
         Animated.timing(heartScale, {
           toValue: 1.2,
-          duration: 150,
+          duration: 120, // INSTANT: Reduced from 150
           useNativeDriver: true,
         }),
         Animated.timing(heartScale, {
           toValue: 0,
-          duration: 200,
+          duration: 180, // INSTANT: Reduced from 200
           useNativeDriver: true,
         }),
       ]).start((finished) => {
@@ -241,8 +248,8 @@ const ImmersiveImageCarousel: React.FC<{
       <PanGestureHandler 
         onGestureEvent={panGestureHandler}
         enabled={true}
-        activeOffsetX={[-15, 15]}
-        failOffsetY={[-8, 8]}
+        activeOffsetX={[-5, 5]} // INSTANT: Reduced from [-15, 15] to [-5, 5]
+        failOffsetY={[-5, 5]} // INSTANT: Reduced from [-8, 8]
         simultaneousHandlers={[]}
         shouldCancelWhenOutside={false}
         minPointers={1}
@@ -258,11 +265,11 @@ const ImmersiveImageCarousel: React.FC<{
             onScroll={!isLucid ? handleScroll : undefined}
             onScrollEndDrag={!isLucid ? handleScrollEnd : undefined}
             onMomentumScrollBegin={!isLucid ? handleMomentumScrollBegin : undefined}
-            scrollEventThrottle={8}
+            scrollEventThrottle={1} // INSTANT: Maximum responsiveness
             style={{ flex: 1 }}
             bounces={true}
             scrollEnabled={!isLucid && scale.value <= 1.1}
-            removeClippedSubviews={true}
+            removeClippedSubviews={false} // INSTANT: Keep all views ready
             contentInsetAdjustmentBehavior="never"
             decelerationRate="fast"
             directionalLockEnabled={true}
@@ -271,7 +278,7 @@ const ImmersiveImageCarousel: React.FC<{
               <View
                 key={index}
                 style={{
-                  width: screenWidth,
+                  width: responsiveDimensions.feedCard.width,
                   height: '100%',
                   position: 'relative'
                 }}
@@ -289,7 +296,7 @@ const ImmersiveImageCarousel: React.FC<{
                 {/* SUPER SENSITIVE: Full-area touchable overlay for instant gesture handling */}
                 <TouchableOpacity
                   onPress={handleImagePress}
-                  activeOpacity={0.95}
+                  activeOpacity={1} // INSTANT: No opacity change
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -301,7 +308,7 @@ const ImmersiveImageCarousel: React.FC<{
                   delayPressIn={0}
                   delayPressOut={0}
                   delayLongPress={800}
-                  hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                  hitSlop={{ top: 0, bottom: 0, left: 0, right: 0 }} // INSTANT: No extra hit area needed
                 />
               </View>
             ))}
@@ -333,27 +340,27 @@ const ImmersiveImageCarousel: React.FC<{
         </Animated.View>
       )}
       
-      {/* Image counter - Only show for regular posts, not for Lucids */}
-      {images.length > 1 && !isLucid && (
-        <View style={{
-          position: 'absolute',
-          top: 20,
-          right: 16,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          paddingHorizontal: 8,
-          paddingVertical: 4,
-          borderRadius: 12
-        }}>
-          <Text style={{
-            color: 'white',
-            fontSize: 12,
-            fontWeight: '500',
-            fontFamily: 'System'
+              {/* Image counter - Only show for regular posts, not for Lucids */}
+        {images.length > 1 && !isLucid && (
+          <View style={{
+            position: 'absolute',
+            top: rs(20),
+            right: rs(16),
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            paddingHorizontal: rs(8),
+            paddingVertical: rs(4),
+            borderRadius: rs(12)
           }}>
-            {currentIndex + 1}/{images.length}
-          </Text>
-        </View>
-      )}
+            <Text style={{
+              color: 'white',
+              fontSize: typography.caption,
+              fontWeight: '500',
+              fontFamily: 'System'
+            }}>
+              {currentIndex + 1}/{images.length}
+            </Text>
+          </View>
+        )}
 
     </View>
   );
@@ -406,8 +413,25 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const [zoomToggleFn, setZoomToggleFn] = useState<(() => void) | null>(null);
   const [isZoomedOut, setIsZoomedOut] = useState(false);
 
+  // Fullscreen image state for rotation
+  const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+
   // Check if this is a Lucid post
   const isLucid = type === 'lucid';
+
+  // Handle rotation to fullscreen image - only when TravelFeedCard is visible
+  const handleOrientationChange = useCallback((newOrientation: Orientation) => {
+    if (isVisible && newOrientation === 'landscape' && images && images.length > 0) {
+      // Show fullscreen image when rotating to landscape
+      setShowFullscreenImage(true);
+    } else if (newOrientation === 'portrait') {
+      // Hide fullscreen image when rotating back to portrait
+      setShowFullscreenImage(false);
+    }
+  }, [isVisible, images]);
+
+  // Use orientation hook with callback only for this component
+  const orientation = useOrientation(handleOrientationChange);
 
   // MEMORY OPTIMIZATION: Initialize saved and liked states
   useEffect(() => {
@@ -522,7 +546,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const handleLike = useCallback(() => {
     // Prevent multiple rapid likes by adding a small debounce check
     const now = Date.now();
-    if (now - lastLikeTime.current < 500) {
+    if (now - lastLikeTime.current < 100) { // ULTRA FAST: Reduced from 300 to 100ms
       return;
     }
     lastLikeTime.current = now;
@@ -549,15 +573,15 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const handleGestureEnd = useCallback((shouldOpen: boolean) => {
     if (shouldOpen) {
       detailsTranslateX.value = withSpring(0, {
-        damping: 30,  // ULTRA FAST: Even faster spring response
-        stiffness: 450,
-        mass: 0.8
+        damping: 25,  // INSTANT: Even faster spring response
+        stiffness: 500, // INSTANT: Increased stiffness
+        mass: 0.7 // INSTANT: Less mass
       });
     } else {
       detailsTranslateX.value = withSpring(-screenWidth, {
-        damping: 30,
-        stiffness: 450,
-        mass: 0.8
+        damping: 25,
+        stiffness: 500,
+        mass: 0.7
       });
       setShowDetails(false);
     }
@@ -566,17 +590,17 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const handleShowDetails = useCallback(() => {
     setShowDetails(true);
     detailsTranslateX.value = withSpring(0, {
-      damping: 30,  // ULTRA FAST: Even faster spring response
-      stiffness: 450,
-      mass: 0.8
+      damping: 25,  // INSTANT: Even faster spring response
+      stiffness: 500,
+      mass: 0.7
     });
   }, [detailsTranslateX]);
 
   const handleCloseDetails = useCallback(() => {
     detailsTranslateX.value = withSpring(-screenWidth, {
-      damping: 30,
-      stiffness: 450,
-      mass: 0.8
+      damping: 25,
+      stiffness: 500,
+      mass: 0.7
     });
     setShowDetails(false);
   }, [detailsTranslateX]);
@@ -636,11 +660,102 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     setIsZoomedOut(zoomedOut);
   }, []);
 
+  // Rotation Mode: Show only image when in landscape with frosted background
+  if (orientation === 'landscape') {
+    const currentImage = images && images.length > 0 ? images[currentImageIndex] : null;
+    
+    return (
+      <View 
+        style={{ 
+          width: screenWidth, // Use full screen width
+          height: screenHeight, // Use full screen height
+          backgroundColor: '#000'
+        }}
+      >
+        {/* Only show the image carousel in landscape mode - FULLSCREEN */}
+        {images && images.length > 0 ? (
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              horizontal
+              pagingEnabled={true}
+              showsHorizontalScrollIndicator={false}
+              onScroll={(event) => {
+                const scrollPosition = event.nativeEvent.contentOffset.x;
+                const index = Math.round(scrollPosition / screenWidth);
+                if (index !== currentImageIndex) {
+                  setCurrentImageIndex(index);
+                }
+              }}
+              scrollEventThrottle={1}
+              style={{ flex: 1 }}
+              bounces={true}
+              scrollEnabled={true}
+              removeClippedSubviews={false}
+              contentInsetAdjustmentBehavior="never"
+              decelerationRate="fast"
+              directionalLockEnabled={true}
+            >
+              {images.map((image, index) => (
+                <View
+                  key={index}
+                  style={{
+                    width: screenWidth, // Full screen width
+                    height: screenHeight, // Full screen height
+                    position: 'relative'
+                  }}
+                >
+                  <Image
+                    source={{ uri: image }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      resizeMode: 'contain' // Show full image without cropping
+                    }}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+            
+            {/* Image counter for landscape mode */}
+            {images.length > 1 && (
+              <View style={{
+                position: 'absolute',
+                top: rs(60), // Account for status bar in landscape
+                right: rs(20),
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                paddingHorizontal: rs(12),
+                paddingVertical: rs(6),
+                borderRadius: rs(16)
+              }}>
+                <Text style={{
+                  color: 'white',
+                  fontSize: rf(14),
+                  fontWeight: '600',
+                  fontFamily: 'System'
+                }}>
+                  {currentImageIndex + 1}/{images.length}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <Text style={{ color: '#fff', fontSize: rf(16) }}>No Image</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
+
   return (
     <View 
       style={{ 
-        width: screenWidth, 
-        height: screenHeight - 180,
+        width: responsiveDimensions.feedCard.width, 
+        height: responsiveDimensions.feedCard.height,
         backgroundColor: themeColors.background 
       }}
     >
@@ -672,8 +787,8 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Top Left Overlay - User Info */}
       <View style={{
         position: 'absolute',
-        top: 20,
-        left: 16,
+        top: rs(20),
+        left: rs(16),
         flexDirection: 'row',
         alignItems: 'center'
       }}>
@@ -683,25 +798,25 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             <Image
               source={{ uri: authorProfileImage }}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                borderWidth: 2,
+                width: responsiveDimensions.profilePicture.medium,
+                height: responsiveDimensions.profilePicture.medium,
+                borderRadius: responsiveDimensions.profilePicture.medium / 2,
+                borderWidth: rs(2),
                 borderColor: 'white',
-                marginRight: 12
+                marginRight: rs(12)
               }}
             />
           ) : (
             <View style={{ 
-              width: 40, 
-              height: 40, 
-              borderRadius: 20, 
+              width: responsiveDimensions.profilePicture.medium, 
+              height: responsiveDimensions.profilePicture.medium, 
+              borderRadius: responsiveDimensions.profilePicture.medium / 2, 
               backgroundColor: 'rgba(255, 255, 255, 0.9)', 
               alignItems: 'center', 
               justifyContent: 'center',
-              marginRight: 12
+              marginRight: rs(12)
             }}>
-              <Text style={{ color: '#000', fontSize: 16, fontWeight: '600', fontFamily: 'System' }}>
+              <Text style={{ color: '#000', fontSize: typography.userName, fontWeight: '600', fontFamily: 'System' }}>
                 {authorName.charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -713,24 +828,24 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
             <Text style={{
               color: 'white',
-              fontSize: 16,
+              fontSize: typography.userName,
               fontWeight: '600',
               fontFamily: 'System',
               textShadowColor: 'rgba(0,0,0,0.7)',
-              textShadowOffset: { width: 0, height: 1 },
-              textShadowRadius: 3
+              textShadowOffset: { width: 0, height: rs(1) },
+              textShadowRadius: rs(3)
             }}>
               {authorName} {authorNationalityFlag}
               {isLucid && (
                 <Text style={{
-                  fontSize: 12,
+                  fontSize: typography.caption,
                   fontWeight: '600',
                   fontFamily: 'System',
                   color: '#3B82F6',
-                  marginLeft: 8,
+                  marginLeft: rs(8),
                   textShadowColor: 'rgba(0,0,0,0.8)',
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 3
+                  textShadowOffset: { width: 0, height: rs(1) },
+                  textShadowRadius: rs(3)
                 }}>
                   {' '}• LUCID
                 </Text>
@@ -738,31 +853,31 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             </Text>
           </TouchableOpacity>
           {/* Location Pill with Activity Color */}
-          <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ marginTop: rs(4), flexDirection: 'row', alignItems: 'center' }}>
             <View 
               style={{ 
-                paddingHorizontal: 8, 
-                paddingVertical: 3, 
-                borderRadius: 12, 
+                paddingHorizontal: rs(8), 
+                paddingVertical: rs(3), 
+                borderRadius: rs(12), 
                 backgroundColor: isLucid ? 'rgba(255, 255, 255, 0.2)' : (postData.activityColor || 'rgba(255, 255, 255, 0.2)'),
-                borderWidth: isLucid ? 1 : (postData.activityColor ? 0 : 1),
+                borderWidth: isLucid ? rs(1) : (postData.activityColor ? 0 : rs(1)),
                 borderColor: isLucid ? 'rgba(255, 255, 255, 0.5)' : (postData.activityColor ? 'transparent' : 'rgba(255, 255, 255, 0.5)'),
                 flexDirection: 'row',
                 alignItems: 'center',
                 alignSelf: 'flex-start'
               }}
             >
-              <Text style={{ fontSize: 12, color: 'white' }}>📍</Text>
+              <Text style={{ fontSize: typography.caption, color: 'white' }}>📍</Text>
               <Text 
                 style={{ 
-                  fontSize: 13, 
+                  fontSize: typography.location, 
                   fontWeight: '500',
                   fontFamily: 'System',
                   color: 'white',
-                  marginLeft: 4,
+                  marginLeft: rs(4),
                   textShadowColor: isLucid ? 'rgba(0,0,0,0.7)' : (postData.activityColor ? 'none' : 'rgba(0,0,0,0.7)'),
-                  textShadowOffset: isLucid ? { width: 0, height: 1 } : (postData.activityColor ? { width: 0, height: 0 } : { width: 0, height: 1 }),
-                  textShadowRadius: isLucid ? 3 : (postData.activityColor ? 0 : 3)
+                  textShadowOffset: isLucid ? { width: 0, height: rs(1) } : (postData.activityColor ? { width: 0, height: 0 } : { width: 0, height: rs(1) }),
+                  textShadowRadius: isLucid ? rs(3) : (postData.activityColor ? 0 : rs(3))
                 }}
               >
                 {postData.location}
@@ -775,12 +890,12 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Bottom Right Action Buttons - Stacked vertically with better positioning */}
       <View style={{
         position: 'absolute',
-        bottom: 40,
-        right: 20,
+        bottom: rs(40),
+        right: rs(20),
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: isLucid ? 300 : 260
+        height: isLucid ? rs(300) : rs(260)
       }}>
         {/* Lucid Album Indicator - Only show for Lucids */}
         {isLucid && (
@@ -788,20 +903,20 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             onPress={handleLucidPress}
             style={{
               alignItems: 'center',
-              marginBottom: 8
+              marginBottom: rs(8)
             }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
             activeOpacity={0.7}
           >
             <View style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: responsiveDimensions.button.medium.width,
+              height: responsiveDimensions.button.medium.height,
+              borderRadius: responsiveDimensions.button.medium.width / 2,
               backgroundColor: '#0047AB',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Album size={20} color="white" strokeWidth={2} />
+              <Album size={ri(20)} color="white" strokeWidth={2} />
             </View>
           </TouchableOpacity>
         )}
@@ -811,15 +926,15 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           onPress={zoomToggleFn || (() => {})}
           style={{
             alignItems: 'center',
-            marginBottom: 8
+            marginBottom: rs(8)
           }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
           activeOpacity={0.7}
         >
           {isZoomedOut ? (
-            <Maximize size={26} color="white" strokeWidth={2} />
+            <Maximize size={ri(26)} color="white" strokeWidth={2} />
           ) : (
-            <Minimize size={26} color="white" strokeWidth={2} />
+            <Minimize size={ri(26)} color="white" strokeWidth={2} />
           )}
         </TouchableOpacity>
         
@@ -829,23 +944,25 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           style={{
             alignItems: 'center'
           }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          activeOpacity={0.7}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
+          activeOpacity={0.5}
+          delayPressIn={0}
+          delayPressOut={0}
         >
           <Heart
-            size={26}
+            size={ri(26)}
             color={isLiked ? '#ff3040' : 'white'}
             fill={isLiked ? '#ff3040' : 'none'}
           />
           <Text style={{
             color: 'white',
-            fontSize: 12,
+            fontSize: typography.counter,
             fontWeight: '600',
             fontFamily: 'System',
-            marginTop: 4,
+            marginTop: rs(4),
             textShadowColor: 'rgba(0,0,0,0.7)',
-            textShadowOffset: { width: 0, height: 1 },
-            textShadowRadius: 3
+            textShadowOffset: { width: 0, height: rs(1) },
+            textShadowRadius: rs(3)
           }}>
             {likeCount}
           </Text>
@@ -857,10 +974,12 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           style={{
             alignItems: 'center'
           }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          activeOpacity={0.7}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
+          activeOpacity={0.5}
+          delayPressIn={0}
+          delayPressOut={0}
         >
-          <Square size={26} color="white" strokeWidth={2} strokeDasharray="4 4" />
+          <Square size={ri(26)} color="white" strokeWidth={2} strokeDasharray="4 4" />
         </TouchableOpacity>
 
         {/* Share Button */}
@@ -869,10 +988,12 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           style={{
             alignItems: 'center'
           }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          activeOpacity={0.7}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
+          activeOpacity={0.5}
+          delayPressIn={0}
+          delayPressOut={0}
         >
-          <Send size={26} color="white" />
+          <Send size={ri(26)} color="white" />
         </TouchableOpacity>
 
         {/* Save Button - Moved lower */}
@@ -881,11 +1002,13 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           style={{
             alignItems: 'center'
           }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          activeOpacity={0.7}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
+          activeOpacity={0.5}
+          delayPressIn={0}
+          delayPressOut={0}
         >
           <Bookmark
-            size={26}
+            size={ri(26)}
             color={isSaved ? '#FFD700' : 'white'}
             fill={isSaved ? '#FFD700' : 'none'}
           />
@@ -912,6 +1035,53 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         onSave={handleSave}
         onLike={handleLike}
       />
+
+      {/* Fullscreen Image Modal - Triggered by rotation */}
+      <Modal
+        visible={showFullscreenImage}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        statusBarTranslucent={true}
+        onRequestClose={() => setShowFullscreenImage(false)}
+      >
+        <View style={{ 
+          flex: 1, 
+          backgroundColor: '#000',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <StatusBar hidden={true} />
+          {images && images[currentImageIndex] && (
+            <Image
+              source={{ uri: images[currentImageIndex] }}
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+              resizeMode="contain"
+            />
+          )}
+          {/* Close button - only visible on tap */}
+          <TouchableOpacity
+            onPress={() => setShowFullscreenImage(false)}
+            style={{
+              position: 'absolute',
+              top: 50,
+              right: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: 0.7
+            }}
+            activeOpacity={0.8}
+          >
+            <X size={24} color="white" strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }, (prevProps, nextProps) => {

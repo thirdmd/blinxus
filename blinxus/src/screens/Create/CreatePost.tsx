@@ -16,8 +16,11 @@ import CreateRegularPost from './CreateRegularPost';
 import CreateLucids from './CreateLucids';
 import CreateBlinx from './CreateBlinx';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getResponsiveDimensions, getTypographyScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 
-const { width } = Dimensions.get('window');
+const { width } = RESPONSIVE_SCREEN;
+const responsiveDimensions = getResponsiveDimensions();
+const typography = getTypographyScale();
 
 type PostType = 'Post' | 'Blinx' | 'Lucids';
 

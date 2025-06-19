@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Animated } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { rs } from '../utils/responsive';
 
 interface SettingsToggleProps {
   enabled: boolean;
@@ -15,9 +16,9 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
 }) => {
   const themeColors = useThemeColors();
   
-  const toggleWidth = size === 'small' ? 44 : 50;
-  const toggleHeight = size === 'small' ? 24 : 28;
-  const knobSize = size === 'small' ? 18 : 22;
+  const toggleWidth = size === 'small' ? rs(44) : rs(50);
+  const toggleHeight = size === 'small' ? rs(24) : rs(28);
+  const knobSize = size === 'small' ? rs(18) : rs(22);
   
   const handlePress = () => {
     onToggle(!enabled);
@@ -32,7 +33,7 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
         borderRadius: toggleHeight / 2,
         backgroundColor: enabled ? themeColors.cobalt : themeColors.border,
         justifyContent: 'center',
-        paddingHorizontal: 2,
+        paddingHorizontal: rs(2),
       }}
       activeOpacity={0.7}
     >
@@ -43,13 +44,13 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
           borderRadius: knobSize / 2,
           backgroundColor: 'white',
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: { width: 0, height: rs(2) },
           shadowOpacity: 0.2,
-          shadowRadius: 2,
+          shadowRadius: rs(2),
           elevation: 3,
           transform: [
             {
-              translateX: enabled ? toggleWidth - knobSize - 4 : 2
+              translateX: enabled ? toggleWidth - knobSize - rs(4) : rs(2)
             }
           ]
         }}
