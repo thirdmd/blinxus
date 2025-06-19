@@ -5,7 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { ArrowLeft, Plus } from 'lucide-react-native';
+import { ChevronLeft, Plus } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -177,7 +177,7 @@ const LocationViewScreen: React.FC<LocationViewScreenProps> = ({
             onPress={onBack}
             className="w-10 h-10 -ml-2 items-center justify-center"
           >
-            <ArrowLeft size={20} color={theme.colors.text} />
+                            <ChevronLeft size={20} color={theme.colors.text} />
           </TouchableOpacity>
           <View className="ml-2">
             <Text style={{ color: theme.colors.textSecondary }} className="text-sm">

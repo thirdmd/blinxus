@@ -364,7 +364,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               <X size={24} color={themeColors.textSecondary} />
             </TouchableOpacity>
             
-            <Text style={{ fontSize: 18, fontWeight: '600', color: themeColors.text }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', fontFamily: 'System', color: themeColors.text }}>
               Edit Post
             </Text>
             
@@ -574,7 +574,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   <Text style={{ 
                     color: themeColors.text, 
                     fontSize: 20, 
-                    fontWeight: '600' 
+                    fontWeight: '600',
+                    fontFamily: 'System'
                   }}>
                     {currentPost.authorName.charAt(0).toUpperCase()}
                   </Text>
@@ -586,7 +587,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   <Text style={{
                     color: themeColors.text,
                     fontSize: 16,
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    fontFamily: 'System'
                   }}>
                     {currentPost.authorName}
                   </Text>
@@ -601,7 +603,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   <Text style={{ 
                     color: themeColors.textSecondary, 
                     fontSize: 13, 
-                    fontWeight: '400' 
+                    fontWeight: '400',
+                    fontFamily: 'System'
                   }}>
                     {currentPost.timeAgo}
                   </Text>
@@ -609,7 +612,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     <Text style={{ 
                       color: themeColors.textSecondary, 
                       fontSize: 13, 
-                      fontWeight: '400', 
+                      fontWeight: '400',
+                      fontFamily: 'System',
                       marginLeft: 6 
                     }}>
                       • Edited
@@ -683,7 +687,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                       marginLeft: 12, 
                       color: themeColors.text, 
                       fontSize: 15,
-                      fontWeight: '400' 
+                      fontWeight: '400',
+                      fontFamily: 'System'
                     }}>
                       Edit Post
                     </Text>
@@ -708,7 +713,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                       marginLeft: 12, 
                       color: '#EF4444', 
                       fontSize: 15,
-                      fontWeight: '400' 
+                      fontWeight: '400',
+                      fontFamily: 'System'
                     }}>
                       Delete Post
                     </Text>
@@ -730,7 +736,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     marginLeft: 12, 
                     color: themeColors.text, 
                     fontSize: 15,
-                    fontWeight: '400' 
+                    fontWeight: '400',
+                    fontFamily: 'System'
                   }}>
                     Report Post
                   </Text>
@@ -776,6 +783,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     fontSize: 11,
                     color: themeColors.textSecondary,
                     fontWeight: '500',
+                    fontFamily: 'System',
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
                     marginBottom: 2
@@ -785,7 +793,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   <Text style={{
                     fontSize: 15,
                     color: themeColors.text,
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    fontFamily: 'System'
                   }}>
                     {currentPost.location}
                   </Text>
@@ -799,7 +808,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   <Text style={{
                     color: 'white',
                     fontSize: 13,
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    fontFamily: 'System'
                   }}>
                     View Map
                   </Text>
@@ -831,6 +841,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                       fontSize: 11,
                       color: themeColors.textSecondary,
                       fontWeight: '500',
+                      fontFamily: 'System',
                       textTransform: 'uppercase',
                       letterSpacing: 0.5,
                       marginBottom: 2
@@ -840,7 +851,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     <Text style={{
                       fontSize: 15,
                       color: themeColors.text,
-                      fontWeight: '400'
+                      fontWeight: '400',
+                      fontFamily: 'System'
                     }}>
                       {currentPost.device}
                     </Text>
@@ -857,6 +869,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 fontSize: 11,
                 color: themeColors.textSecondary,
                 fontWeight: '500',
+                fontFamily: 'System',
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
                 marginBottom: 12
@@ -896,7 +909,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                           <Text style={{
                             color: 'white',
                             fontSize: 14,
-                            fontWeight: '600'
+                            fontWeight: '600',
+                            fontFamily: 'System'
                           }}>
                             {selectedActivityTag.name}
                           </Text>
@@ -944,7 +958,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                                   <Text style={{
                                     color: 'white',
                                     fontSize: 14,
-                                    fontWeight: '600'
+                                    fontWeight: '600',
+                                    fontFamily: 'System'
                                   }}>
                                     {tag.name}
                                   </Text>
@@ -959,7 +974,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                       <Text style={{
                         color: themeColors.textSecondary,
                         fontSize: 14,
-                        fontStyle: 'italic'
+                        fontStyle: 'italic',
+                        fontFamily: 'System'
                       }}>
                         No activity selected
                       </Text>
@@ -980,6 +996,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 fontSize: 11,
                 color: themeColors.textSecondary,
                 fontWeight: '500',
+                fontFamily: 'System',
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
                 marginBottom: 8
@@ -990,7 +1007,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 fontSize: 16,
                 lineHeight: 24,
                 color: themeColors.text,
-                fontWeight: '400'
+                fontWeight: '400',
+                fontFamily: 'System'
               }}>
                 {currentPost.content}
               </Text>
@@ -1026,6 +1044,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               <Text style={{
                 fontSize: 15,
                 fontWeight: '600',
+                fontFamily: 'System',
                 color: isLiked ? '#ff3040' : themeColors.text,
                 marginLeft: 6
               }}>
@@ -1052,6 +1071,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               <Text style={{
                 fontSize: 15,
                 fontWeight: '600',
+                fontFamily: 'System',
                 color: themeColors.text,
                 marginLeft: 6
               }}>
@@ -1079,6 +1099,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               <Text style={{
                 fontSize: 15,
                 fontWeight: '600',
+                fontFamily: 'System',
                 color: themeColors.text,
                 marginLeft: 6
               }}>
@@ -1112,6 +1133,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               <Text style={{
                 fontSize: 15,
                 fontWeight: '600',
+                fontFamily: 'System',
                 color: isSaved ? '#FFD700' : themeColors.text,
                 marginLeft: 6
               }}>
@@ -1128,6 +1150,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               fontSize: 11,
               color: themeColors.textSecondary,
               fontWeight: '500',
+              fontFamily: 'System',
               textTransform: 'uppercase',
               letterSpacing: 0.5,
               marginBottom: 16
@@ -1153,6 +1176,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   fontSize: 15,
                   color: themeColors.text,
                   fontWeight: '400',
+                  fontFamily: 'System',
                   minHeight: 40,
                   maxHeight: 120
                 }}
@@ -1195,6 +1219,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     <Text style={{
                       fontSize: 14,
                       fontWeight: '600',
+                      fontFamily: 'System',
                       color: themeColors.text
                     }}>
                       {comment.author}
@@ -1202,6 +1227,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     <Text style={{
                       fontSize: 12,
                       color: themeColors.textSecondary,
+                      fontFamily: 'System',
                       marginLeft: 8
                     }}>
                       • {comment.timestamp}
@@ -1221,6 +1247,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                   fontSize: 15,
                   color: themeColors.text,
                   fontWeight: '400',
+                  fontFamily: 'System',
                   lineHeight: 22
                 }}>
                   {comment.text}
@@ -1260,7 +1287,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                           marginLeft: 8, 
                           color: '#EF4444', 
                           fontSize: 14, 
-                          fontWeight: '400' 
+                          fontWeight: '400',
+                          fontFamily: 'System'
                         }}>
                           Delete
                         </Text>
@@ -1280,7 +1308,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                           marginLeft: 8, 
                           color: themeColors.text, 
                           fontSize: 14, 
-                          fontWeight: '400' 
+                          fontWeight: '400',
+                          fontFamily: 'System'
                         }}>
                           Report
                         </Text>
@@ -1303,7 +1332,8 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                 <Text style={{
                   color: themeColors.cobalt,
                   fontSize: 14,
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  fontFamily: 'System'
                 }}>
                   Load {currentPost.comments} more comments
                 </Text>

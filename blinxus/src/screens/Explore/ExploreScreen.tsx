@@ -1,22 +1,19 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { Search, ArrowLeft, Grid3X3 } from 'lucide-react-native';
+import { Search, ChevronLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { usePosts } from '../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
-import PostCard from '../../components/PostCard';
-import LucidPostCard from '../../components/LucidPostCard';
-import LucidAlbumView from '../../components/LucidAlbumView';
 import MediaGridItem from '../../components/MediaGridItem';
-import MasonryList from '../../components/MasonryList';
-import FullPostView from '../../components/FullPostView';
 import { useScrollContext } from '../../contexts/ScrollContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useSettings } from '../../contexts/SettingsContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
+
+const { width, height: screenHeight } = Dimensions.get('window');
 
 export interface ExploreScreenRef {
   resetToAll: () => void;
@@ -31,8 +28,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<ActivityKey | 'all'>('all');
   const [isMediaMode, setIsMediaMode] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<PostCardProps | null>(null);
-  const [showFullPost, setShowFullPost] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const lastScrollY = useRef(0);
   
   // New state for custom app bar behavior
@@ -63,8 +60,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
       // Exit fullscreen mode if active
-      setShowFullPost(false);
-      setSelectedPost(null);
+      setIsFullscreen(false);
       
       // Exit media mode and reset to normal view
       setIsMediaMode(false);
@@ -243,22 +239,15 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   // MEMORY OPTIMIZATION: Memoize handlers
   const handleMediaItemPress = useCallback((post: PostCardProps) => {
-    // If it's a Lucid post, navigate to dedicated fullscreen
-    if (post.type === 'lucid') {
-      (navigation as any).navigate('LucidFullscreen', {
-        post: post
-      });
-    } else {
-      // For regular posts, use existing fullscreen logic
-      setSelectedPost(post);
-      setShowFullPost(true);
-    }
-  }, [navigation]);
+    // All posts go to TravelFeedCard format first
+    const postIndex = postsWithImages.findIndex(p => p.id === post.id);
+    setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
+    setIsFullscreen(true);
+  }, [postsWithImages]);
 
-  // Handle back from full post
-  const handleBackFromFullPost = useCallback(() => {
-    setShowFullPost(false);
-    setSelectedPost(null);
+  // Handle back from fullscreen
+  const handleBackFromFullscreen = useCallback(() => {
+    setIsFullscreen(false);
   }, []);
 
   // Handle travel details popup
@@ -287,48 +276,82 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // Render media grid item
-  const renderMediaItem = (item: PostCardProps, index: number, columnWidth: number) => {
-    const aspectRatio = 1.2 + Math.random() * 0.8; // Random aspect ratios between 1.2 and 2.0
-    
+  // Render media grid item - simplified
+  const renderMediaItem = (item: PostCardProps) => {
     return (
       <MediaGridItem
-        id={item.id}
         imageUri={item.images![0]}
-        username={item.authorName}
-        nationalityFlag={item.authorNationalityFlag}
-        location={item.location}
-        activityColor={item.activityColor}
+        isLucid={item.type === 'lucid'}
         onPress={() => handleMediaItemPress(item)}
-        columnWidth={columnWidth}
-        aspectRatio={aspectRatio}
       />
     );
   };
 
-  // Show full post view
-  if (showFullPost && selectedPost) {
-    const exploreHeaderComponent = (
-      <View className="px-4 py-6">
-        <Text className="text-2xl font-normal text-black mb-4">Explore</Text>
-        <MasonryList
-          data={postsWithImages.filter(p => p.id !== selectedPost.id)}
-          renderItem={renderMediaItem}
-          columns={2}
-          spacing={12}
-          bounces={false}
-        />
-      </View>
-    );
-
+  // If in fullscreen mode, show TravelFeedCard view
+  if (isFullscreen) {
     return (
-      <FullPostView
-        post={selectedPost}
-        onBack={handleBackFromFullPost}
-        bottomComponent={exploreHeaderComponent}
-      />
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
+        
+        {/* Back Button Header */}
+        <View style={{ 
+          position: 'absolute', 
+          top: 50, 
+          left: 16, 
+          zIndex: 1000,
+          width: 32, 
+          height: 32, 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: themeColors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+          borderWidth: 0.5,
+          borderColor: themeColors.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+          borderRadius: 16
+        }}>
+          <TouchableOpacity
+            onPress={handleBackFromFullscreen}
+            style={{ 
+              width: 32, 
+              height: 32, 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <ChevronLeft size={20} color="white" strokeWidth={2.5} />
+          </TouchableOpacity>
+        </View>
+
+        {/* TravelFeedCard ScrollView */}
+        <ScrollView 
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          pagingEnabled={true}
+          snapToInterval={screenHeight - 180}
+          snapToAlignment="end"
+          decelerationRate="fast"
+          contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
+        >
+          {postsWithImages.map((post, index) => {
+            const postCardProps = post;
+            return (
+              <TravelFeedCard 
+                key={post.id} 
+                {...postCardProps} 
+                onDetailsPress={() => {}}
+                isVisible={true}
+              />
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
     );
   }
+
+
 
   // Clean Grid Icon using Lucide
   
@@ -368,7 +391,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               }}
               activeOpacity={0.7}
             >
-              <ArrowLeft size={18} color={themeColors.text} strokeWidth={2} />
+              <ChevronLeft size={18} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
           ) : (
             // Blinxus title - fades out when scrolling
@@ -446,17 +469,25 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         
         {/* Content Area */}
         {isMediaMode ? (
-          // Media Grid View
-          <MasonryList
-            data={postsWithImages}
-            renderItem={renderMediaItem}
-            columns={2}
-            spacing={12}
+          // Media Grid View - 3 columns like Feed
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={32}
-            contentContainerStyle={{ paddingBottom: 20 }}
             bounces={true}
-          />
+          >
+            <View style={{ 
+              flexDirection: 'row', 
+              flexWrap: 'wrap', 
+              paddingBottom: 32 
+            }}>
+              {postsWithImages.map((post) => (
+                <View key={post.id}>
+                  {renderMediaItem(post)}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
         ) : (
           // Posts Feed - Conditional rendering based on immersive mode
           <FlatList
@@ -473,9 +504,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                   />
                 );
               } else {
-                return item.type === 'lucid' ? 
-                  <LucidPostCard {...item} /> : 
-                  <PostCard {...item} />;
+                // Fallback to regular cards - though this shouldn't be reached in normal usage
+                return <TravelFeedCard {...item} onDetailsPress={() => {}} isVisible={true} />;
               }
             }}
             style={{ flex: 1, backgroundColor: themeColors.background }}

@@ -7,7 +7,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
-import { ArrowLeft, ArrowUpRight, MapPin, Calendar, Users } from 'lucide-react-native';
+import { ChevronLeft, ArrowUpRight, MapPin, Calendar, Users } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -83,7 +83,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
           }}
           activeOpacity={0.8}
         >
-          <ArrowLeft size={20} color={theme.colors.text} strokeWidth={2} />
+                          <ChevronLeft size={20} color={theme.colors.text} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 

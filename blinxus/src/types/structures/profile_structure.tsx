@@ -11,21 +11,20 @@ import {
   Dimensions,
   StatusBar,
 } from 'react-native';
+
 import { ProfileDataType } from '../userData/profile_data';
 import { Post } from '../userData/posts_data';
 import { mapPostToCardProps } from './posts_structure';
-import PostCard from '../../components/PostCard';
-import LucidPostCard from '../../components/LucidPostCard';
+import TravelFeedCard from '../../components/TravelFeedCard';
+import MediaGridItem from '../../components/MediaGridItem';
 import { useNavigation } from '@react-navigation/native';
-import { Plus, Settings, Bookmark, ChevronLeft } from 'lucide-react-native';
+import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
 import { useThemeColors } from '../../hooks/useThemeColors';
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
 
 interface Props {
-  activeTab: 'feed' | 'lucids' | 'posts';
-  setActiveTab: React.Dispatch<React.SetStateAction<'feed' | 'lucids' | 'posts'>>;
   profileData: ProfileDataType;
   posts: Post[];
   onSettingsPress: () => void;
@@ -34,8 +33,6 @@ interface Props {
 }
 
 export default function ProfileStructure({
-  activeTab,
-  setActiveTab,
   profileData,
   posts,
   onSettingsPress,
@@ -56,7 +53,6 @@ export default function ProfileStructure({
     // Reset all internal states
     setIsFullscreen(false);
     setShowLibrary(false);
-    setActiveTab('feed');
     // Scroll to top after states are reset
     setTimeout(() => {
       if (scrollViewRef?.current) {
@@ -162,48 +158,74 @@ export default function ProfileStructure({
     return <Library onBackPress={() => setShowLibrary(false)} />;
   }
 
-  // If in fullscreen mode for regular posts (non-Lucid), show fullscreen view
-  if (isFullscreen && (activeTab === 'feed' || activeTab === 'lucids')) {
-    const selectedPost = userMediaPosts[selectedPostIndex];
-    
-    // Only show fullscreen for regular posts (Lucid posts navigate to dedicated screen)
-    if (selectedPost && selectedPost.type !== 'lucid') {
-        return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-      <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.background} 
-      />
-          
-          {/* Back Button Header */}
-          <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 16 }}>
-            <TouchableOpacity
-              onPress={() => setIsFullscreen(false)}
-              style={{ 
-                width: 40, 
-                height: 40, 
-                marginLeft: -8, 
-                alignItems: 'center', 
-                justifyContent: 'center' 
-              }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <ChevronLeft size={24} color={themeColors.text} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
+  // If in fullscreen mode, show TravelFeedCard view
+  if (isFullscreen) {
+    const filteredPosts = (posts || []).filter(post => {
+      const isCurrentUser = post.authorName === profileData?.name;
+      if (!isCurrentUser) return false;
+      return post.images && post.images.length > 0;
+    });
 
-          {/* Fullscreen Posts List */}
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {userMediaPosts.filter(post => post.type !== 'lucid').map((post) => {
-              const postCardProps = mapPostToCardProps(post);
-              return (
-                <PostCard key={post.id} {...postCardProps} />
-              );
-            })}
-          </ScrollView>
-        </SafeAreaView>
-      );
-    }
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
+        
+        {/* Back Button Header */}
+        <View style={{ 
+          position: 'absolute', 
+          top: 50, 
+          left: 16, 
+          zIndex: 1000,
+          width: 32, 
+          height: 32, 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: themeColors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+          borderWidth: 0.5,
+          borderColor: themeColors.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+          borderRadius: 16
+        }}>
+          <TouchableOpacity
+            onPress={() => setIsFullscreen(false)}
+            style={{ 
+              width: 32, 
+              height: 32, 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <ChevronLeft size={20} color="white" strokeWidth={2.5} />
+          </TouchableOpacity>
+        </View>
+
+        {/* TravelFeedCard ScrollView */}
+        <ScrollView 
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          pagingEnabled={true}
+          snapToInterval={screenHeight - 180}
+          snapToAlignment="end"
+          decelerationRate="fast"
+          contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
+        >
+          {filteredPosts.map((post, index) => {
+            const postCardProps = mapPostToCardProps(post);
+            return (
+              <TravelFeedCard 
+                key={post.id} 
+                {...postCardProps} 
+                onDetailsPress={() => {}}
+                isVisible={true}
+              />
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -381,212 +403,100 @@ export default function ProfileStructure({
           </View>
         </View>
 
-        {/* Tabs - Ultra minimal */}
-        <View style={{ 
-          flexDirection: 'row', 
-          marginTop: 24, 
-          paddingHorizontal: 24 
-        }}>
-          <TouchableOpacity
-            style={{ flex: 1, paddingVertical: 16 }}
-            onPress={() => setActiveTab('feed')}
-            activeOpacity={0.3}
-          >
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-                color: activeTab === 'feed' ? themeColors.text : themeColors.textSecondary,
-                fontWeight: activeTab === 'feed' ? '500' : '300'
-              }}
-            >
-              Feed
-            </Text>
-            {activeTab === 'feed' && (
-              <View style={{ 
-                height: 2, 
-                backgroundColor: themeColors.text, 
-                marginTop: 16 
-              }} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ flex: 1, paddingVertical: 16 }}
-            onPress={() => setActiveTab('lucids')}
-            activeOpacity={0.3}
-          >
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-                color: activeTab === 'lucids' ? themeColors.text : themeColors.textSecondary,
-                fontWeight: activeTab === 'lucids' ? '500' : '300'
-              }}
-            >
-              Lucids
-            </Text>
-            {activeTab === 'lucids' && (
-              <View style={{ 
-                height: 2, 
-                backgroundColor: themeColors.text, 
-                marginTop: 16 
-              }} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ flex: 1, paddingVertical: 16 }}
-            onPress={() => setActiveTab('posts')}
-            activeOpacity={0.3}
-          >
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-                color: activeTab === 'posts' ? themeColors.text : themeColors.textSecondary,
-                fontWeight: activeTab === 'posts' ? '500' : '300'
-              }}
-            >
-              Posts
-            </Text>
-            {activeTab === 'posts' && (
-              <View style={{ 
-                height: 2, 
-                backgroundColor: themeColors.text, 
-                marginTop: 16 
-              }} />
-            )}
-          </TouchableOpacity>
-        </View>
 
-        {/* Content based on active tab */}
-        {activeTab === 'posts' ? (
-          // Posts Tab - Clean list view
-          <View style={{ paddingTop: 32 }}>
-            {(() => {
-              const userPosts = (posts || []).filter(post => post.authorName === profileData?.name);
-              
-              if (userPosts.length === 0) {
-                // Empty state - minimal
-                return (
-                  <View style={{ 
-                    flex: 1, 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    paddingVertical: 80 
-                  }}>
-                    <Text style={{ 
-                      fontSize: 14, 
-                      color: themeColors.textSecondary, 
-                      fontWeight: '300' 
-                    }}>
-                      All your Posts
-                    </Text>
-                  </View>
-                );
-              }
-              
-              return userPosts.map((post) => {
-                const postCardProps = mapPostToCardProps(post);
-                return post.type === 'lucid' ? (
-                  <LucidPostCard key={post.id} {...postCardProps} />
-                ) : (
-                  <PostCard key={post.id} {...postCardProps} />
-                );
-              });
-            })()}
-          </View>
-        ) : (
-          // Feed and Lucids Tabs - Clean grid
-          <View style={{ paddingTop: 32, paddingHorizontal: 24 }}>
-            {(() => {
-              const filteredPosts = (posts || []).filter(post => {
-                const isCurrentUser = post.authorName === profileData?.name;
-                if (!isCurrentUser) return false;
-                
-                if (activeTab === 'feed') {
-                  return post.images && post.images.length > 0;
-                } else if (activeTab === 'lucids') {
-                  return post.type === 'lucid' && post.images && post.images.length > 0;
-                }
-                return false;
-              });
 
-              if (filteredPosts.length === 0) {
-                // Empty state - minimal
-                let emptyMessage = '';
-                if (activeTab === 'feed') {
-                  emptyMessage = 'All your Media Uploads';
-                } else if (activeTab === 'lucids') {
-                  emptyMessage = 'Your Immersive Albums';
-                }
-                
-                return (
-                  <View style={{ 
-                    flex: 1, 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    paddingVertical: 80 
-                  }}>
-                    <Text style={{ 
-                      fontSize: 14, 
-                      color: themeColors.textSecondary, 
-                      fontWeight: '300' 
-                    }}>
-                      {emptyMessage}
-                    </Text>
-                  </View>
-                );
-              }
+        {/* Media Grid - Edge to edge with smooth corners */}
+        <View style={{ paddingTop: 32 }}>
+          {(() => {
+            const filteredPosts = (posts || []).filter(post => {
+              const isCurrentUser = post.authorName === profileData?.name;
+              if (!isCurrentUser) return false;
+              return post.images && post.images.length > 0;
+            });
 
+            if (filteredPosts.length === 0) {
+              // Empty state - minimal
               return (
                 <View style={{ 
-                  flexDirection: 'row', 
-                  flexWrap: 'wrap', 
-                  marginHorizontal: -2, 
-                  paddingBottom: 32 
+                  flex: 1, 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  paddingVertical: 80,
+                  paddingHorizontal: 24
                 }}>
-                  {filteredPosts.map((post) => (
-                    <TouchableOpacity
-                      key={post.id}
-                      style={{ 
-                        paddingHorizontal: 2, 
-                        marginBottom: 4,
-                        width: width / 3 - 16 
-                      }}
-                      onPress={() => {
-                        if (activeTab === 'feed' || activeTab === 'lucids') {
-                          // If it's a Lucid post, navigate to dedicated fullscreen
-                          if (post.type === 'lucid') {
-                            const postCardProps = mapPostToCardProps(post);
-                            (navigation as any).navigate('LucidFullscreen', {
-                              post: postCardProps
-                            });
-                          } else {
-                            // For regular posts, use the existing fullscreen logic
-                            const postIndex = userMediaPosts.findIndex(p => p.id === post.id);
-                            setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-                            setIsFullscreen(true);
-                          }
-                        }
-                      }}
-                      activeOpacity={0.8}
-                    >
+                  <Text style={{ 
+                    fontSize: 14, 
+                    color: themeColors.textSecondary, 
+                    fontWeight: '300' 
+                  }}>
+                    All your Media Uploads
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <View style={{ 
+                flexDirection: 'row', 
+                flexWrap: 'wrap', 
+                paddingBottom: 32 
+              }}>
+                {filteredPosts.map((post) => (
+                  <TouchableOpacity
+                    key={post.id}
+                    style={{ 
+                      width: width / 3,
+                      aspectRatio: 4/5,
+                      padding: 1
+                    }}
+                    onPress={() => {
+                      // Set selected post for TravelFeedCard view
+                      const postIndex = filteredPosts.findIndex(p => p.id === post.id);
+                      setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
+                      setIsFullscreen(true);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ position: 'relative', flex: 1 }}>
                       <Image
                         source={{ uri: post.images![0] }}
                         style={{ 
                           width: '100%', 
-                          aspectRatio: 1, 
+                          height: '100%',
+                          borderRadius: 8,
                           backgroundColor: themeColors.backgroundSecondary 
                         }}
                         resizeMode="cover"
                       />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              );
-            })()}
-          </View>
-        )}
+                      
+                      {/* Lucid Indicator Icon */}
+                      {post.type === 'lucid' && (
+                        <View style={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          backgroundColor: '#0047AB',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 4,
+                          elevation: 3
+                        }}>
+                          <Album size={14} color="white" strokeWidth={2.5} />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            );
+          })()}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

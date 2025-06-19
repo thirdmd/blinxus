@@ -288,7 +288,8 @@ const ImmersiveImageCarousel: React.FC<{
           <Text style={{
             color: 'white',
             fontSize: 12,
-            fontWeight: '500'
+            fontWeight: '500',
+            fontFamily: 'System'
           }}>
             {currentIndex + 1}/{images.length}
           </Text>
@@ -643,7 +644,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
               justifyContent: 'center',
               marginRight: 12
             }}>
-              <Text style={{ color: '#000', fontSize: 16, fontWeight: '600' }}>
+              <Text style={{ color: '#000', fontSize: 16, fontWeight: '600', fontFamily: 'System' }}>
                 {authorName.charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -657,6 +658,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
               color: 'white',
               fontSize: 16,
               fontWeight: '600',
+              fontFamily: 'System',
               textShadowColor: 'rgba(0,0,0,0.7)',
               textShadowOffset: { width: 0, height: 1 },
               textShadowRadius: 3
@@ -666,6 +668,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                 <Text style={{
                   fontSize: 12,
                   fontWeight: '600',
+                  fontFamily: 'System',
                   color: '#3B82F6',
                   marginLeft: 8,
                   textShadowColor: 'rgba(0,0,0,0.8)',
@@ -700,6 +703,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                 style={{ 
                   fontSize: 13, 
                   fontWeight: '500',
+                  fontFamily: 'System',
                   color: 'white',
                   marginLeft: 4,
                   textShadowColor: isLucid ? 'rgba(0,0,0,0.7)' : (postData.activityColor ? 'none' : 'rgba(0,0,0,0.7)'),
@@ -764,15 +768,16 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             color={isLiked ? '#ff3040' : 'white'}
             fill={isLiked ? '#ff3040' : 'none'}
           />
-          <Text style={{
-            color: 'white',
-            fontSize: 12,
-            fontWeight: '600',
-            marginTop: 4,
-            textShadowColor: 'rgba(0,0,0,0.7)',
-            textShadowOffset: { width: 0, height: 1 },
-            textShadowRadius: 3
-          }}>
+                  <Text style={{
+          color: 'white',
+          fontSize: 12,
+          fontWeight: '600',
+          fontFamily: 'System',
+          marginTop: 4,
+          textShadowColor: 'rgba(0,0,0,0.7)',
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 3
+        }}>
             {likeCount}
           </Text>
         </TouchableOpacity>

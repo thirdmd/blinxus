@@ -11,7 +11,6 @@ export interface ProfileScreenRef {
 }
 
 const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
-  const [activeTab, setActiveTab] = useState<'feed' | 'lucids' | 'posts'>('feed');
   const [showSettings, setShowSettings] = useState(false);
   const { posts } = usePosts();
   const { profileScrollRef } = useScrollContext();
@@ -20,8 +19,8 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Create a ref to hold the reset function from ProfileStructure
   const profileStructureResetRef = useRef<(() => void) | null>(null);
   
-  // Track if this is a fresh navigation (from PostCard click)
-  const isNavigatingFromPostCard = useRef(false);
+  // Track if this is a fresh navigation (from post click)
+  const isNavigatingFromPost = useRef(false);
   
   // Create a reset function that can be called externally
   const resetToTop = () => {
@@ -31,8 +30,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
     if (profileStructureResetRef.current) {
       profileStructureResetRef.current();
     } else {
-      // Fallback: reset states manually
-      setActiveTab('feed');
+      // Fallback: reset scroll manually
       setTimeout(() => {
         if (profileScrollRef?.current) {
           profileScrollRef.current.scrollTo({ y: 0, animated: true });
@@ -46,7 +44,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
     resetToTop
   }));
 
-  // Auto-reset to top when navigating to Profile from PostCard
+  // Auto-reset to top when navigating to Profile from post
   useFocusEffect(
     React.useCallback(() => {
       // Always reset to top when Profile screen is focused
@@ -66,8 +64,6 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
 
   return (
     <ProfileStructure
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
       profileData={profileData}
       posts={posts}
       onSettingsPress={() => setShowSettings(true)}

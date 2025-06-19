@@ -6,20 +6,21 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
+  ScrollView,
   Dimensions,
   Image,
 } from 'react-native';
-import { ChevronLeft, Heart, Bookmark, Grid3X3, Map } from 'lucide-react-native';
+import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import { activityTags } from '../../constants/activityTags';
 import { usePosts } from '../../store/PostsContext';
 import { useSavedPosts } from '../../store/SavedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
-import LibraryFeedView from '../../components/LibraryFeedView';
-import LucidAlbumView from '../../components/LucidAlbumView';
+import TravelFeedCard from '../../components/TravelFeedCard';
+import MediaGridItem from '../../components/MediaGridItem';
 import { useThemeColors } from '../../hooks/useThemeColors';
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
 
 interface LibraryProps {
   onBackPress?: () => void;
@@ -31,9 +32,9 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
   
-  // State for full post view
-  const [showFullPost, setShowFullPost] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<PostCardProps | null>(null);
+  // State for TravelFeedCard fullscreen view
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent'); // Track which tab context
   
   // Get posts and saved posts
@@ -80,296 +81,36 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     return [...acc, ...postsInCategory];
   }, []);
 
-  // Dynamic Library Post Card for Recent Tab - Pinterest-style with flexible heights
-  const DynamicLibraryPostCard = ({ post, onPress }: { post: PostCardProps; onPress: () => void }) => {
-    // Calculate dynamic height for text posts based on content length
-    const getTextLines = (content: string) => {
-      if (!content) return 1;
-      
-      // Count actual line breaks first
-      const explicitLines = content.split('\n').length;
-      
-      // Estimate wrapped lines based on character count (approximately 40 chars per line on mobile)
-      const charsPerLine = 40;
-      const estimatedWrappedLines = Math.ceil(content.length / charsPerLine);
-      
-      // Use the higher of the two estimates, but cap at reasonable max
-      const totalLines = Math.max(explicitLines, estimatedWrappedLines);
-      return Math.min(totalLines, 8); // Max 8 lines
-    };
 
-    return (
-      <TouchableOpacity 
-        onPress={onPress}
-        className="bg-white rounded-xl overflow-hidden mb-3"
-        style={{ 
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 4,
-          elevation: 3,
-        }}
-        activeOpacity={0.9}
-      >
-        {/* Image Section */}
-        {post.images && post.images.length > 0 ? (
-          <View className="relative">
-            <Image 
-              source={{ uri: post.images[0] }}
-              className="w-full"
-              style={{ height: 180 + Math.random() * 120 }} // Random height between 180-300
-              resizeMode="cover"
-            />
-            
-            {/* Location Pill - Top Left */}
-            <View className="absolute top-3 left-3">
-              <View 
-                className="px-2 py-0.5 rounded-full"
-                style={{ 
-                  backgroundColor: post.activityColor || 'rgba(255,255,255,0.9)',
-                  borderWidth: post.activityColor ? 0 : 0.5,
-                  borderColor: post.activityColor ? 'transparent' : '#000000'
-                }}
-              >
-                <Text 
-                  className="text-xs font-light"
-                  style={{ 
-                    color: post.activityColor ? 'white' : '#000000'
-                  }}
-                  numberOfLines={1}
-                >
-                  {post.location.split(',')[0]}
-                </Text>
-              </View>
-            </View>
-            
-            {/* Lucid Album Indicator - Top Right */}
-            {post.type === 'lucid' && (
-              <View className="absolute top-3 right-3">
-                <View className="px-2 py-0.5 bg-blue-600/90 rounded-full">
-                  <Text className="text-white text-xs font-medium">ALBUM</Text>
-                </View>
-              </View>
-            )}
-            
-            {/* Gradient Overlay for better text visibility */}
-            <View 
-              className="absolute bottom-0 left-0 right-0 h-12"
-              style={{
-                backgroundColor: 'rgba(0,0,0,0.25)',
-              }}
-            />
-            
-            {/* Bottom Info */}
-            <View className="absolute bottom-0 left-0 right-0 p-3 flex-row items-center justify-between">
-              <Text className="text-white text-sm font-normal flex-1 mr-2" numberOfLines={1}>
-                {post.authorName}
-              </Text>
-              
-              <View className="flex-row items-center">
-                <Heart size={14} color="#FFFFFF" fill="none" strokeWidth={2} />
-                <Text className="text-white text-xs ml-1 font-light">{post.likes}</Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          /* Text-only post - Dynamic height based on content */
-          <View style={{ minHeight: Math.max(120, 80 + (getTextLines(post.content || '') * 18)) }}>
-            <View className="p-4">
-              {/* Location Pill */}
-              <View 
-                className="px-2 py-0.5 rounded-full self-start mb-3"
-                style={{ 
-                  backgroundColor: post.activityColor || 'transparent',
-                  borderWidth: post.activityColor ? 0 : 0.5,
-                  borderColor: post.activityColor ? 'transparent' : '#000000'
-                }}
-              >
-                <Text 
-                  className="text-xs font-light"
-                  style={{ 
-                    color: post.activityColor ? 'white' : '#000000'
-                  }}
-                  numberOfLines={1}
-                >
-                  {post.location.split(',')[0]}
-                </Text>
-              </View>
-              
-              {/* Content - Dynamic lines */}
-              <Text 
-                className="text-gray-800 text-base leading-6 mb-3"
-                numberOfLines={getTextLines(post.content || '')}
-                ellipsizeMode="tail"
-              >
-                {post.content}
-              </Text>
-              
-              {/* Bottom Info */}
-              <View className="flex-row items-center justify-between">
-                <Text className="text-gray-600 text-sm font-normal flex-1 mr-2" numberOfLines={1}>
-                  {post.authorName}
-                </Text>
-                
-                <View className="flex-row items-center">
-                  <Heart size={14} color="#6B7280" fill="none" strokeWidth={1.5} />
-                  <Text className="text-gray-600 text-xs ml-1">{post.likes}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
 
-  // Fixed Height Library Post Card for Activities Tab - Existing design
-  const FixedLibraryPostCard = ({ post, onPress }: { post: PostCardProps; onPress: () => void }) => (
-    <TouchableOpacity 
-      onPress={onPress}
-      className="bg-white rounded-xl overflow-hidden mb-3"
-      style={{ 
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 3,
-        height: 280, // Fixed height for uniform sizing
-      }}
-      activeOpacity={0.9}
-    >
-      {/* Image Section */}
-      {post.images && post.images.length > 0 ? (
-        <View className="relative h-full">
-          <Image 
-            source={{ uri: post.images[0] }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-          
-          {/* Location Pill - Top Left */}
-          <View className="absolute top-3 left-3">
-            <View 
-              className="px-2 py-0.5 rounded-full"
-              style={{ 
-                backgroundColor: post.activityColor || 'rgba(255,255,255,0.9)',
-                borderWidth: post.activityColor ? 0 : 0.5,
-                borderColor: post.activityColor ? 'transparent' : '#000000'
-              }}
-            >
-              <Text 
-                className="text-xs font-light"
-                style={{ 
-                  color: post.activityColor ? 'white' : '#000000'
-                }}
-                numberOfLines={1}
-              >
-                {post.location.split(',')[0]}
-              </Text>
-            </View>
-          </View>
-          
-          {/* Lucid Album Indicator - Top Right */}
-          {post.type === 'lucid' && (
-            <View className="absolute top-3 right-3">
-              <View className="px-2 py-0.5 bg-blue-600/90 rounded-full">
-                <Text className="text-white text-xs font-medium">ALBUM</Text>
-              </View>
-            </View>
-          )}
-          
-          {/* Gradient Overlay for better text visibility */}
-          <View 
-            className="absolute bottom-0 left-0 right-0 h-12"
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.25)',
-            }}
-          />
-          
-          {/* Bottom Info */}
-          <View className="absolute bottom-0 left-0 right-0 p-3 flex-row items-center justify-between">
-            <Text className="text-white text-sm font-normal flex-1 mr-2" numberOfLines={1}>
-              {post.authorName}
-            </Text>
-            
-            <View className="flex-row items-center">
-              <Heart size={14} color="#FFFFFF" fill="none" strokeWidth={2} />
-              <Text className="text-white text-xs ml-1 font-light">{post.likes}</Text>
-            </View>
-          </View>
-        </View>
-      ) : (
-        /* Text-only post - Full height utilization */
-        <View className="p-4 h-full flex">
-          {/* Location Pill */}
-          <View 
-            className="px-2 py-0.5 rounded-full self-start mb-3"
-            style={{ 
-              backgroundColor: post.activityColor || 'transparent',
-              borderWidth: post.activityColor ? 0 : 0.5,
-              borderColor: post.activityColor ? 'transparent' : '#000000'
-            }}
-          >
-            <Text 
-              className="text-xs font-light"
-              style={{ 
-                color: post.activityColor ? 'white' : '#000000'
-              }}
-              numberOfLines={1}
-            >
-              {post.location.split(',')[0]}
-            </Text>
-          </View>
-          
-          {/* Content - Fills available space */}
-          <Text 
-            className="text-gray-800 text-base leading-6 flex-1"
-            numberOfLines={8}
-            ellipsizeMode="tail"
-          >
-            {post.content}
-          </Text>
-          
-          {/* Bottom Info */}
-          <View className="flex-row items-center justify-between mt-3">
-            <Text className="text-gray-600 text-sm font-normal flex-1 mr-2" numberOfLines={1}>
-              {post.authorName}
-            </Text>
-            
-            <View className="flex-row items-center">
-              <Heart size={14} color="#6B7280" fill="none" strokeWidth={1.5} />
-              <Text className="text-gray-600 text-xs ml-1">{post.likes}</Text>
-            </View>
-          </View>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
 
-  // Handle post press - navigate to full post view with context
+
+  // Handle post press - navigate to TravelFeedCard view with context
   const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent') => {
-    setSelectedPost(post);
+    const postsToShow = context === 'recent' ? sortedByRecent : allActivityPosts;
+    const postIndex = postsToShow.findIndex(p => p.id === post.id);
+    setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
     setFeedContext(context);
-    setShowFullPost(true);
+    setIsFullscreen(true);
   };
 
-  // Handle back from full post
-  const handleBackFromFullPost = () => {
-    setShowFullPost(false);
-    setSelectedPost(null);
+  // Handle back from fullscreen
+  const handleBackFromFullscreen = () => {
+    setIsFullscreen(false);
   };
 
-  // Render item for Recent Tab FlatList (2 columns with dynamic height)
-  const renderRecentPostItem = ({ item }: { item: PostCardProps }) => (
-    <View style={{ width: (width - 32) / 2, marginHorizontal: 4 }}>
-      <DynamicLibraryPostCard post={item} onPress={() => handlePostPress(item, 'recent')} />
-    </View>
-  );
 
-  // Render item for Activities Tab (fixed height)
+
+
+
+  // Render item for Activities Tab (grid-based)
   const renderActivityPostItem = ({ item }: { item: PostCardProps }) => (
-    <View style={{ width: width / 2 - 8 }}>
-      <FixedLibraryPostCard post={item} onPress={() => handlePostPress(item, 'activities')} />
+    <View style={{ width: width / 3 - 8 }}>
+      <MediaGridItem
+        imageUri={item.images![0]}
+        isLucid={item.type === 'lucid'}
+        onPress={() => handlePostPress(item, 'activities')}
+      />
     </View>
   );
 
@@ -416,14 +157,22 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     }
 
     return (
-      <FlatList
-        data={sortedByRecent}
-        renderItem={renderRecentPostItem}
-        numColumns={2}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 12, paddingTop: 0 }}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={{ 
+          flexDirection: 'row', 
+          flexWrap: 'wrap', 
+          paddingBottom: 32 
+        }}>
+          {sortedByRecent.map((post) => (
+            <MediaGridItem
+              key={post.id}
+              imageUri={post.images![0]}
+              isLucid={post.type === 'lucid'}
+              onPress={() => handlePostPress(post, 'recent')}
+            />
+          ))}
+        </View>
+      </ScrollView>
     );
   };
 
@@ -431,12 +180,38 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   const renderActivitiesTab = () => {
     if (activitiesWithPosts.length === 0) {
       return (
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-6">
-            <Grid3X3 size={32} color="#9CA3AF" strokeWidth={1.5} />
+        <View style={{ 
+          flex: 1, 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          paddingHorizontal: 32 
+        }}>
+          <View style={{ 
+            width: 80, 
+            height: 80, 
+            backgroundColor: themeColors.backgroundSecondary, 
+            borderRadius: 40, 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            marginBottom: 24 
+          }}>
+            <Grid3X3 size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
           </View>
-          <Text className="text-xl font-normal text-gray-900 mb-3 text-center">No activities yet</Text>
-          <Text className="text-gray-500 text-center leading-6 font-light">
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: '400', 
+            color: themeColors.text, 
+            marginBottom: 12, 
+            textAlign: 'center' 
+          }}>
+            No activities yet
+          </Text>
+          <Text style={{ 
+            color: themeColors.textSecondary, 
+            textAlign: 'center', 
+            lineHeight: 24, 
+            fontWeight: '300' 
+          }}>
             Your saved posts will be organized by activity type here.
           </Text>
         </View>
@@ -460,10 +235,24 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
                     className="w-4 h-4 rounded-full mr-3"
                     style={{ backgroundColor: category.color }}
                   />
-                  <Text className="font-normal text-gray-900 text-lg">{category.name}</Text>
+                  <Text 
+                    className="font-normal text-lg"
+                    style={{ color: themeColors.text }}
+                  >
+                    {category.name}
+                  </Text>
                 </View>
-                <View className="bg-gray-100 px-3 py-1 rounded-full">
-                  <Text className="text-sm text-gray-600 font-light">
+                <View style={{ 
+                  backgroundColor: themeColors.backgroundSecondary, 
+                  paddingHorizontal: 12, 
+                  paddingVertical: 4, 
+                  borderRadius: 12 
+                }}>
+                  <Text style={{ 
+                    fontSize: 14, 
+                    color: themeColors.textSecondary, 
+                    fontWeight: '300' 
+                  }}>
                     {postsInCategory.length}
                   </Text>
                 </View>
@@ -489,12 +278,38 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   const renderMapTab = () => {
     if (savedPostsProps.length === 0) {
       return (
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-6">
-            <Map size={32} color="#9CA3AF" strokeWidth={1.5} />
+        <View style={{ 
+          flex: 1, 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          paddingHorizontal: 32 
+        }}>
+          <View style={{ 
+            width: 80, 
+            height: 80, 
+            backgroundColor: themeColors.backgroundSecondary, 
+            borderRadius: 40, 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            marginBottom: 24 
+          }}>
+            <Map size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
           </View>
-          <Text className="text-xl font-normal text-gray-900 mb-3 text-center">No saved posts</Text>
-          <Text className="text-gray-500 text-center leading-6 font-light">
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: '400', 
+            color: themeColors.text, 
+            marginBottom: 12, 
+            textAlign: 'center' 
+          }}>
+            No saved posts
+          </Text>
+          <Text style={{ 
+            color: themeColors.textSecondary, 
+            textAlign: 'center', 
+            lineHeight: 24, 
+            fontWeight: '300' 
+          }}>
             Saved posts with locations will appear on the map here.
           </Text>
         </View>
@@ -502,39 +317,107 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     }
 
     return (
-      <View className="flex-1 items-center justify-center p-8">
-        <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-6">
-          <Map size={32} color="#6B7280" strokeWidth={1.5} />
+      <View style={{ 
+        flex: 1, 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        padding: 32 
+      }}>
+        <View style={{ 
+          width: 80, 
+          height: 80, 
+          backgroundColor: themeColors.backgroundSecondary, 
+          borderRadius: 40, 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          marginBottom: 24 
+        }}>
+          <Map size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
         </View>
-        <Text className="text-xl font-normal text-gray-900 mb-3">Map View</Text>
-        <Text className="text-gray-500 text-center leading-6 font-light">
+        <Text style={{ 
+          fontSize: 20, 
+          fontWeight: '400', 
+          color: themeColors.text, 
+          marginBottom: 12, 
+          textAlign: 'center' 
+        }}>
+          Map View
+        </Text>
+        <Text style={{ 
+          color: themeColors.textSecondary, 
+          textAlign: 'center', 
+          lineHeight: 24, 
+          fontWeight: '300' 
+        }}>
           Your saved posts displayed on an interactive map
         </Text>
       </View>
     );
   };
 
-  // If showing full post, only render that
-  if (showFullPost && selectedPost) {
-    // If it's a Lucid post, show the immersive album view
-    if (selectedPost.type === 'lucid') {
-      return (
-        <LucidAlbumView 
-          post={selectedPost}
-          onBack={handleBackFromFullPost}
-        />
-      );
-    }
-    
-    // Otherwise show regular feed view
+  // If in fullscreen mode, show TravelFeedCard view
+  if (isFullscreen) {
     const postsToShow = feedContext === 'recent' ? sortedByRecent : allActivityPosts;
-    
+
     return (
-      <LibraryFeedView
-        selectedPost={selectedPost}
-        allPosts={postsToShow}
-        onBack={handleBackFromFullPost}
-      />
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
+        
+        {/* Back Button Header */}
+        <View style={{ 
+          position: 'absolute', 
+          top: 50, 
+          left: 16, 
+          zIndex: 1000,
+          width: 32, 
+          height: 32, 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: themeColors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+          borderWidth: 0.5,
+          borderColor: themeColors.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+          borderRadius: 16
+        }}>
+          <TouchableOpacity
+            onPress={handleBackFromFullscreen}
+            style={{ 
+              width: 32, 
+              height: 32, 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <ChevronLeft size={20} color="white" strokeWidth={2.5} />
+          </TouchableOpacity>
+        </View>
+
+        {/* TravelFeedCard ScrollView */}
+        <ScrollView 
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          pagingEnabled={true}
+          snapToInterval={screenHeight - 180}
+          snapToAlignment="end"
+          decelerationRate="fast"
+          contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
+        >
+          {postsToShow.map((post, index) => {
+            const postCardProps = post;
+            return (
+              <TravelFeedCard 
+                key={post.id} 
+                {...postCardProps} 
+                onDetailsPress={() => {}}
+                isVisible={true}
+              />
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
