@@ -6,7 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from './blinxus/src/constants';
-import { Home, Users2, UserCircle } from 'lucide-react-native';
+import { Home, Users2, UserCircle, Bell, Plus } from 'lucide-react-native';
 import ScrollContext from './blinxus/src/contexts/ScrollContext';
 import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
 
@@ -15,34 +15,69 @@ import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/E
 import ProfileScreen, { ProfileScreenRef } from './blinxus/src/screens/Profile/ProfileScreen';
 import PodsMainScreen from './blinxus/src/screens/Pods/PodsMainScreen';
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
+import NotificationsScreen from './blinxus/src/screens/NotificationsScreen';
 import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
 
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
 import { SavedPostsProvider } from './blinxus/src/store/SavedPostsContext';
+import { LikedPostsProvider } from './blinxus/src/store/LikedPostsContext';
 import { ThemeProvider } from './blinxus/src/contexts/ThemeContext';
+import { SettingsProvider } from './blinxus/src/contexts/SettingsContext';
 
 // Create navigators
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
 
-// Clean tab icons using Lucide icons
-
-// Tab Icons
-function TabIcon({ name, color }: { name: string; color: string }) {
+// Tab Icons - Updated for 5 tabs
+function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
+  const iconSize = name === 'Create' ? 28 : 24;
+  const strokeWidth = focused ? 2 : 1.5;
+  
   switch (name) {
-    case 'Explore':
-      return <Home size={24} color={color} strokeWidth={2} />;
+    case 'Home':
+      return <Home size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Pods':
-      return <Users2 size={24} color={color} strokeWidth={2} />;
+      return <Users2 size={iconSize} color={color} strokeWidth={strokeWidth} />;
+    case 'Create':
+      return <Plus size={iconSize} color={color} strokeWidth={strokeWidth} />;
+    case 'Notifications':
+      return <Bell size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Profile':
-      return <UserCircle size={24} color={color} strokeWidth={2} />;
+      return <UserCircle size={iconSize} color={color} strokeWidth={strokeWidth} />;
     default:
-      return <Home size={24} color={color} strokeWidth={2} />;
+      return <Home size={iconSize} color={color} strokeWidth={strokeWidth} />;
   }
 }
 
-// Pods Screen now uses our actual implementation
+// Special Create Tab Button
+function CreateTabButton({ onPress, accessibilityState }: any) {
+  const themeColors = useThemeColors();
+  const focused = accessibilityState?.selected;
+  
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        top: -8, // Slightly elevated
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: focused ? '#0047AB' : '#0047AB', // Always cobalt blue
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+      }}
+      activeOpacity={0.8}
+    >
+      <Plus size={24} color="#FFFFFF" strokeWidth={2} />
+    </TouchableOpacity>
+  );
+}
 
 // Tab Navigator
 function TabNavigator() {
@@ -56,14 +91,27 @@ function TabNavigator() {
   // Double tap detection
   const lastTapRef = useRef<{ [key: string]: number }>({});
   
+  // Track the previously active tab
+  const previousTabRef = useRef<string>('Home');
+  
   const handleTabPress = (routeName: string, navigation: any) => {
     const now = Date.now();
     const lastTap = lastTapRef.current[routeName] || 0;
     
+    // Check if we're coming from the Create tab to Home tab
+    if (routeName === 'Home' && previousTabRef.current === 'Create') {
+      // Automatically scroll to top when navigating from Create to Home
+      setTimeout(() => {
+        if (exploreScreenRef.current) {
+          exploreScreenRef.current.resetToAll();
+        }
+      }, 100);
+    }
+    
     if (now - lastTap < 300) { // Double tap detected (within 300ms)
       // Scroll to top based on route
       switch (routeName) {
-        case 'Explore':
+        case 'Home':
           // Reset to "All" tab and scroll to top
           if (exploreScreenRef.current) {
             exploreScreenRef.current.resetToAll();
@@ -85,47 +133,70 @@ function TabNavigator() {
       }
     }
     
+    // Update the previous tab
+    previousTabRef.current = routeName;
     lastTapRef.current[routeName] = now;
   };
 
   return (
     <ScrollContext.Provider value={{ exploreScrollRef, podsScrollRef, profileScrollRef }}>
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ color }) => (
-          <TabIcon name={route.name} color={color} />
-        ),
-        tabBarStyle: {
-          backgroundColor: themeColors.background,
-          borderTopColor: themeColors.border,
-          borderTopWidth: 1,
-          height: 80,
-          paddingBottom: 20,
-          paddingTop: 10,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
-        tabBarActiveTintColor: themeColors.text,
-        tabBarInactiveTintColor: themeColors.textSecondary,
-        tabBarLabel: ({ focused }) => !focused ? '' : undefined,
-      })}
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => {
+            if (route.name === 'Create') {
+              return null; // Custom button handles this
+            }
+            return <TabIcon name={route.name} color={color} focused={focused} />;
+          },
+          tabBarButton: route.name === 'Create' ? CreateTabButton : undefined,
+          tabBarStyle: {
+            backgroundColor: themeColors.background,
+            borderTopColor: themeColors.border,
+            borderTopWidth: 1,
+            height: 80,
+            paddingBottom: 20,
+            paddingTop: 10,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '500',
+            marginTop: route.name === 'Create' ? 4 : 2,
+          },
+          tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : themeColors.text,
+          tabBarInactiveTintColor: themeColors.textSecondary,
+          tabBarLabel: ({ focused }) => {
+            if (route.name === 'Create') {
+              return (
+                <Text style={{
+                  fontSize: 11,
+                  fontWeight: '500',
+                  color: '#0047AB',
+                  marginTop: 4
+                }}>
+                  Create
+                </Text>
+              );
+            }
+            return !focused ? '' : undefined;
+          },
+        })}
         screenListeners={({ route, navigation }) => ({
           tabPress: () => {
             handleTabPress(route.name, navigation);
           },
         })}
-    >
-      <Tab.Screen name="Explore">
-        {() => <ExploreScreen ref={exploreScreenRef} />}
-      </Tab.Screen>
-      <Tab.Screen name="Pods" component={PodsMainScreen} />
-      <Tab.Screen name="Profile">
-        {() => <ProfileScreen ref={profileScreenRef} />}
-      </Tab.Screen>
-    </Tab.Navigator>
+      >
+        <Tab.Screen name="Home">
+          {() => <ExploreScreen ref={exploreScreenRef} />}
+        </Tab.Screen>
+        <Tab.Screen name="Pods" component={PodsMainScreen} />
+        <Tab.Screen name="Create" component={CreatePost} />
+        <Tab.Screen name="Notifications" component={NotificationsScreen} />
+        <Tab.Screen name="Profile">
+          {() => <ProfileScreen ref={profileScreenRef} />}
+        </Tab.Screen>
+      </Tab.Navigator>
     </ScrollContext.Provider>
   );
 }
@@ -135,14 +206,6 @@ function RootNavigator() {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="MainTabs" component={TabNavigator} />
-      <RootStack.Screen 
-        name="CreatePost" 
-        component={CreatePost}
-        options={{
-          presentation: 'modal',
-          gestureEnabled: true,
-        }}
-      />
       <RootStack.Screen 
         name="LucidFullscreen" 
         component={LucidFullscreen}
@@ -159,15 +222,19 @@ function RootNavigator() {
 export default function App() {
   return (
     <ThemeProvider>
-      <PostsProvider>
-        <SavedPostsProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <NavigationContainer>
-              <RootNavigator />
-            </NavigationContainer>
-          </GestureHandlerRootView>
-        </SavedPostsProvider>
-      </PostsProvider>
+      <SettingsProvider>
+        <PostsProvider>
+          <SavedPostsProvider>
+            <LikedPostsProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <NavigationContainer>
+                  <RootNavigator />
+                </NavigationContainer>
+              </GestureHandlerRootView>
+            </LikedPostsProvider>
+          </SavedPostsProvider>
+        </PostsProvider>
+      </SettingsProvider>
     </ThemeProvider>
   );
 } 

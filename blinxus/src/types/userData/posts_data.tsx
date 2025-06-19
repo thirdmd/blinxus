@@ -25,14 +25,19 @@ export interface Post {
 
 // Initial sample data to test the system
 export const initialPostsData: Post[] = [
+  // Aquatics - Regular Post
   {
     id: '1',
     authorId: 'user123',
     authorName: 'Jessica Martinez',
     authorNationalityFlag: '🇪🇸',
+    authorProfileImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=400&q=80',
     type: 'regular',
-    content: 'Found paradise today! The crystal clear waters are absolutely breathtaking. The island hopping tour took us to secret lagoons and hidden beaches.',
-    images: ['https://picsum.photos/400/600?random=1'],
+    images: [
+      'https://picsum.photos/400/600?random=1',
+      'https://picsum.photos/400/600?random=11',
+      'https://picsum.photos/400/600?random=21'
+    ],
     device: 'iPhone 16 ProMax',
     location: 'El Nido, Palawan',
     activity: 'aquatics',
@@ -41,14 +46,18 @@ export const initialPostsData: Post[] = [
     likes: 438,
     comments: 32
   },
+  // Outdoors - Regular Post
   {
     id: '2',
     authorId: 'user456',
     authorName: 'Miguel Santos',
     authorNationalityFlag: '🇧🇷',
+    authorProfileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
     type: 'regular',
-    content: 'Sunrise at the sea of clouds! Worth every step of the challenging trek. Mount Pulag never disappoints with its breathtaking views.',
-    images: ['https://picsum.photos/400/600?random=2'],
+    images: [
+      'https://picsum.photos/400/600?random=2',
+      'https://picsum.photos/400/600?random=12'
+    ],
     device: 'Samsung Galaxy S24 Ultra',
     location: 'Mount Pulag, Benguet',
     activity: 'outdoors',
@@ -57,27 +66,14 @@ export const initialPostsData: Post[] = [
     likes: 291,
     comments: 47
   },
+  // Wellness - Regular Post
   {
     id: '3',
-    authorId: 'user789',
-    authorName: 'Maria Santos',
-    authorNationalityFlag: '🇰🇷',
-    type: 'regular',
-    content: 'Amazing street food tour in Binondo! The dumplings and noodles were incredible. This place has so much history and flavor. Walking through the narrow streets, I discovered authentic Chinese restaurants that have been serving families for generations. The pork buns were steaming hot and the noodle soup was perfectly seasoned with traditional spices and herbs.',
-    location: 'Binondo, Manila',
-    // NO activity - this will show colorless location pill
-    timestamp: '2025-01-09T03:00:00Z',
-    timeAgo: '7h',
-    likes: 156,
-    comments: 23
-  },
-  {
-    id: '4',
     authorId: 'user101',
     authorName: 'Carlos Rodriguez',
     authorNationalityFlag: '🇲🇽',
+    authorProfileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
     type: 'regular',
-    content: 'Beach vibes and sunset magic! Perfect end to an amazing day exploring this beautiful island.',
     images: ['https://picsum.photos/400/600?random=3'],
     location: 'Boracay, Aklan',
     activity: 'wellness',
@@ -86,28 +82,35 @@ export const initialPostsData: Post[] = [
     likes: 203,
     comments: 15
   },
+  // Heritage - Regular Post
   {
-    id: '5',
+    id: '4',
     authorId: 'user202',
     authorName: 'Alfonso Rivera',
     authorNationalityFlag: '🇵🇭',
+    authorProfileImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
     type: 'regular',
-    content: 'Just finished an incredible hiking adventure through the rice terraces of Banaue. The ancient engineering of these terraces is absolutely mind-blowing and the views are spectacular. Every step revealed new perspectives of this UNESCO World Heritage site. The local Ifugao people shared stories about their ancestors who built these terraces over two thousand years ago using only hand tools.',
+    images: [
+      'https://picsum.photos/400/600?random=4',
+      'https://picsum.photos/400/600?random=14',
+      'https://picsum.photos/400/600?random=24',
+      'https://picsum.photos/400/600?random=34'
+    ],
     location: 'Banaue, Ifugao',
-    activity: 'outdoors',
+    activity: 'heritage',
     timestamp: '2025-01-08T14:20:00Z',
     timeAgo: '1d',
     likes: 89,
     comments: 12
   },
+  // Aquatics - Lucid Post
   {
-    id: '6',
+    id: '5',
     authorId: 'current_user',
     authorName: 'Third Camacho',
     authorNationalityFlag: '🇵🇭',
     type: 'lucid',
     title: 'Siargao Island',
-    content: undefined,
     images: [
       'https://picsum.photos/400/600?random=100',
       'https://picsum.photos/400/600?random=101',
@@ -120,14 +123,15 @@ export const initialPostsData: Post[] = [
     likes: 324,
     comments: 28
   },
+  // Cultural - Lucid Post
   {
-    id: '7',
+    id: '6',
     authorId: 'user303',
     authorName: 'Isabella Chen',
     authorNationalityFlag: '🇨🇳',
+    authorProfileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
     type: 'lucid',
     title: 'Kyoto',
-    content: undefined,
     images: [
       'https://picsum.photos/400/600?random=200',
       'https://picsum.photos/400/600?random=201',
@@ -139,5 +143,112 @@ export const initialPostsData: Post[] = [
     timeAgo: '3d',
     likes: 267,
     comments: 19
+  },
+  // City - Regular Post
+  {
+    id: '7',
+    authorId: 'user404',
+    authorName: 'Emma Thompson',
+    authorNationalityFlag: '🇬🇧',
+    authorProfileImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
+    type: 'regular',
+    images: ['https://picsum.photos/400/600?random=7'],
+    location: 'BGC, Taguig',
+    activity: 'city',
+    timestamp: '2025-01-06T10:15:00Z',
+    timeAgo: '3d',
+    likes: 156,
+    comments: 23
+  },
+  // Food - Regular Post
+  {
+    id: '8',
+    authorId: 'user505',
+    authorName: 'Marco Rossi',
+    authorNationalityFlag: '🇮🇹',
+    authorProfileImage: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
+    type: 'regular',
+    images: [
+      'https://picsum.photos/400/600?random=8',
+      'https://picsum.photos/400/600?random=18',
+      'https://picsum.photos/400/600?random=28',
+      'https://picsum.photos/400/600?random=38',
+      'https://picsum.photos/400/600?random=48'
+    ],
+    location: 'Mercato Centrale, BGC',
+    activity: 'food',
+    timestamp: '2025-01-05T19:30:00Z',
+    timeAgo: '4d',
+    likes: 189,
+    comments: 31
+  },
+  // Stays - Regular Post
+  {
+    id: '9',
+    authorId: 'user606',
+    authorName: 'Sophie Martin',
+    authorNationalityFlag: '🇫🇷',
+    authorProfileImage: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop',
+    type: 'regular',
+    images: ['https://picsum.photos/400/600?random=9'],
+    location: 'Amanpulo, Palawan',
+    activity: 'stays',
+    timestamp: '2025-01-05T08:45:00Z',
+    timeAgo: '4d',
+    likes: 312,
+    comments: 18
+  },
+  // Amusements - Regular Post
+  {
+    id: '10',
+    authorId: 'user707',
+    authorName: 'Jake Wilson',
+    authorNationalityFlag: '🇺🇸',
+    authorProfileImage: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=400&fit=crop',
+    type: 'regular',
+    images: ['https://picsum.photos/400/600?random=10'],
+    location: 'Enchanted Kingdom, Laguna',
+    activity: 'amusements',
+    timestamp: '2025-01-04T15:20:00Z',
+    timeAgo: '5d',
+    likes: 234,
+    comments: 42
+  },
+  // Special Experiences - Lucid Post
+  {
+    id: '11',
+    authorId: 'user808',
+    authorName: 'Yuki Tanaka',
+    authorNationalityFlag: '🇯🇵',
+    authorProfileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&face=top',
+    type: 'lucid',
+    title: 'Northern Lights',
+    images: [
+      'https://picsum.photos/400/600?random=300',
+      'https://picsum.photos/400/600?random=301',
+      'https://picsum.photos/400/600?random=302'
+    ],
+    location: 'Iceland',
+    activity: 'special',
+    timestamp: '2025-01-04T02:30:00Z',
+    timeAgo: '5d',
+    likes: 567,
+    comments: 89
+  },
+  // Thrill - Regular Post
+  {
+    id: '12',
+    authorId: 'user909',
+    authorName: 'Alex Rodriguez',
+    authorNationalityFlag: '🇨🇴',
+    authorProfileImage: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&h=400&fit=crop',
+    type: 'regular',
+    images: ['https://picsum.photos/400/600?random=12'],
+    location: 'Danao, Bohol',
+    activity: 'thrill',
+    timestamp: '2025-01-03T14:10:00Z',
+    timeAgo: '6d',
+    likes: 178,
+    comments: 25
   }
 ];

@@ -625,8 +625,8 @@ const LucidPostCard: React.FC<LucidPostCardProps> = ({
           >
             <Bookmark 
               size={20} 
-              color={isPostSaved(id) ? '#0047AB' : themeColors.textSecondary}
-              fill={isPostSaved(id) ? '#0047AB' : 'none'}
+              color={isPostSaved(id) ? '#FFD700' : themeColors.textSecondary}
+              fill={isPostSaved(id) ? '#FFD700' : 'none'}
             />
           </TouchableOpacity>
         </View>

@@ -34,6 +34,8 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
   const minDuration = 1;
   const maxDuration = 30;
 
+
+
   const handleLocationPress = () => {
     Alert.prompt(
       'Location',
@@ -56,12 +58,40 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
 
   useImperativeHandle(ref, () => ({
     handleSubmit: handleCreateLucid
-  }), [selectedLocation, duration]);
+  }), [selectedLocation, duration, dayPhotos, durationMode, startDate, endDate]);
 
   useEffect(() => {
-    const isValid = selectedLocation;
-    onValidationChange(!!isValid);
-  }, [selectedLocation]);
+    // PROPER VALIDATION: Follow exact rules
+    const hasLocation = selectedLocation.trim().length > 0;
+    const totalDays = durationMode === 'dates' ? calculateDurationFromDates() : duration;
+    
+    // Check if ALL days have exactly 4 images each
+    let allDaysHaveRequiredImages = true;
+    let totalImages = 0;
+    
+    for (let day = 0; day < totalDays; day++) {
+      const dayImages = dayPhotos[day];
+      const dayImageCount = dayImages?.length || 0;
+      totalImages += dayImageCount;
+      
+      // Each day must have exactly 4 images
+      if (dayImageCount !== 4) {
+        allDaysHaveRequiredImages = false;
+      }
+    }
+    
+    const isValid = hasLocation && allDaysHaveRequiredImages && totalImages >= 4;
+    
+    console.log('LUCIDS VALIDATION:', { 
+      hasLocation, 
+      totalDays, 
+      allDaysHaveRequiredImages, 
+      totalImages, 
+      isValid, 
+      dayPhotos 
+    });
+    onValidationChange(isValid);
+  }, [selectedLocation, dayPhotos, duration, durationMode, startDate, endDate]);
 
   // Calculate duration from dates
   const calculateDurationFromDates = () => {
@@ -142,45 +172,60 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
 
   // Handle photo selection for a specific day
   const handleDayPhotoSelection = (dayIndex: number) => {
+    console.log(`Photo selection for day ${dayIndex}`);
+    console.log('Current dayPhotos state:', dayPhotos);
+    
     // Check if photos already exist for this day
     if (dayPhotos[dayIndex]) {
+      console.log(`Removing photos from day ${dayIndex}`);
       // If photos exist, remove them
       setDayPhotos(prev => {
         const updated = { ...prev };
         delete updated[dayIndex];
+        console.log('Updated dayPhotos after removal:', updated);
         return updated;
       });
     } else {
+      console.log(`Adding photos to day ${dayIndex}`);
       // Automatically add 4 photos without popup
+      const timestamp = Date.now();
       const mockPhotos = [
-        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 1}`,
-        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 2}`,
-        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 3}`,
-        `https://picsum.photos/400/600?random=${Date.now() + (dayIndex * 10) + 4}`,
+        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 1}`,
+        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 2}`,
+        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 3}`,
+        `https://picsum.photos/400/600?random=${timestamp + dayIndex * 100 + 4}`,
       ];
-      setDayPhotos(prev => ({
-        ...prev,
-        [dayIndex]: mockPhotos
-      }));
+      console.log('Generated mockPhotos:', mockPhotos);
+      setDayPhotos(prev => {
+        const updated = {
+          ...prev,
+          [dayIndex]: mockPhotos
+        };
+        console.log('Updated dayPhotos after adding:', updated);
+        return updated;
+      });
     }
   };
 
   const handleCreateLucid = () => {
-    if (!selectedLocation) {
-      return;
-    }
+    // No validation alerts here - button state should handle validation
+    const finalDuration = durationMode === 'dates' ? calculateDurationFromDates() : duration;
     
     try {
-      const finalDuration = durationMode === 'dates' ? calculateDurationFromDates() : duration;
-      
-      // Generate all images from all days (4 images per day)
+      // Collect all actual uploaded images from all days
       const allImages: string[] = [];
+      
+      // Ensure we collect images from all days in the correct order
       for (let day = 0; day < finalDuration; day++) {
-        // Generate 4 images per day
-        for (let img = 0; img < 4; img++) {
-          allImages.push(`https://picsum.photos/400/600?random=${Date.now() + (day * 10) + img}`);
+        const dayImages = dayPhotos[day];
+        if (dayImages && dayImages.length > 0) {
+          allImages.push(...dayImages);
         }
       }
+      
+      console.log(`Creating Lucid post with ${allImages.length} images from ${finalDuration} days`);
+      console.log('dayPhotos state:', dayPhotos);
+      console.log('allImages array:', allImages);
       
       addPost({
         authorId: 'current_user',
@@ -189,13 +234,14 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
         type: 'lucid',
         title: selectedLocation.trim(), // Use destination as exact title
         content: undefined, // No content needed, title is enough
-        images: allImages,
+        images: allImages, // Use actual uploaded images, not generated ones
         location: selectedLocation.trim(),
         // For now, no specific activity - can be added later
         activity: undefined,
     });
     
-    navigation.goBack();
+    // Navigate to Home tab to show the new post, this will automatically close the Create screen
+    (navigation as any).navigate('Home');
     } catch (error) {
       console.log('Error creating Lucid:', error);
     }

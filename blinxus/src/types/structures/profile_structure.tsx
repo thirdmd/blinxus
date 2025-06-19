@@ -238,25 +238,6 @@ export default function ProfileStructure({
             {profileData?.username || '@username'}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {/* Create Button - More Intuitive */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CreatePost' as never)}
-              style={{ 
-                width: 40, 
-                height: 40, 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                marginRight: 12, 
-                backgroundColor: themeColors.backgroundSecondary, 
-                borderRadius: 12, 
-                borderWidth: 1, 
-                borderColor: themeColors.border 
-              }}
-              activeOpacity={0.3}
-            >
-              <Plus size={18} color={themeColors.text} strokeWidth={2} />
-            </TouchableOpacity>
-            
             {/* Library Button */}
             <TouchableOpacity
               onPress={() => setShowLibrary(true)}

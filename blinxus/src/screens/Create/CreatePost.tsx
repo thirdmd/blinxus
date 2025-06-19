@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import {
   View,
   Text,
@@ -109,6 +109,21 @@ export default function CreatePost() {
   const [activeTab, setActiveTab] = useState<PostType>('Post');
   const childRef = useRef<any>(null);
   const [isValid, setIsValid] = useState(false);
+  const [key, setKey] = useState(0); // Force re-render of child components
+  const [shouldReset, setShouldReset] = useState(false);
+
+  // Reset ONLY when we return from navigation
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // When we come back to this screen, reset everything
+      setActiveTab('Post');
+      setIsValid(false);
+      setKey(prev => prev + 1);
+      setShouldReset(false);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleValidationChange = (validationState: boolean) => {
     setIsValid(validationState);
@@ -116,6 +131,7 @@ export default function CreatePost() {
 
   const handleShare = () => {
     if (childRef.current && childRef.current.handleSubmit && isValid) {
+      setShouldReset(true); // Mark that we should reset when we come back
       childRef.current.handleSubmit();
     }
   };
@@ -123,13 +139,13 @@ export default function CreatePost() {
   const renderContent = () => {
     switch (activeTab) {
       case 'Post':
-        return <CreateRegularPost ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
+        return <CreateRegularPost key={`post-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       case 'Blinx':
-        return <CreateBlinx ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
+        return <CreateBlinx key={`blinx-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       case 'Lucids':
-        return <CreateLucids ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
+        return <CreateLucids key={`lucids-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       default:
-        return <CreateRegularPost ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
+        return <CreateRegularPost key={`post-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
     }
   };
 

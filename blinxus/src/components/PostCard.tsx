@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Alert, Modal, TextInput, ScrollView, Dimensions } from 'react-native';
 import { PostCardProps } from '../types/structures/posts_structure';
 import { Heart, MessageCircle, Send, Bookmark, MoreVertical, Camera, Trash2, Flag, Edit, X, Check } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
@@ -9,6 +9,8 @@ import type { ActivityTag } from '../constants/activityTags';
 import PillTag from './PillTag';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../hooks/useThemeColors';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface PostCardComponentProps extends PostCardProps {}
 
@@ -209,6 +211,83 @@ const PostCard: React.FC<PostCardComponentProps> = ({
       'Comment Added',
       'Comment functionality will be expanded soon!',
       [{ text: 'OK' }]
+    );
+  };
+
+  // Swipeable Image Carousel Component
+  const SwipeableImageCarousel: React.FC<{
+    images: string[];
+    device?: string;
+  }> = ({ images, device }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const handleScroll = (event: any) => {
+      const scrollPosition = event.nativeEvent.contentOffset.x;
+      const index = Math.round(scrollPosition / screenWidth);
+      setCurrentIndex(index);
+    };
+
+    if (!images || images.length === 0) return null;
+
+    return (
+      <View style={{ position: 'relative' }}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          style={{ width: screenWidth }}
+        >
+          {images.map((image, index) => (
+            <Image
+              key={index}
+              source={{ uri: image }}
+              style={{ width: screenWidth, height: 320 }}
+              resizeMode="cover"
+            />
+          ))}
+        </ScrollView>
+        
+        {/* Image indicators */}
+        {images.length > 1 && (
+          <View style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            borderRadius: 16,
+            flexDirection: 'row',
+            alignItems: 'center'
+          }}>
+            <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '500' }}>
+              {currentIndex + 1}/{images.length}
+            </Text>
+          </View>
+        )}
+        
+        {/* Device info */}
+        {device && (
+          <View style={{
+            position: 'absolute',
+            bottom: 16,
+            right: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: 20,
+            flexDirection: 'row',
+            alignItems: 'center'
+          }}>
+            <Camera size={14} color="#000000" style={{ marginRight: 4 }} />
+            <Text style={{ color: '#000000', fontSize: 12, fontWeight: '300' }}>
+              {device}
+            </Text>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -496,31 +575,7 @@ const PostCard: React.FC<PostCardComponentProps> = ({
 
         {/* Image */}
         {images && images.length > 0 && (
-          <View style={{ position: 'relative' }}>
-            <Image 
-              source={{ uri: images[0] }} 
-              style={{ width: '100%', height: 320 }} 
-              resizeMode="cover" 
-            />
-            {device && (
-              <View style={{ 
-                position: 'absolute', 
-                bottom: 16, 
-                right: 16, 
-                paddingHorizontal: 12, 
-                paddingVertical: 8, 
-                backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-                borderRadius: 20, 
-                flexDirection: 'row', 
-                alignItems: 'center' 
-              }}>
-                <Camera size={14} color="#000000" style={{ marginRight: 4 }} />
-                <Text style={{ color: '#000000', fontSize: 12, fontWeight: '300' }}>
-                  {device}
-                </Text>
-              </View>
-            )}
-          </View>
+          <SwipeableImageCarousel images={images} device={device} />
         )}
 
         {/* Content Text */}
@@ -589,8 +644,8 @@ const PostCard: React.FC<PostCardComponentProps> = ({
           >
             <Bookmark 
               size={20} 
-              color={isPostSaved(id) ? '#0047AB' : themeColors.textSecondary}
-              fill={isPostSaved(id) ? '#0047AB' : 'none'}
+              color={isPostSaved(id) ? '#FFD700' : themeColors.textSecondary}
+              fill={isPostSaved(id) ? '#FFD700' : 'none'}
             />
           </TouchableOpacity>
         </View>

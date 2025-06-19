@@ -14,10 +14,13 @@ import {
   BarChart3, 
   UserX, 
   LogOut,
-  Moon
+  Moon,
+  Smartphone
 } from 'lucide-react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { ThemeToggle } from '../../components/ThemeToggle';
+import { useSettings } from '../../contexts/SettingsContext';
+import SettingsToggle from '../../components/SettingsToggle';
 
 interface Props {
   onBackPress?: () => void;
@@ -25,6 +28,7 @@ interface Props {
 
 export default function ProfileSettings({ onBackPress }: Props = {}) {
   const themeColors = useThemeColors();
+  const { isImmersiveFeedEnabled, setImmersiveFeedEnabled } = useSettings();
   
   const handleMenuItemPress = (item: string) => {
     if (item === 'signout') {
@@ -44,6 +48,11 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
       id: 'theme',
       title: 'Theme',
       subtitle: 'Switch between light and dark mode'
+    },
+    {
+      id: 'immersive-feed',
+      title: 'Immersive Feed',
+      subtitle: 'TikTok-style photo-focused experience'
     },
     {
       id: 'account',
@@ -75,6 +84,7 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
   const getIcon = (id: string) => {
     switch (id) {
       case 'theme': return <Moon size={20} color={themeColors.text} strokeWidth={2} />;
+      case 'immersive-feed': return <Smartphone size={20} color={themeColors.text} strokeWidth={2} />;
       case 'account': return <User size={20} color={themeColors.text} strokeWidth={2} />;
       case 'privacy': return <Shield size={20} color={themeColors.text} strokeWidth={2} />;
       case 'activity': return <BarChart3 size={20} color={themeColors.text} strokeWidth={2} />;
@@ -157,6 +167,42 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   
                   {/* Theme Toggle */}
                   <ThemeToggle showLabel={false} size="small" />
+                </View>
+              ) : item.id === 'immersive-feed' ? (
+                // Special handling for immersive feed toggle
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  paddingVertical: 20 
+                }}>
+                  {/* Icon */}
+                  <View style={{ width: 24, height: 24, marginRight: 16 }}>
+                    {getIcon(item.id)}
+                  </View>
+                  
+                  {/* Text Content */}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ 
+                      fontSize: 16, 
+                      color: themeColors.text 
+                    }}>
+                      {item.title}
+                    </Text>
+                    <Text style={{ 
+                      fontSize: 14, 
+                      color: themeColors.textSecondary, 
+                      marginTop: 2 
+                    }}>
+                      {item.subtitle}
+                    </Text>
+                  </View>
+                  
+                  {/* Immersive Feed Toggle */}
+                  <SettingsToggle
+                    enabled={isImmersiveFeedEnabled}
+                    onToggle={setImmersiveFeedEnabled}
+                    size="small"
+                  />
                 </View>
               ) : (
                 // Regular menu items

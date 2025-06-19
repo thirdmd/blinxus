@@ -1,10 +1,10 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, Animated, StatusBar, TextInput } from 'react-native';
+import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ArrowLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { usePosts } from '../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import PostCard from '../../components/PostCard';
@@ -15,27 +15,30 @@ import MasonryList from '../../components/MasonryList';
 import FullPostView from '../../components/FullPostView';
 import { useScrollContext } from '../../contexts/ScrollContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { useSettings } from '../../contexts/SettingsContext';
+import TravelFeedCard from '../../components/TravelFeedCard';
 
 export interface ExploreScreenRef {
   resetToAll: () => void;
 }
 
-const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
+const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
+  const { isImmersiveFeedEnabled } = useSettings();
   const [headerVisible, setHeaderVisible] = useState(true);
-  const [fabVisible, setFabVisible] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<ActivityKey | 'all'>('all');
   const [isMediaMode, setIsMediaMode] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PostCardProps | null>(null);
   const [showFullPost, setShowFullPost] = useState(false);
   const lastScrollY = useRef(0);
-  const fabAnimatedValue = useRef(new Animated.Value(1)).current;
-  const fabOpacityValue = useRef(new Animated.Value(1)).current;
-  const [isScrollingUp, setIsScrollingUp] = useState(false);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // New state for custom app bar behavior
+  const [scrollY, setScrollY] = useState(0);
+  const [appBarOpacity, setAppBarOpacity] = useState(1);
+  const [appBarBlur, setAppBarBlur] = useState(false);
   
   // Global header state - once hidden by scrolling, stays hidden until explicitly shown
   const [globalHeaderHidden, setGlobalHeaderHidden] = useState(false);
@@ -52,6 +55,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   // Store previous filter when entering media mode
   const previousFilterRef = useRef<ActivityKey | 'all'>('all');
 
+  // Track currently visible post index for immersive feed - OPTIMIZED
+  const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
+  const currentVisibleIndexRef = useRef(0); // Use ref to avoid re-renders during scroll
+
   // Expose reset function for double-tap
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
@@ -63,6 +70,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       setIsMediaMode(false);
       setSelectedFilter('all');
       
+      // Reset app bar states
+      setScrollY(0);
+      setAppBarOpacity(1);
+      setAppBarBlur(false);
+      setHeaderVisible(true);
+      setGlobalHeaderHidden(false);
+      
       // Scroll to top in normal view
       setTimeout(() => {
         if (exploreScrollRef?.current) {
@@ -72,18 +86,37 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
     },
   }));
 
-  const cardPropsArray = posts.map(post => mapPostToCardProps(post));
+  // MEMORY OPTIMIZATION: Memoize expensive calculations
+  const cardPropsArray = useMemo(() => 
+    posts.map(post => mapPostToCardProps(post)), 
+    [posts]
+  );
 
   // Filter posts based on selected activity
-  const filteredPosts = selectedFilter === 'all' 
-    ? cardPropsArray 
-    : cardPropsArray.filter(post => post.activity === selectedFilter);
+  const filteredPosts = useMemo(() => 
+    selectedFilter === 'all' 
+      ? cardPropsArray 
+      : cardPropsArray.filter(post => post.activity === selectedFilter),
+    [cardPropsArray, selectedFilter]
+  );
 
   // Filter posts that have images for media mode
-  const postsWithImages = filteredPosts.filter(post => post.images && post.images.length > 0);
+  const postsWithImages = useMemo(() => 
+    filteredPosts.filter(post => post.images && post.images.length > 0),
+    [filteredPosts]
+  );
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentScrollY = event.nativeEvent.contentOffset.y;
+    setScrollY(currentScrollY);
+    
+    // Calculate dynamic app bar opacity and blur based on scroll
+    const scrollThreshold = 100;
+    const opacity = Math.max(0.3, 1 - (currentScrollY / scrollThreshold));
+    const shouldBlur = currentScrollY > 50;
+    
+    setAppBarOpacity(opacity);
+    setAppBarBlur(shouldBlur);
     
     // Store scroll position ONLY for current active filter (prevent contamination)
     if (isMediaMode) {
@@ -94,78 +127,40 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       scrollPositions.current[selectedFilter] = currentScrollY;
     }
     
-    // Clear existing timeout
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
+    // OPTIMIZED: Update current visible index for immersive feed - Use ref to prevent re-renders
+    if (isImmersiveFeedEnabled && !isMediaMode) {
+      const cardHeight = Dimensions.get('window').height - 180;
+      // Simplified calculation for better performance
+      const newIndex = Math.max(0, Math.round(currentScrollY / cardHeight));
+      // Only update state when actually changed to prevent unnecessary re-renders
+      if (newIndex !== currentVisibleIndexRef.current) {
+        currentVisibleIndexRef.current = newIndex;
+        // Batch state update to prevent multiple re-renders
+        requestAnimationFrame(() => {
+          setCurrentVisibleIndex(newIndex);
+        });
+      }
     }
     
-    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
-      // Scrolling down
+    // Smooth header visibility logic
+    if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+      // Scrolling down - fade out header
       setHeaderVisible(false);
-      setGlobalHeaderHidden(true); // Mark header as globally hidden
-      setIsScrollingUp(false);
-      if (fabVisible) {
-        setFabVisible(false);
-        Animated.timing(fabAnimatedValue, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-      }
-    } else if (currentScrollY <= 10) {
-      // Only show header when actually at the very top (≤10px)
+      setGlobalHeaderHidden(true);
+    } else if (currentScrollY <= 20) {
+      // At top - show header
       setHeaderVisible(true);
-      setGlobalHeaderHidden(false); // Reset global hidden state when at top
-      setIsScrollingUp(false);
-      if (!fabVisible) {
-        setFabVisible(true);
-        Animated.timing(fabAnimatedValue, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-      }
-      // Full opacity when at top
-      Animated.timing(fabOpacityValue, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    } else if (lastScrollY.current - currentScrollY > 30) {
-      // Show FAB when scrolling up significantly (>30px), but keep header hidden
-      setIsScrollingUp(true);
-      if (!fabVisible) {
-        setFabVisible(true);
-        Animated.timing(fabAnimatedValue, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }).start();
-      }
-      // Semi-transparent when scrolling up
-      Animated.timing(fabOpacityValue, {
-        toValue: 0.6,
-        duration: 100,
-        useNativeDriver: true,
-      }).start();
+      setGlobalHeaderHidden(false);
+    } else if (currentScrollY < lastScrollY.current - 50) {
+      // Scrolling up significantly - show header
+      setHeaderVisible(true);
     }
-    
-    // Set timeout to restore full opacity when scrolling stops
-    scrollTimeoutRef.current = setTimeout(() => {
-      if (isScrollingUp && currentScrollY > 10) {
-        setIsScrollingUp(false);
-        Animated.timing(fabOpacityValue, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-      }
-    }, 150);
     
     lastScrollY.current = currentScrollY;
   };
 
   // Handle filter selection with scroll position restoration and double-tap detection
+  // HIDDEN PILLS LOGIC - keeping for future use
   const handleFilterSelect = (activityKey: ActivityKey | 'all') => {
     const now = Date.now();
     const lastTap = lastPillTapRef.current[activityKey] || 0;
@@ -214,14 +209,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
   };
 
   // Handle entering media mode
-  const enterMediaMode = () => {
+  const enterMediaMode = useCallback(() => {
     previousFilterRef.current = selectedFilter; // Store current filter
     setSelectedFilter('all'); // Always go to "All" in media mode
     setIsMediaMode(true);
-  };
+  }, [selectedFilter]);
 
   // Handle exiting media mode
-  const exitMediaMode = () => {
+  const exitMediaMode = useCallback(() => {
     setIsMediaMode(false);
     setSelectedFilter(previousFilterRef.current); // Restore previous filter
     
@@ -233,7 +228,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       }
       // Header state is inherited from media mode - no change based on position
     }, 100);
-  };
+  }, []);
 
   // Handle swipe gesture
   const onGestureEvent = (event: any) => {
@@ -241,17 +236,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
     
     if (state === State.END) {
       if (translationX > 50 && !isMediaMode) {
-        // Swipe right - switch to media mode
-        enterMediaMode();
-      } else if (translationX < -50 && isMediaMode && !showFullPost) {
-        // Swipe left - switch back to normal mode
-        exitMediaMode();
+        // Swipe right detected - currently no action
       }
     }
   };
 
-  // Handle media item press
-  const handleMediaItemPress = (post: PostCardProps) => {
+  // MEMORY OPTIMIZATION: Memoize handlers
+  const handleMediaItemPress = useCallback((post: PostCardProps) => {
     // If it's a Lucid post, navigate to dedicated fullscreen
     if (post.type === 'lucid') {
       (navigation as any).navigate('LucidFullscreen', {
@@ -262,13 +253,19 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
       setSelectedPost(post);
       setShowFullPost(true);
     }
-  };
+  }, [navigation]);
 
   // Handle back from full post
-  const handleBackFromFullPost = () => {
+  const handleBackFromFullPost = useCallback(() => {
     setShowFullPost(false);
     setSelectedPost(null);
-  };
+  }, []);
+
+  // Handle travel details popup
+  const handleShowTravelDetails = useCallback((post: PostCardProps) => {
+    // Travel details are now handled within TravelFeedCard component
+    console.log('Travel details for post:', post.id);
+  }, []);
 
   // Create activity key mapping for filter functionality
   const createActivityKeyMap = () => {
@@ -343,118 +340,109 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
           backgroundColor={themeColors.background} 
         />
         
-        {/* Header - Minimal Design */}
-        {headerVisible && (
-          <View style={{ 
-            backgroundColor: themeColors.background, 
-            paddingVertical: 16, 
-            paddingHorizontal: 24 
-          }}>
-            {isMediaMode ? (
-              // Search bar for media mode - Minimal
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableOpacity 
-                  onPress={exitMediaMode}
-                  style={{ 
-                    width: 40, 
-                    height: 40, 
-                    marginLeft: -8, 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}
-                  activeOpacity={0.3}
-                >
-                  <ArrowLeft size={20} color={themeColors.text} />
-                </TouchableOpacity>
-                <View style={{ 
-                  flex: 1, 
-                  flexDirection: 'row', 
-                  alignItems: 'center', 
-                  borderWidth: 1, 
-                  borderColor: themeColors.border, 
-                  borderRadius: 20, 
-                  paddingHorizontal: 16, 
-                  paddingVertical: 10, 
-                  marginLeft: 8 
-                }}>
-                  <Search size={18} color={themeColors.textSecondary} />
-                  <TextInput
-                    placeholder="Search places..."
-                    style={{ 
-                      flex: 1, 
-                      marginLeft: 12, 
-                      fontSize: 16, 
-                      color: themeColors.text, 
-                      fontWeight: '300' 
-                    }}
-                    placeholderTextColor={themeColors.textSecondary}
+        {/* Fixed Minimal App Bar - Positioned at Safe Area Edge */}
+        <View style={{
+          height: 44, // Fixed height - exactly like the brown section
+          backgroundColor: scrollY > 50 
+            ? 'transparent' 
+            : themeColors.background,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 20,
+          borderBottomWidth: scrollY > 20 && scrollY < 50 ? 0.5 : 0,
+          borderBottomColor: `${themeColors.border}20`,
+        }}>
+          {isMediaMode ? (
+            // Back button - hidden when scrolling
+            <TouchableOpacity 
+              onPress={exitMediaMode}
+              style={{ 
+                width: 32, 
+                height: 32, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: 16,
+                backgroundColor: scrollY > 20 ? `${themeColors.backgroundSecondary}40` : 'transparent',
+                opacity: scrollY > 50 ? 0 : 1,
+              }}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={18} color={themeColors.text} strokeWidth={2} />
+            </TouchableOpacity>
+          ) : (
+            // Blinxus title - fades out when scrolling
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: themeColors.text,
+              opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+            }}>
+              Blinxus
+            </Text>
+          )}
+          
+          {!isMediaMode && (
+            // Grid icon - fades out when scrolling
+            <TouchableOpacity
+              onPress={enterMediaMode}
+              style={{ 
+                width: 32, 
+                height: 32, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: 16,
+                backgroundColor: scrollY > 20 
+                  ? `${themeColors.backgroundSecondary}40` 
+                  : `${themeColors.backgroundSecondary}20`,
+                opacity: scrollY > 50 ? 0 : 1,
+              }}
+              activeOpacity={0.7}
+            >
+              <Grid3X3 
+                size={20} 
+                color={themeColors.text} 
+                strokeWidth={2} 
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Pills Layer - HIDDEN FOR NOW (keeping logic intact for future use) */}
+        {false && (
+          <View style={{ backgroundColor: themeColors.background, paddingBottom: 16 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
+              <View style={{ flexDirection: 'row' }}>
+                {/* All Filter Pill */}
+                <View style={{ marginRight: 6 }}>
+                  <PillTag
+                    label="All"
+                    color={themeColors.isDark ? themeColors.backgroundSecondary : "#E5E7EB"} // Adapt to theme
+                    selected={selectedFilter === 'all'}
+                    onPress={() => handleFilterSelect('all')}
+                    alwaysFullColor={true}
+                    size="medium"
                   />
                 </View>
+                {activityTags.map((tag, index) => {
+                  const activityKey = activityKeyMap[tag.name];
+                  return (
+                    <View key={tag.id} style={{ marginRight: 6 }}>
+                      <PillTag
+                        label={tag.name}
+                        color={tag.color}
+                        selected={selectedFilter === activityKey}
+                        onPress={() => handleFilterSelect(activityKey)}
+                        alwaysFullColor={true}
+                        size="medium"
+                      />
+                    </View>
+                  );
+                })}
               </View>
-            ) : (
-              // Normal title with toggle button - Minimal
-              <View style={{ 
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                justifyContent: 'space-between' 
-              }}>
-                <Text style={{ 
-                  fontSize: 24, 
-                  fontWeight: '400', 
-                  color: themeColors.text 
-                }}>
-                  Blinxus
-                </Text>
-                <TouchableOpacity
-                  onPress={enterMediaMode}
-                  style={{ 
-                    width: 40, 
-                    height: 40, 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}
-                  activeOpacity={0.3}
-                >
-                  <Grid3X3 size={24} color={themeColors.text} strokeWidth={2} />
-                </TouchableOpacity>
-              </View>
-            )}
+            </ScrollView>
           </View>
         )}
-
-        {/* Pills Layer - Minimal */}
-        <View style={{ backgroundColor: themeColors.background, paddingBottom: 16 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
-            <View style={{ flexDirection: 'row' }}>
-              {/* All Filter Pill */}
-              <View style={{ marginRight: 6 }}>
-                <PillTag
-                  label="All"
-                  color={themeColors.isDark ? themeColors.backgroundSecondary : "#E5E7EB"} // Adapt to theme
-                  selected={selectedFilter === 'all'}
-                  onPress={() => handleFilterSelect('all')}
-                  alwaysFullColor={true}
-                  size="medium"
-                />
-              </View>
-              {activityTags.map((tag, index) => {
-                const activityKey = activityKeyMap[tag.name];
-                return (
-                  <View key={tag.id} style={{ marginRight: 6 }}>
-                    <PillTag
-                      label={tag.name}
-                      color={tag.color}
-                      selected={selectedFilter === activityKey}
-                      onPress={() => handleFilterSelect(activityKey)}
-                      alwaysFullColor={true}
-                      size="medium"
-                    />
-                  </View>
-                );
-              })}
-            </View>
-          </ScrollView>
-        </View>
         
         {/* Content Area */}
         {isMediaMode ? (
@@ -470,75 +458,56 @@ const ExploreScreen = forwardRef<ExploreScreenRef>((props, ref) => {
             bounces={true}
           />
         ) : (
-          // Normal Posts Feed
+          // Posts Feed - Conditional rendering based on immersive mode
           <FlatList
             ref={exploreScrollRef}
             data={filteredPosts}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => 
-              item.type === 'lucid' ? 
-                <LucidPostCard {...item} /> : 
-                <PostCard {...item} />
-            }
+            renderItem={({ item, index }) => {
+              if (isImmersiveFeedEnabled) {
+                return (
+                  <TravelFeedCard
+                    {...item}
+                    onDetailsPress={() => handleShowTravelDetails(item)}
+                    isVisible={true} // INSTANT GESTURES: Always visible so gestures work during transitions
+                  />
+                );
+              } else {
+                return item.type === 'lucid' ? 
+                  <LucidPostCard {...item} /> : 
+                  <PostCard {...item} />;
+              }
+            }}
             style={{ flex: 1, backgroundColor: themeColors.background }}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
-            scrollEventThrottle={16}
+            scrollEventThrottle={16} // OPTIMIZED: Changed from 1 to 16 for better performance
             bounces={true}
+            pagingEnabled={isImmersiveFeedEnabled}
+            snapToInterval={isImmersiveFeedEnabled ? Dimensions.get('window').height - 180 : undefined}
+            snapToAlignment={isImmersiveFeedEnabled ? "end" : undefined}
+            decelerationRate={isImmersiveFeedEnabled ? "fast" : "normal"}
+            // INSTANT GESTURES: Allow simultaneous gestures during transitions
+            scrollsToTop={false}
+            disableIntervalMomentum={isImmersiveFeedEnabled ? true : false}
+            // PERFORMANCE OPTIMIZATIONS
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={2}
+            windowSize={3}
+            initialNumToRender={1}
+            getItemLayout={isImmersiveFeedEnabled ? (data, index) => ({
+              length: Dimensions.get('window').height - 180,
+              offset: (Dimensions.get('window').height - 180) * index,
+              index,
+            }) : undefined}
           />
         )}
 
-        {/* Floating Action Button - Minimal Design */}
-        {!isMediaMode && (
-          <Animated.View
-            style={{
-              position: 'absolute',
-              bottom: 24,
-              right: 24,
-              opacity: fabAnimatedValue,
-              transform: [
-                {
-                  scale: fabAnimatedValue,
-                },
-              ],
-            }}
-          >
-            <Animated.View
-              style={{
-                opacity: fabOpacityValue,
-              }}
-            >
-              <TouchableOpacity
-                style={{ 
-                  width: 56, 
-                  height: 56, 
-                  borderRadius: 28, 
-                  backgroundColor: '#0047AB', // Always cobalt blue
-                  justifyContent: 'center', 
-                  alignItems: 'center' 
-                }}
-                onPress={() => navigation.navigate('CreatePost' as never)}
-                activeOpacity={0.7}
-              >
-                <View style={{ 
-                  width: 20, 
-                  height: 2, 
-                  backgroundColor: '#FFFFFF', // Always white plus icon
-                  position: 'absolute' 
-                }} />
-                <View style={{ 
-                  width: 2, 
-                  height: 20, 
-                  backgroundColor: '#FFFFFF', // Always white plus icon
-                  position: 'absolute' 
-                }} />
-              </TouchableOpacity>
-            </Animated.View>
-          </Animated.View>
-        )}
       </SafeAreaView>
     </PanGestureHandler>
   );
 });
+
+ExploreScreen.displayName = 'ExploreScreen';
 
 export default ExploreScreen;

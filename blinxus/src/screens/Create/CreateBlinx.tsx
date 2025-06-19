@@ -27,6 +27,8 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+
+
   const handleLocationPress = () => {
     Alert.prompt(
       'Location',
@@ -78,7 +80,8 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
       photo: selectedImage,
     });
     
-    navigation.goBack();
+    // Navigate to Home tab (when Blinx posts are implemented), this will automatically close the Create screen
+    (navigation as any).navigate('Home');
   };
 
   return (

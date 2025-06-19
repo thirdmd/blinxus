@@ -30,7 +30,9 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [postText, setPostText] = useState<string>('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+
+
 
   const handleLocationPress = () => {
     Alert.prompt(
@@ -53,11 +55,33 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
   };
 
   const handleImagePicker = () => {
-    if (!selectedImage) {
-      setSelectedImage(`https://picsum.photos/400/600?random=${Date.now()}`);
-    } else {
-      setSelectedImage(null);
+    if (selectedImages.length === 0) {
+      Alert.alert(
+        'Upload Images',
+        'How many images would you like to upload?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: '1 Image', onPress: () => addImages(1) },
+          { text: '2 Images', onPress: () => addImages(2) },
+          { text: '3 Images', onPress: () => addImages(3) },
+          { text: '4 Images', onPress: () => addImages(4) },
+          { text: '5 Images', onPress: () => addImages(5) },
+        ]
+      );
     }
+  };
+
+  const addImages = (count: number) => {
+    const newImages: string[] = [];
+    for (let i = 0; i < count; i++) {
+      newImages.push(`https://picsum.photos/400/600?random=${Date.now() + i}`);
+    }
+    setSelectedImages(newImages);
+  };
+
+  const removeImage = (index: number) => {
+    const updatedImages = selectedImages.filter((_, i) => i !== index);
+    setSelectedImages(updatedImages);
   };
 
   const handleActivitySelect = (activityId: number) => {
@@ -66,15 +90,15 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
 
   useImperativeHandle(ref, () => ({
     handleSubmit: handlePost
-  }), [selectedLocation, postText, selectedImage, selectedActivity]);
+  }), [selectedLocation, postText, selectedImages, selectedActivity]);
 
   useEffect(() => {
-    const isValid = selectedLocation.trim() && (postText.trim() || selectedImage);
+    const isValid = selectedLocation.trim() && selectedImages.length > 0;
     onValidationChange(!!isValid);
-  }, [selectedLocation, postText, selectedImage]);
+  }, [selectedLocation, postText, selectedImages]);
 
   const handlePost = () => {
-    if (!selectedLocation.trim() || (!postText.trim() && !selectedImage)) {
+    if (!selectedLocation.trim() || selectedImages.length === 0) {
       return;
     }
     
@@ -106,12 +130,13 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
         authorNationalityFlag: '🇵🇭',
         type: 'regular',
         content: postText.trim() || undefined,
-        images: selectedImage ? [selectedImage] : undefined,
+        images: selectedImages,
         location: selectedLocation.trim(),
         activity: activityKey,
     });
     
-      navigation.goBack();
+      // Navigate to Home tab to show the new post, this will automatically close the Create screen
+      (navigation as any).navigate('Home');
     } catch (error) {
       console.log('Error creating post:', error);
     }
@@ -152,52 +177,161 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
         </TouchableOpacity>
       </View>
 
-      {/* Text Input */}
+      {/* Photo - Now comes before text input */}
       <View style={{ marginBottom: 24 }}>
-        <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
-          <TextInput
-            value={postText}
-            onChangeText={setPostText}
-            placeholder="What's on your mind?"
-            multiline
-            numberOfLines={4}
-            style={{
-              fontSize: 16,
-              color: themeColors.text,
-              fontWeight: '300',
-              height: 100,
-              textAlignVertical: 'top',
-            }}
-            placeholderTextColor={themeColors.textSecondary}
-          />
-        </View>
-      </View>
-
-      {/* Photo */}
-      <View style={{ marginBottom: 24 }}>
-        {selectedImage ? (
-          <View style={{ position: 'relative' }}>
-            <Image
-              source={{ uri: selectedImage }}
-              style={{ width: '100%', height: 192, borderRadius: 16 }}
-              resizeMode="cover"
-            />
-            <TouchableOpacity
-              onPress={() => setSelectedImage(null)}
-              style={{
+        {selectedImages.length > 0 ? (
+          <View>
+            {/* Multiple Images Grid */}
+            {selectedImages.length === 1 ? (
+              // Single image - full width
+              <View style={{ position: 'relative' }}>
+                <Image
+                  source={{ uri: selectedImages[0] }}
+                  style={{ width: '100%', height: 192, borderRadius: 16 }}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  onPress={() => removeImage(0)}
+                  style={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  activeOpacity={0.3}
+                >
+                  <X size={16} color="#ffffff" strokeWidth={2} />
+                </TouchableOpacity>
+              </View>
+            ) : selectedImages.length === 2 ? (
+              // Two images - side by side
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {selectedImages.map((image, index) => (
+                  <View key={index} style={{ flex: 1, position: 'relative' }}>
+                    <Image
+                      source={{ uri: image }}
+                      style={{ width: '100%', height: 192, borderRadius: 16 }}
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      onPress={() => removeImage(index)}
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      activeOpacity={0.3}
+                    >
+                      <X size={12} color="#ffffff" strokeWidth={2} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              // Three or more images - grid layout
+              <View>
+                {/* First row - main image */}
+                <View style={{ position: 'relative', marginBottom: 8 }}>
+                  <Image
+                    source={{ uri: selectedImages[0] }}
+                    style={{ width: '100%', height: 160, borderRadius: 16 }}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    onPress={() => removeImage(0)}
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    activeOpacity={0.3}
+                  >
+                    <X size={12} color="#ffffff" strokeWidth={2} />
+                  </TouchableOpacity>
+                </View>
+                
+                {/* Second row - remaining images */}
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {selectedImages.slice(1).map((image, index) => (
+                    <View key={index + 1} style={{ flex: 1, position: 'relative' }}>
+                      <Image
+                        source={{ uri: image }}
+                        style={{ width: '100%', height: 96, borderRadius: 12 }}
+                        resizeMode="cover"
+                      />
+                      <TouchableOpacity
+                        onPress={() => removeImage(index + 1)}
+                        style={{
+                          position: 'absolute',
+                          top: 6,
+                          right: 6,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        activeOpacity={0.3}
+                      >
+                        <X size={10} color="#ffffff" strokeWidth={2} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+            
+            {/* Image count indicator */}
+            {selectedImages.length > 1 && (
+              <View style={{
                 position: 'absolute',
-                top: 12,
-                right: 12,
-                width: 32,
-                height: 32,
-                borderRadius: 16,
+                bottom: 12,
+                left: 12,
+                paddingHorizontal: 8,
+                paddingVertical: 4,
                 backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                alignItems: 'center',
-                justifyContent: 'center'
+                borderRadius: 12
+              }}>
+                <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '500' }}>
+                  {selectedImages.length} photos
+                </Text>
+              </View>
+            )}
+            
+            {/* Clear all button */}
+            <TouchableOpacity
+              onPress={() => setSelectedImages([])}
+              style={{
+                marginTop: 12,
+                alignSelf: 'center',
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                backgroundColor: themeColors.backgroundSecondary,
+                borderRadius: 20
               }}
               activeOpacity={0.3}
             >
-              <X size={16} color="#ffffff" strokeWidth={2} />
+              <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300' }}>
+                Clear all photos
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -219,6 +353,27 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
             <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300', marginTop: 8 }}>Add photo</Text>
           </TouchableOpacity>
         )}
+      </View>
+
+      {/* Text Input - Now comes after photo */}
+      <View style={{ marginBottom: 24 }}>
+        <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
+          <TextInput
+            value={postText}
+            onChangeText={setPostText}
+            placeholder="What's on your mind?"
+            multiline
+            numberOfLines={4}
+            style={{
+              fontSize: 16,
+              color: themeColors.text,
+              fontWeight: '300',
+              height: 100,
+              textAlignVertical: 'top',
+            }}
+            placeholderTextColor={themeColors.textSecondary}
+          />
+        </View>
       </View>
 
       {/* Activity Tags */}

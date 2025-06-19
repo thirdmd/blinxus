@@ -41,7 +41,7 @@ Blinxus is a centralized travel directory designed to organize travel content in
 - Top-right menu in Profile (Settings, Account Info, Help & Support, Library)
 
 ### Post Types:
-1. **Regular Posts**: Text only or Image + Text (Required: Location + Activity tag)
+1. **Regular Posts**: Image + Text (Required: Location + Image, Activity tag optional)
 2. **Lucids**: Structured travel albums grouped by Day → Moments
 
 ### Color Code System (Activity Tagging):

@@ -446,7 +446,7 @@ const PhotoDetailView: React.FC<{
               themeColors={themeColors}
             />
             <ActionButton 
-              icon={<Bookmark size={24} color={themeColors.text} fill={isSaved ? "#0047AB" : "none"} />} 
+              icon={<Bookmark size={24} color={themeColors.text} fill={isSaved ? "#FFD700" : "none"} />} 
               label="Save" 
               onPress={onSave}
               themeColors={themeColors}
