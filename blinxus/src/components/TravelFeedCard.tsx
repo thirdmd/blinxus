@@ -45,7 +45,7 @@ const ImmersiveImageCarousel: React.FC<{
   const translateY = useSharedValue(0);
   const [isZoomedOut, setIsZoomedOut] = useState(false);
   
-  // Toggle zoom mode with button
+  // Toggle zoom mode with button - FIXED: Keep scale at 1.0 for edge-to-edge contain mode
   const toggleZoomMode = useCallback(() => {
     if (isZoomedOut) {
       // Return to fullscreen cover mode
@@ -54,8 +54,8 @@ const ImmersiveImageCarousel: React.FC<{
       translateY.value = withTiming(0);
       setIsZoomedOut(false);
     } else {
-      // Switch to original aspect ratio (contain mode)
-      scale.value = withTiming(0.7);
+      // Switch to original aspect ratio (contain mode) - keep scale at 1.0 for edge-to-edge
+      scale.value = withTiming(1);
       translateX.value = withTiming(0);
       translateY.value = withTiming(0);
       setIsZoomedOut(true);
@@ -84,14 +84,6 @@ const ImmersiveImageCarousel: React.FC<{
       setIsZoomedOut(false);
     };
   }, [heartScale, scale, translateX, translateY]);
-
-  // Reset zoom when image changes
-  useEffect(() => {
-    scale.value = withTiming(1);
-    translateX.value = withTiming(0);
-    translateY.value = withTiming(0);
-    setIsZoomedOut(false);
-  }, [currentIndex, scale, translateX, translateY]);
 
   // Pan gesture handler for details panel (original functionality)
   const panGestureHandler = useAnimatedGestureHandler({
@@ -934,4 +926,4 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
 TravelFeedCard.displayName = 'TravelFeedCard';
 
-export default TravelFeedCard; 
+export default TravelFeedCard;
