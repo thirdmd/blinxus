@@ -10,6 +10,9 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  FlatList,
 } from 'react-native';
 
 import { ProfileDataType } from '../userData/profile_data';
@@ -52,11 +55,30 @@ export default function ProfileStructure({
   // Use the scrollRef from props (for double tap functionality) or fallback to local ref
   const scrollViewRef = scrollRef || localScrollViewRef;
   
+  // Enhanced scroll position tracking like ExploreScreen
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const scrollPositionRef = useRef(0); // Use ref for immediate access
+  
+  // App bar state management
+  const [scrollY, setScrollY] = useState(0);
+  const [appBarOpacity, setAppBarOpacity] = useState(1);
+  const [appBarBlur, setAppBarBlur] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  
   // Internal reset function that handles all ProfileStructure states
   const handleResetToTop = () => {
     // Reset all internal states
     setIsFullscreen(false);
     setShowLibrary(false);
+    // Reset app bar states
+    setScrollY(0);
+    setAppBarOpacity(1);
+    setAppBarBlur(false);
+    setHeaderVisible(true);
+    setScrollPosition(0);
+    scrollPositionRef.current = 0;
+    lastScrollY.current = 0;
     // Scroll to top after states are reset
     setTimeout(() => {
       if (scrollViewRef?.current) {
@@ -83,6 +105,84 @@ export default function ProfileStructure({
     post.images && 
     post.images.length > 0
   );
+
+  // Enhanced scroll handler - Same as ExploreScreen
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y;
+    setScrollY(currentScrollY);
+    
+    // Calculate dynamic app bar opacity and blur based on scroll
+    const scrollThreshold = 100;
+    const opacity = Math.max(0.3, 1 - (currentScrollY / scrollThreshold));
+    const shouldBlur = currentScrollY > 50;
+    
+    setAppBarOpacity(opacity);
+    setAppBarBlur(shouldBlur);
+    
+    // Update both state and ref for immediate access
+    setScrollPosition(currentScrollY);
+    scrollPositionRef.current = currentScrollY;
+    
+    // Smooth header visibility logic
+    if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+      // Scrolling down - fade out header
+      setHeaderVisible(false);
+    } else if (currentScrollY <= 20) {
+      // At top - show header
+      setHeaderVisible(true);
+    } else if (currentScrollY < lastScrollY.current - 50) {
+      // Scrolling up significantly - show header
+      setHeaderVisible(true);
+    }
+    
+    lastScrollY.current = currentScrollY;
+  };
+
+  // Handle post press with scroll position storage
+  const handlePostPress = (post: any) => {
+    // Store current scroll position before entering fullscreen
+    const currentOffset = scrollPositionRef.current;
+    setScrollPosition(currentOffset);
+    
+    const filteredPosts = (posts || []).filter(p => {
+      const isCurrentUser = p.authorName === profileData?.name;
+      if (!isCurrentUser) return false;
+      return p.images && p.images.length > 0;
+    });
+    
+    // Set selected post for TravelFeedCard view
+    const postIndex = filteredPosts.findIndex(p => p.id === post.id);
+    setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
+    setIsFullscreen(true);
+  };
+
+  // Handle back from fullscreen with scroll restoration
+  const handleBackFromFullscreen = () => {
+    setIsFullscreen(false);
+    
+    // Restore scroll position with improved timing and reliability
+    const restoreScrollPosition = () => {
+      if (scrollViewRef?.current) {
+        // Always restore position, even if it's 0 (top of scroll)
+        scrollViewRef.current.scrollTo({ 
+          y: scrollPosition, 
+          animated: false 
+        });
+      }
+    };
+    
+    // Use multiple restoration attempts for maximum reliability
+    // Immediate attempt
+    setTimeout(restoreScrollPosition, 0);
+    
+    // Secondary attempt after next frame
+    requestAnimationFrame(() => {
+      setTimeout(restoreScrollPosition, 0);
+    });
+    
+    // Final attempt after a short delay
+    setTimeout(restoreScrollPosition, 100);
+  };
 
   // Better social media icon components
   const FacebookIcon = () => (
@@ -177,54 +277,65 @@ export default function ProfileStructure({
           backgroundColor={themeColors.background} 
         />
         
-        {/* Back Button Header */}
-        <View style={{ 
-          position: 'absolute', 
-          top: 50, 
-          left: 16, 
-          zIndex: 1000,
-          width: 32, 
-          height: 32, 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          backgroundColor: themeColors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-          borderWidth: 0.5,
-          borderColor: themeColors.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-          borderRadius: 16
+        {/* Fixed App Bar - Back button moved to far left corner */}
+        <View style={{
+          height: responsiveDimensions.appBar.height,
+          backgroundColor: themeColors.background,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingLeft: rs(8), // Minimal left padding to reach corner
+          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
         }}>
-          <TouchableOpacity
-            onPress={() => setIsFullscreen(false)}
+          {/* Back button - Far left corner */}
+          <TouchableOpacity 
+            onPress={handleBackFromFullscreen}
             style={{ 
-              width: 32, 
-              height: 32, 
+              width: responsiveDimensions.button.small.width, 
+              height: responsiveDimensions.button.small.height, 
               alignItems: 'center', 
-              justifyContent: 'center' 
+              justifyContent: 'center',
+              borderRadius: rs(16),
+              backgroundColor: 'transparent',
             }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.95}
+            delayPressIn={0}
+            delayPressOut={0}
           >
-            <ChevronLeft size={20} color="white" strokeWidth={2.5} />
+            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        {/* TravelFeedCard ScrollView */}
-        <ScrollView 
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          decelerationRate="normal"
-          contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
-        >
-          {filteredPosts.map((post, index) => {
-            const postCardProps = mapPostToCardProps(post);
+        {/* TravelFeedCard FlatList - Same as ExploreScreen */}
+        <FlatList
+          data={filteredPosts}
+          renderItem={({ item }) => {
+            const postCardProps = mapPostToCardProps(item);
             return (
               <TravelFeedCard 
-                key={post.id} 
                 {...postCardProps} 
                 onDetailsPress={() => {}}
                 isVisible={true}
               />
             );
+          }}
+          keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          pagingEnabled={true}
+          snapToInterval={responsiveDimensions.feedCard.height}
+          snapToAlignment="end"
+          decelerationRate="fast"
+          initialScrollIndex={selectedPostIndex}
+          getItemLayout={(data, index) => ({
+            length: responsiveDimensions.feedCard.height,
+            offset: responsiveDimensions.feedCard.height * index,
+            index,
           })}
-        </ScrollView>
+          removeClippedSubviews={false}
+          initialNumToRender={1}
+          maxToRenderPerBatch={3}
+          windowSize={5}
+        />
       </SafeAreaView>
     );
   }
@@ -235,62 +346,86 @@ export default function ProfileStructure({
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background} 
       />
+      {/* Dynamic App Bar - Same as ExploreScreen */}
+      <View style={{
+        height: responsiveDimensions.appBar.height,
+        backgroundColor: scrollY > 50 ? 'transparent' : themeColors.background,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: responsiveDimensions.appBar.paddingHorizontal,
+        borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
+        borderBottomColor: `${themeColors.border}20`,
+      }}>
+        {/* Username - fades out when scrolling */}
+        <Text style={{ 
+          fontSize: typography.appTitle, 
+          fontWeight: '600', 
+          color: themeColors.text,
+          opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+        }}>
+          {profileData?.username || '@username'}
+        </Text>
+        
+        {/* Action buttons - fade out when scrolling */}
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center',
+          opacity: scrollY > 50 ? 0 : 1,
+        }}>
+          {/* Library Button */}
+          <TouchableOpacity
+            onPress={() => setShowLibrary(true)}
+            style={{ 
+              width: responsiveDimensions.button.small.width, 
+              height: responsiveDimensions.button.small.height, 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              borderRadius: rs(16),
+              backgroundColor: scrollY > 20 
+                ? `${themeColors.backgroundSecondary}40` 
+                : 'transparent',
+              marginRight: rs(8),
+            }}
+            activeOpacity={0.7}
+          >
+            <Bookmark size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
+          </TouchableOpacity>
+          
+          {/* Settings Button */}
+          <TouchableOpacity
+            onPress={onSettingsPress}
+            style={{ 
+              width: responsiveDimensions.button.small.width, 
+              height: responsiveDimensions.button.small.height, 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              borderRadius: rs(16),
+              backgroundColor: scrollY > 20 
+                ? `${themeColors.backgroundSecondary}40` 
+                : 'transparent',
+            }}
+            activeOpacity={0.7}
+          >
+            <Settings size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView 
         ref={scrollViewRef}
         style={{ flex: 1, backgroundColor: themeColors.background }}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        bounces={true}
+        removeClippedSubviews={false}
+        keyboardShouldPersistTaps="handled"
         maintainVisibleContentPosition={{
           minIndexForVisible: 0,
           autoscrollToTopThreshold: 0,
         }}
       >
-        {/* Header Bar - Minimal design */}
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          paddingHorizontal: 24, 
-          paddingTop: 16, 
-          paddingBottom: 8 
-        }}>
-          <Text style={{ 
-            fontSize: 20, 
-            fontWeight: '400', 
-            color: themeColors.text 
-          }}>
-            {profileData?.username || '@username'}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {/* Library Button */}
-            <TouchableOpacity
-              onPress={() => setShowLibrary(true)}
-              style={{ 
-                width: 40, 
-                height: 40, 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                marginRight: 12 
-              }}
-              activeOpacity={0.3}
-            >
-              <Bookmark size={20} color={themeColors.text} strokeWidth={1.8} />
-            </TouchableOpacity>
-            
-            {/* Settings Button - More Appropriate */}
-            <TouchableOpacity
-              style={{ 
-                width: 40, 
-                height: 40, 
-                alignItems: 'center', 
-                justifyContent: 'center' 
-              }}
-              activeOpacity={0.3}
-              onPress={onSettingsPress}
-            >
-              <Settings size={20} color={themeColors.text} strokeWidth={1.8} />
-            </TouchableOpacity>
-          </View>
-        </View>
 
         {/* Profile Picture - Clean square with rounded edges */}
         <View style={{ marginTop: 48, alignItems: 'center' }}>
@@ -450,12 +585,7 @@ export default function ProfileStructure({
                       aspectRatio: 4/5,
                       padding: 1
                     }}
-                    onPress={() => {
-                      // Set selected post for TravelFeedCard view
-                      const postIndex = filteredPosts.findIndex(p => p.id === post.id);
-                      setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-                      setIsFullscreen(true);
-                    }}
+                    onPress={() => handlePostPress(post)}
                     activeOpacity={0.8}
                   >
                     <View style={{ position: 'relative', flex: 1 }}>

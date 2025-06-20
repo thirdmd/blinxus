@@ -1,5 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground, Animated } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ChevronLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
@@ -35,13 +35,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const [isMediaMode, setIsMediaMode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const lastScrollY = useRef(0);
-  
-  // Animation values for smooth slide + zoom transitions
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
   
   // New state for custom app bar behavior
   const [scrollY, setScrollY] = useState(0);
@@ -53,6 +47,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   
   // Media mode scroll position tracking
   const [mediaScrollPosition, setMediaScrollPosition] = useState(0);
+  const mediaScrollPositionRef = useRef(0); // Use ref for immediate access
   const mediaScrollRef = useRef<ScrollView>(null);
   
   // Store scroll positions for each filter
@@ -256,38 +251,48 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     }
   };
 
-  // MEMORY OPTIMIZATION: Memoize handlers
+  // MEMORY OPTIMIZATION: Memoize handlers - ULTRA SMOOTH like Profile
   const handleMediaItemPress = useCallback((post: PostCardProps) => {
-    if (isTransitioning) return; // Prevent multiple rapid presses
-    
-    setIsTransitioning(true);
+    // Store current scroll position before entering fullscreen - DIRECT like Profile
+    const currentOffset = mediaScrollPositionRef.current;
+    setMediaScrollPosition(currentOffset);
     
     // Find post index and set immediately
     const postIndex = postsWithImages.findIndex(p => p.id === post.id);
     setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
     
-    // No animation - instant clean transition
+    // INSTANT transition - exactly like Profile
     setIsFullscreen(true);
-    setIsTransitioning(false);
-  }, [postsWithImages, isTransitioning, slideAnim, scaleAnim, opacityAnim]);
+  }, [postsWithImages]);
 
-  // Handle back from fullscreen
+  // Handle back from fullscreen - EXACTLY like Profile for ultimate smoothness
   const handleBackFromFullscreen = useCallback(() => {
-    setIsTransitioning(true);
-    
-    // No animation - instant clean back transition
+    // INSTANT back transition - exactly like Profile
     setIsFullscreen(false);
     
-    // Restore scroll position immediately
-    if (mediaScrollRef.current && mediaScrollPosition > 0) {
-      mediaScrollRef.current.scrollTo({ 
-        y: mediaScrollPosition, 
-        animated: false 
-      });
-    }
+    // EXACT same restoration approach as Profile
+    const restoreScrollPosition = () => {
+      if (mediaScrollRef.current) {
+        // Always restore position, even if it's 0 (top of scroll)
+        mediaScrollRef.current.scrollTo({ 
+          y: mediaScrollPosition, 
+          animated: false 
+        });
+      }
+    };
     
-    setIsTransitioning(false);
-  }, [mediaScrollPosition, slideAnim, scaleAnim, opacityAnim]);
+    // Use EXACT same restoration attempts as Profile for maximum reliability
+    // Immediate attempt
+    setTimeout(restoreScrollPosition, 0);
+    
+    // Secondary attempt after next frame
+    requestAnimationFrame(() => {
+      setTimeout(restoreScrollPosition, 0);
+    });
+    
+    // Final attempt after a short delay
+    setTimeout(restoreScrollPosition, 100);
+  }, [mediaScrollPosition]);
 
   // Handle travel details popup
   const handleShowTravelDetails = useCallback((post: PostCardProps) => {
@@ -315,17 +320,6 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // Render media grid item - simplified
-  const renderMediaItem = (item: PostCardProps) => {
-    return (
-      <MediaGridItem
-        imageUri={item.images![0]}
-        isLucid={item.type === 'lucid'}
-        onPress={() => handleMediaItemPress(item)}
-      />
-    );
-  };
-
   // If in fullscreen mode, show TravelFeedCard view
   if (isFullscreen) {
     return (
@@ -340,16 +334,16 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           }}
         >
         
-        {/* Fixed App Bar - Same structure as grid view */}
+        {/* Fixed App Bar - Back button moved to far left corner */}
         <View style={{
           height: responsiveDimensions.appBar.height,
           backgroundColor: themeColors.background,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: responsiveDimensions.appBar.paddingHorizontal,
+          paddingLeft: rs(8), // Minimal left padding to reach corner
+          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
         }}>
-          {/* Back button */}
+          {/* Back button - Far left corner */}
           <TouchableOpacity 
             onPress={handleBackFromFullscreen}
             style={{ 
@@ -366,12 +360,6 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           >
             <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
           </TouchableOpacity>
-          
-          {/* Empty space for symmetry */}
-          <View style={{ 
-            width: responsiveDimensions.button.small.width, 
-            height: responsiveDimensions.button.small.height 
-          }} />
         </View>
 
         {/* TravelFeedCard FlatList - RADICAL APPROACH: Direct to selected post */}
@@ -419,7 +407,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           backgroundColor={themeColors.background} 
         />
         
-        {/* Fixed Minimal App Bar - Positioned at Safe Area Edge */}
+        {/* Fixed Minimal App Bar - Back button moved to far left corner */}
         <View style={{
           height: responsiveDimensions.appBar.height,
           backgroundColor: scrollY > 50 
@@ -427,13 +415,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             : themeColors.background,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: responsiveDimensions.appBar.paddingHorizontal,
+          paddingLeft: rs(8), // Minimal left padding to reach corner
+          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
           borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
           borderBottomColor: `${themeColors.border}20`,
         }}>
           {isMediaMode ? (
-            // Back button - hidden when scrolling
+            // Back button - Far left corner
             <TouchableOpacity 
               onPress={exitMediaMode}
               style={{ 
@@ -450,10 +438,11 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
           ) : (
-            // Blinxus title - fades out when scrolling
+            // Blinxus title - fades out when scrolling (EXACT same font as TravelFeedCard name)
             <Text style={{ 
-              fontSize: typography.appTitle, 
+              fontSize: typography.userName, 
               fontWeight: '600', 
+              fontFamily: 'System',
               color: themeColors.text,
               opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
             }}>
@@ -462,28 +451,30 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           )}
           
           {!isMediaMode && (
-            // Grid icon - fades out when scrolling
-            <TouchableOpacity
-              onPress={enterMediaMode}
-              style={{ 
-                width: responsiveDimensions.button.small.width, 
-                height: responsiveDimensions.button.small.height, 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: rs(16),
-                backgroundColor: scrollY > 20 
-                  ? `${themeColors.backgroundSecondary}40` 
-                  : `${themeColors.backgroundSecondary}20`,
-                opacity: scrollY > 50 ? 0 : 1,
-              }}
-              activeOpacity={0.7}
-            >
-              <Grid3X3 
-                size={ri(20)} 
-                color={themeColors.text} 
-                strokeWidth={2} 
-              />
-            </TouchableOpacity>
+            // Grid icon - positioned on the right
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <TouchableOpacity
+                onPress={enterMediaMode}
+                style={{ 
+                  width: responsiveDimensions.button.small.width, 
+                  height: responsiveDimensions.button.small.height, 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  borderRadius: rs(16),
+                  backgroundColor: scrollY > 20 
+                    ? `${themeColors.backgroundSecondary}40` 
+                    : `${themeColors.backgroundSecondary}20`,
+                  opacity: scrollY > 50 ? 0 : 1,
+                }}
+                activeOpacity={0.7}
+              >
+                <Grid3X3 
+                  size={ri(20)} 
+                  color={themeColors.text} 
+                  strokeWidth={2} 
+                />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -525,37 +516,37 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         
         {/* Content Area */}
         {isMediaMode ? (
-          // Media Grid View - 3 columns like Feed
-          <View 
-            style={{ 
-              flex: 1
+          // Media Grid View - EXACT COPY of Library Recent Tab Structure
+          <ScrollView 
+            ref={mediaScrollRef}
+            showsVerticalScrollIndicator={false}
+            onScroll={(event) => {
+              handleScroll(event);
+              // Update both state and ref for immediate access - EXACT like Library
+              const currentY = event.nativeEvent.contentOffset.y;
+              setMediaScrollPosition(currentY);
+              mediaScrollPositionRef.current = currentY;
             }}
+            scrollEventThrottle={16}
+            bounces={true}
+            removeClippedSubviews={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <ScrollView 
-              ref={mediaScrollRef}
-              showsVerticalScrollIndicator={false}
-              onScroll={(event) => {
-                handleScroll(event);
-                setMediaScrollPosition(event.nativeEvent.contentOffset.y);
-              }}
-              scrollEventThrottle={16}
-              bounces={true}
-              removeClippedSubviews={false}
-              keyboardShouldPersistTaps="handled"
-            >
             <View style={{ 
               flexDirection: 'row', 
               flexWrap: 'wrap', 
               paddingBottom: 32 
             }}>
               {postsWithImages.map((post) => (
-                <View key={post.id}>
-                  {renderMediaItem(post)}
-                </View>
+                <MediaGridItem
+                  key={post.id}
+                  imageUri={post.images![0]}
+                  isLucid={post.type === 'lucid'}
+                  onPress={() => handleMediaItemPress(post)}
+                />
               ))}
             </View>
           </ScrollView>
-          </View>
         ) : (
           // Posts Feed - Conditional rendering based on immersive mode
           <FlatList

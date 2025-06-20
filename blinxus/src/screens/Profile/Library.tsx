@@ -21,8 +21,12 @@ import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 
-const { width, height: screenHeight } = Dimensions.get('window');
+const { width, height: screenHeight } = RESPONSIVE_SCREEN;
+const responsiveDimensions = getResponsiveDimensions();
+const typography = getTypographyScale();
+const spacing = getSpacingScale();
 
 interface LibraryProps {
   onBackPress?: () => void;
@@ -43,6 +47,18 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   // Scroll position tracking for Activities tab
   const [activitiesScrollPosition, setActivitiesScrollPosition] = useState(0);
   const activitiesScrollRef = useRef<FlatList>(null);
+  
+  // Scroll position tracking for Recent tab - Enhanced like ExploreScreen
+  const [recentScrollPosition, setRecentScrollPosition] = useState(0);
+  const recentScrollPositionRef = useRef(0); // Use ref for immediate access
+  const recentScrollRef = useRef<ScrollView>(null);
+  
+  // App bar state management for Recent tab
+  const [scrollY, setScrollY] = useState(0);
+  const [appBarOpacity, setAppBarOpacity] = useState(1);
+  const [appBarBlur, setAppBarBlur] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
   
   // Get posts and saved posts
   const { posts } = usePosts();
@@ -92,8 +108,14 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
 
 
-  // Handle post press - navigate to TravelFeedCard view with context
+  // Handle post press - ULTRA SMOOTH like Profile
   const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent', categoryName?: string) => {
+    // Store current scroll position - DIRECT like Profile
+    if (context === 'recent') {
+      const currentOffset = recentScrollPositionRef.current;
+      setRecentScrollPosition(currentOffset);
+    }
+    
     let postsToShow: PostCardProps[];
     
     if (context === 'recent') {
@@ -111,22 +133,42 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     const postIndex = postsToShow.findIndex(p => p.id === post.id);
     setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
     setFeedContext(context);
+    // INSTANT transition - exactly like Profile
     setIsFullscreen(true);
   };
 
-  // Handle back from fullscreen
+  // Handle back from fullscreen - EXACTLY like Profile for ultimate smoothness
   const handleBackFromFullscreen = () => {
+    // INSTANT back transition - exactly like Profile
     setIsFullscreen(false);
     
-    // Restore scroll position for Activities tab after a short delay
-    if (feedContext === 'activities' && activitiesScrollRef.current && activitiesScrollPosition > 0) {
-      setTimeout(() => {
-        activitiesScrollRef.current?.scrollToOffset({ 
+    // EXACT same restoration approach as Profile
+    const restoreScrollPosition = () => {
+      if (feedContext === 'activities' && activitiesScrollRef.current) {
+        activitiesScrollRef.current.scrollToOffset({ 
           offset: activitiesScrollPosition, 
           animated: false 
         });
-      }, 100);
-    }
+      } else if (feedContext === 'recent' && recentScrollRef.current) {
+        // Always restore position, even if it's 0 (top of scroll)
+        recentScrollRef.current.scrollTo({ 
+          y: recentScrollPosition, 
+          animated: false 
+        });
+      }
+    };
+    
+    // Use EXACT same restoration attempts as Profile for maximum reliability
+    // Immediate attempt
+    setTimeout(restoreScrollPosition, 0);
+    
+    // Secondary attempt after next frame
+    requestAnimationFrame(() => {
+      setTimeout(restoreScrollPosition, 0);
+    });
+    
+    // Final attempt after a short delay
+    setTimeout(restoreScrollPosition, 100);
     
     setSelectedActivityCategory(null); // Reset category selection
   };
@@ -145,6 +187,38 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
       />
     </View>
   );
+
+  // Enhanced scroll handler for Recent tab - Same as ExploreScreen
+  const handleRecentScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y;
+    setScrollY(currentScrollY);
+    
+    // Calculate dynamic app bar opacity and blur based on scroll
+    const scrollThreshold = 100;
+    const opacity = Math.max(0.3, 1 - (currentScrollY / scrollThreshold));
+    const shouldBlur = currentScrollY > 50;
+    
+    setAppBarOpacity(opacity);
+    setAppBarBlur(shouldBlur);
+    
+    // Update both state and ref for immediate access
+    setRecentScrollPosition(currentScrollY);
+    recentScrollPositionRef.current = currentScrollY;
+    
+    // Smooth header visibility logic
+    if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+      // Scrolling down - fade out header
+      setHeaderVisible(false);
+    } else if (currentScrollY <= 20) {
+      // At top - show header
+      setHeaderVisible(true);
+    } else if (currentScrollY < lastScrollY.current - 50) {
+      // Scrolling up significantly - show header
+      setHeaderVisible(true);
+    }
+    
+    lastScrollY.current = currentScrollY;
+  };
 
   // Render Recent Tab
   const renderRecentTab = () => {
@@ -189,7 +263,15 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     }
 
     return (
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={recentScrollRef}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleRecentScroll}
+        scrollEventThrottle={16}
+        bounces={true}
+        removeClippedSubviews={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={{ 
           flexDirection: 'row', 
           flexWrap: 'wrap', 
@@ -413,54 +495,62 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           backgroundColor={themeColors.background} 
         />
         
-        {/* Back Button Header */}
-        <View style={{ 
-          position: 'absolute', 
-          top: 50, 
-          left: 16, 
-          zIndex: 1000,
-          width: 32, 
-          height: 32, 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          backgroundColor: themeColors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-          borderWidth: 0.5,
-          borderColor: themeColors.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-          borderRadius: 16
+        {/* Fixed App Bar - Back button moved to far left corner */}
+        <View style={{
+          height: responsiveDimensions.appBar.height,
+          backgroundColor: themeColors.background,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingLeft: rs(8), // Minimal left padding to reach corner
+          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
         }}>
-          <TouchableOpacity
+          {/* Back button - Far left corner */}
+          <TouchableOpacity 
             onPress={handleBackFromFullscreen}
             style={{ 
-              width: 32, 
-              height: 32, 
+              width: responsiveDimensions.button.small.width, 
+              height: responsiveDimensions.button.small.height, 
               alignItems: 'center', 
-              justifyContent: 'center' 
+              justifyContent: 'center',
+              borderRadius: rs(16),
+              backgroundColor: 'transparent',
             }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.95}
+            delayPressIn={0}
+            delayPressOut={0}
           >
-            <ChevronLeft size={20} color="white" strokeWidth={2.5} />
+            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        {/* TravelFeedCard ScrollView */}
-        <ScrollView 
+        {/* TravelFeedCard FlatList - Same as ExploreScreen */}
+        <FlatList
+          data={postsToShow}
+          renderItem={({ item }) => (
+            <TravelFeedCard 
+              {...item} 
+              onDetailsPress={() => {}}
+              isVisible={true}
+            />
+          )}
+          keyExtractor={(item) => item.id}
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          decelerationRate="normal"
-          contentOffset={{ x: 0, y: selectedPostIndex * (screenHeight - 180) }}
-        >
-          {postsToShow.map((post, index) => {
-            const postCardProps = post;
-            return (
-              <TravelFeedCard 
-                key={post.id} 
-                {...postCardProps} 
-                onDetailsPress={() => {}}
-                isVisible={true}
-              />
-            );
+          pagingEnabled={true}
+          snapToInterval={responsiveDimensions.feedCard.height}
+          snapToAlignment="end"
+          decelerationRate="fast"
+          initialScrollIndex={selectedPostIndex}
+          getItemLayout={(data, index) => ({
+            length: responsiveDimensions.feedCard.height,
+            offset: responsiveDimensions.feedCard.height * index,
+            index,
           })}
-        </ScrollView>
+          removeClippedSubviews={false}
+          initialNumToRender={1}
+          maxToRenderPerBatch={3}
+          windowSize={5}
+        />
       </SafeAreaView>
     );
   }
@@ -473,40 +563,50 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         backgroundColor={themeColors.background} 
       />
       
-      {/* Header - Modern minimalist */}
-      <View style={{ 
-        backgroundColor: themeColors.background, 
-        paddingHorizontal: 24, 
-        paddingVertical: 16 
+      {/* Dynamic App Bar - Back button moved to far left corner */}
+      <View style={{
+        height: responsiveDimensions.appBar.height,
+        backgroundColor: activeTab === 'recent' 
+          ? (scrollY > 50 ? 'transparent' : themeColors.background)
+          : themeColors.background,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingLeft: rs(8), // Minimal left padding to reach corner
+        paddingRight: responsiveDimensions.appBar.paddingHorizontal,
+        borderBottomWidth: activeTab === 'recent' && scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
+        borderBottomColor: `${themeColors.border}20`,
       }}>
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center', 
-          justifyContent: 'space-between' 
-        }}>
-          <TouchableOpacity
-            onPress={onBackPress}
-            style={{ 
-              width: 40, 
-              height: 40, 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              marginLeft: -8 
-            }}
-            activeOpacity={0.6}
-          >
-            <ChevronLeft size={24} color={themeColors.text} strokeWidth={2} />
-          </TouchableOpacity>
-          
+        {/* Back button - Far left corner */}
+        <TouchableOpacity
+          onPress={onBackPress}
+          style={{ 
+            width: responsiveDimensions.button.small.width, 
+            height: responsiveDimensions.button.small.height, 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            borderRadius: rs(16),
+            backgroundColor: activeTab === 'recent' && scrollY > 20 
+              ? `${themeColors.backgroundSecondary}40` 
+              : 'transparent',
+            opacity: activeTab === 'recent' && scrollY > 50 ? 0 : 1,
+          }}
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+        </TouchableOpacity>
+        
+        {/* Library title - centered */}
+        <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={{ 
-            fontSize: 20, 
-            fontWeight: '400', 
-            color: themeColors.text 
+            fontSize: typography.appTitle, 
+            fontWeight: '600', 
+            color: themeColors.text,
+            opacity: activeTab === 'recent' 
+              ? (scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0))
+              : 1.0,
           }}>
             Library
           </Text>
-          
-          <View style={{ width: 40 }} />
         </View>
       </View>
 
