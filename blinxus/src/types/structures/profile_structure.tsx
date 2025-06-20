@@ -437,7 +437,7 @@ export default function ProfileStructure({
             backgroundColor: themeColors.backgroundSecondary 
           }}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop' }}
+              source={{ uri: 'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=400' }}
               style={{ width: '100%', height: '100%' }}
               resizeMode="cover"
             />

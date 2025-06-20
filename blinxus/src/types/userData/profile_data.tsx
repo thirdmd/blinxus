@@ -34,7 +34,7 @@ export interface Interest {
     bio: 'water boi 🏀',
     followers: 2,
     following: 2,
-    profileImage: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
+    profileImage: 'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=400',
     languages: ['English', 'Filipino'],
     interests: [
       { icon: '🏖️', label: 'Beach' },
@@ -55,10 +55,10 @@ export interface Interest {
   }
   
   export const posts: PostType[] = [
-    { id: 1, image: 'https://via.placeholder.com/150', location: 'Boracay Beach' },
-    { id: 2, image: 'https://via.placeholder.com/150', location: 'Manila Sunset' },
-    { id: 3, image: 'https://via.placeholder.com/150', location: 'Palawan Paradise' },
-    { id: 4, image: 'https://via.placeholder.com/150', location: 'Office Vibes' },
-    { id: 5, image: 'https://via.placeholder.com/150', location: 'Team Meeting' },
-    { id: 6, image: 'https://via.placeholder.com/150', location: 'Weekend Trip' },
+    { id: 1, image: 'https://cdn.pixabay.com/photo/2017/12/16/22/22/beach-3023488_960_720.jpg', location: 'Boracay Beach' },
+    { id: 2, image: 'https://cdn.pixabay.com/photo/2016/08/11/23/48/mountains-1587287_960_720.jpg', location: 'Manila Sunset' },
+    { id: 3, image: 'https://cdn.pixabay.com/photo/2019/07/25/17/09/lagoon-4360964_960_720.jpg', location: 'Palawan Paradise' },
+    { id: 4, image: 'https://cdn.pixabay.com/photo/2018/01/09/03/49/the-natural-scenery-3070808_960_720.jpg', location: 'Rice Terraces' },
+    { id: 5, image: 'https://cdn.pixabay.com/photo/2018/08/14/13/23/ocean-3605547_960_720.jpg', location: 'Island Hopping' },
+    { id: 6, image: 'https://cdn.pixabay.com/photo/2017/02/01/13/52/monument-2031308_960_720.jpg', location: 'Heritage Site' },
   ];

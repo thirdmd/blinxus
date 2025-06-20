@@ -52,7 +52,14 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
   const handleImagePicker = () => {
     // For demo, add a random image
     if (!selectedImage) {
-      setSelectedImage(`https://picsum.photos/400/400?random=${Date.now()}`);
+      const images = [
+  'https://cdn.pixabay.com/photo/2017/12/16/22/22/beach-3023488_960_720.jpg',
+  'https://cdn.pixabay.com/photo/2019/07/25/17/09/lagoon-4360964_960_720.jpg',
+  'https://cdn.pixabay.com/photo/2018/08/14/13/23/ocean-3605547_960_720.jpg',
+  'https://cdn.pixabay.com/photo/2016/08/11/23/48/mountains-1587287_960_720.jpg',
+  'https://cdn.pixabay.com/photo/2018/01/09/03/49/the-natural-scenery-3070808_960_720.jpg'
+];
+setSelectedImage(images[Math.floor(Math.random() * images.length)]);
     }
   };
 

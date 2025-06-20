@@ -93,12 +93,16 @@ export default function PillTag({
       ? color 
       : isCreatePage ? `${color}80` : `${color}60`;
 
+    // Add white border for selected items on create page
+    const borderColor = (selected && isCreatePage) ? '#FFFFFF' : color;
+    const borderWidth = (selected && isCreatePage) ? rs(2) : rs(0.5);
+
     return {
       ...baseStyle,
       ...sizeStyles[size],
       backgroundColor,
-      borderWidth: rs(0.5),
-      borderColor: color,
+      borderWidth,
+      borderColor,
       ...style,
     };
   };
