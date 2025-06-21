@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,13 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
-import { ChevronLeft, ArrowUpRight, MapPinned, Calendar, Users } from 'lucide-react-native';
+import { ChevronLeft, Map, Users, MessageCircle, MapPin } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
-  allPodTabs 
 } from '../../../types/structures/podsUIStructure';
-import { Country, SubLocation } from '../../../constants/placesData';
-import { PodsPostingService } from '../../../utils/podsPostingLogic';
-import { activityTags, activityColors, ActivityKey, activityNames } from '../../../constants/activityTags';
+import { Country, SubLocation, placesData } from '../../../constants/placesData';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface CountryViewScreenProps {
   country: Country;
@@ -24,7 +22,7 @@ interface CountryViewScreenProps {
   onLocationPress: (location: SubLocation) => void;
   onBack: () => void;
   theme: PodThemeConfig;
-  postingService: PodsPostingService;
+  postingService?: any;
 }
 
 const { width } = Dimensions.get('window');
@@ -36,483 +34,630 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
   onLocationPress,
   onBack,
   theme,
-  postingService,
 }) => {
+  const themeColors = useThemeColors();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>('All');
   
-  const getActivityColor = (activityType: ActivityKey): string => {
-    return activityColors[activityType] || '#0047AB';
+  // Generate consistent member count based on country ID
+  const memberCount = Math.floor((country.id.charCodeAt(0) * country.id.charCodeAt(country.id.length - 1) * 37) % 5000 + 100);
+  const postsCount = Math.floor(memberCount * 0.65); // Roughly 65% of members have posts
+  
+  // Find which continent this country belongs to
+  const continentName = placesData.find(continent => 
+    continent.countries.some(c => c.id === country.id)
+  )?.name || 'Unknown';
+  
+  // Get all locations for this country
+  const allLocations = country.subLocations || [];
+  
+  // Create location filter tabs (All + first few locations)
+  const locationTabs = [
+    'All',
+    ...allLocations.slice(0, 5).map(loc => loc.name),
+    ...(allLocations.length > 5 ? ['More'] : [])
+  ];
+
+  // Filter locations based on selected tab
+  const filteredLocations = selectedLocationFilter === 'All' 
+    ? allLocations 
+    : allLocations.filter(loc => loc.name === selectedLocationFilter);
+
+  const handleMapPress = () => {
+    // TODO: Open maps with country location
+    console.log('Open maps for:', country.name);
   };
 
-  // Beautiful header with parallax
-  const headerTranslate = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, -30],
-    extrapolate: 'clamp',
-  });
-
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [1, 0.8],
-    extrapolate: 'clamp',
-  });
-
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {/* Fixed Back Button */}
-      <View style={{
-        position: 'absolute',
-        top: 20,
-        left: 24,
-        zIndex: 10,
-      }}>
-        <TouchableOpacity 
-          onPress={onBack}
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: theme.colors.background + 'E0',
-            alignItems: 'center',
-            justifyContent: 'center',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
-          activeOpacity={0.8}
-        >
-                          <ChevronLeft size={20} color={theme.colors.text} strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
-      <Animated.ScrollView 
+    <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <ScrollView 
         style={{ flex: 1 }} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
+          { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
       >
-        {/* Enhanced Header with Stats */}
-        <Animated.View style={{
-          paddingTop: 100,
-          paddingBottom: 40,
-          paddingHorizontal: 24,
-          transform: [{ translateY: headerTranslate }],
-          opacity: headerOpacity,
-        }}>
-          <View style={{ 
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 16,
-          }}>
-            <Text style={{ fontSize: 16 }}>📍</Text>
-            <Text style={{ 
-              color: theme.colors.textSecondary,
-              fontSize: 14,
-              fontWeight: '600',
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-              marginLeft: 8,
-              opacity: 0.7,
+        {/* Header Area with Back Button and Content */}
+        <View
+          style={{
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(26, 35, 50, 0.8)'
+              : 'rgba(248, 249, 250, 0.9)',
+            borderBottomWidth: 0.2,
+            borderBottomColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.1)'
+              : 'rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          {/* Back Button */}
+          <View 
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+            }}
+          >
+            <TouchableOpacity 
+              onPress={onBack}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+              activeOpacity={0.7}
+            >
+              <ChevronLeft size={20} color={themeColors.text} strokeWidth={2} />
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 14,
+                fontWeight: '600',
+                marginLeft: 4,
+                fontFamily: 'System',
+              }}>
+                {continentName}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Country Info */}
+          <TouchableOpacity
+            onPress={handleMapPress}
+            activeOpacity={0.9}
+            style={{
+              paddingHorizontal: 20,
+              paddingTop: 10,
+              paddingBottom: 12,
+              justifyContent: 'flex-end',
+            }}
+          >
+
+
+          {/* Country Name and Stats */}
+          <View>
+            <Text style={{
+              color: themeColors.text,
+              fontSize: 32,
+              fontWeight: '800',
+              letterSpacing: -1,
+              fontFamily: 'System',
+              marginBottom: 8,
             }}>
-              Country
+              {country.name}
             </Text>
-          </View>
-          
-          <Text style={{ 
-            color: theme.colors.text,
-            fontSize: 48,
-            fontWeight: '700',
-            letterSpacing: -2,
-            lineHeight: 52,
-            marginBottom: 20,
-          }}>
-            {country.name}
-          </Text>
 
-          {/* Quick Stats Cards */}
-          <View style={{ 
-            flexDirection: 'row', 
-            gap: 12,
-            marginBottom: 24,
-          }}>
-            <View style={{
-              flex: 1,
-              backgroundColor: theme.colors.backgroundSecondary,
-              borderRadius: 16,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: theme.colors.border + '30',
-            }}>
+            {/* Stats Row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Users size={16} color={themeColors.textSecondary} strokeWidth={2} />
               <Text style={{
-                color: theme.colors.text,
-                fontSize: 24,
-                fontWeight: '800',
-                marginBottom: 4,
-              }}>
-                {country.subLocations.length}
-              </Text>
-              <Text style={{
-                color: theme.colors.textSecondary,
-                fontSize: 13,
+                color: themeColors.textSecondary,
+                fontSize: 14,
                 fontWeight: '600',
+                marginLeft: 6,
+                fontFamily: 'System',
               }}>
-                Destinations
-              </Text>
-            </View>
-            
-            <View style={{
-              flex: 1,
-              backgroundColor: theme.colors.backgroundSecondary,
-              borderRadius: 16,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: theme.colors.border + '30',
-            }}>
-              <Text style={{
-                color: theme.colors.text,
-                fontSize: 24,
-                fontWeight: '800',
-                marginBottom: 4,
-              }}>
-                {[...new Set(country.subLocations.flatMap(loc => loc.popularActivities))].length}
-              </Text>
-              <Text style={{
-                color: theme.colors.textSecondary,
-                fontSize: 13,
-                fontWeight: '600',
-              }}>
-                Activities
+                {(memberCount / 1000).toFixed(1)}M members
               </Text>
             </View>
           </View>
-          
-          <Text style={{ 
-            color: theme.colors.textSecondary,
-            fontSize: 16,
-            fontWeight: '500',
-            lineHeight: 24,
-            opacity: 0.8,
-          }}>
-            Explore amazing places and unique experiences in {country.name}
-          </Text>
-        </Animated.View>
-
-        {/* Modern Tab Selector */}
-        <View style={{ 
-          paddingHorizontal: 24,
-          paddingBottom: 32,
-        }}>
-          <View style={{ 
-            flexDirection: 'row',
-            backgroundColor: theme.colors.backgroundSecondary,
-            borderRadius: 16,
-            padding: 4,
-            borderWidth: 1,
-            borderColor: theme.colors.border + '20',
-          }}>
-            <TouchableOpacity
-              onPress={() => onTabChange('Highlights')}
-              style={{
-                flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                borderRadius: 12,
-                backgroundColor: activeTab === 'Highlights' ? theme.colors.text : 'transparent',
-                alignItems: 'center',
-              }}
-              activeOpacity={0.8}
-            >
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '600',
-                color: activeTab === 'Highlights' ? theme.colors.background : theme.colors.textSecondary,
-              }}>
-                Places ({country.subLocations.length})
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => onTabChange('Activities')}
-              style={{
-                flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                borderRadius: 12,
-                backgroundColor: activeTab === 'Activities' ? theme.colors.text : 'transparent',
-                alignItems: 'center',
-              }}
-              activeOpacity={0.8}
-            >
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '600',
-                color: activeTab === 'Activities' ? theme.colors.background : theme.colors.textSecondary,
-              }}>
-                Activities ({[...new Set(country.subLocations.flatMap(loc => loc.popularActivities))].length})
-              </Text>
-            </TouchableOpacity>
-          </View>
+        </TouchableOpacity>
         </View>
 
-        {/* Content */}
-        {activeTab === 'Highlights' ? (
-          // Enhanced Destination Cards
-          <View style={{ paddingHorizontal: 24, gap: 16 }}>
-            {country.subLocations.map((location, index) => (
+        {/* Location Filter Tabs */}
+        <View style={{ marginTop: 20, marginBottom: 20 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+            }}
+          >
+            {locationTabs.map((tab, index) => (
               <TouchableOpacity
-                key={location.id}
-                onPress={() => onLocationPress(location)}
-                activeOpacity={0.8}
+                key={tab}
+                onPress={() => setSelectedLocationFilter(tab)}
                 style={{
-                  backgroundColor: theme.colors.backgroundSecondary,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  backgroundColor: selectedLocationFilter === tab 
+                    ? theme.colors.primary 
+                    : themeColors.isDark 
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.05)',
                   borderRadius: 20,
-                  padding: 20,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border + '20',
-                  shadowColor: theme.colors.text,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 8,
-                  elevation: 2,
+                  marginRight: 8,
                 }}
+                activeOpacity={0.7}
               >
-                {/* Header with number and arrow */}
-                <View style={{ 
-                  flexDirection: 'row', 
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 16,
+                <Text style={{
+                  color: selectedLocationFilter === tab 
+                    ? 'white' 
+                    : themeColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: selectedLocationFilter === tab ? '600' : '500',
+                  fontFamily: 'System',
                 }}>
-                  <View style={{ 
-                    flexDirection: 'row', 
-                    alignItems: 'center',
-                    flex: 1,
-                  }}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Tab Navigation - Modern Minimalist */}
+        <View style={{ 
+          marginHorizontal: 20,
+          marginBottom: 24,
+          marginTop: 8,
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 0,
+          }}>
+            {['Forum', 'Explore', 'Activities'].map((tab, index) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => onTabChange(tab as PodTabType)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 4,
+                  alignItems: 'center',
+                  position: 'relative',
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: activeTab === tab ? '600' : '400',
+                  color: activeTab === tab 
+                    ? themeColors.text
+                    : themeColors.textSecondary,
+                  fontFamily: 'System',
+                  letterSpacing: -0.2,
+                }}>
+                  {tab}
+                </Text>
+                
+                {/* Active indicator line */}
+                {activeTab === tab && (
+                  <View style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: '25%',
+                    right: '25%',
+                    height: 2,
+                    backgroundColor: theme.colors.primary,
+                    borderRadius: 1,
+                  }} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          {/* Subtle bottom border */}
+          <View style={{
+            height: 0.5,
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.06)'
+              : 'rgba(0, 0, 0, 0.04)',
+            marginTop: 0,
+          }} />
+        </View>
+
+        {/* Content Area */}
+        {activeTab === 'Forum' && (
+          <View style={{ marginHorizontal: 20 }}>
+            {/* Create Post Button */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.05)'
+                  : 'rgba(0, 0, 0, 0.02)',
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20,
+                borderWidth: 1,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.06)',
+              }}
+              activeOpacity={0.7}
+              onPress={() => {
+                // TODO: Open create post modal
+                console.log('Create post in forum');
+              }}
+            >
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 16,
+                fontFamily: 'System',
+              }}>
+                What's on your mind about {country.name}?
+              </Text>
+            </TouchableOpacity>
+
+            {/* Mock Forum Posts */}
+            {selectedLocationFilter === 'All' && (
+              <>
+                {/* Manila Post */}
+                <View style={{
+                  backgroundColor: themeColors.background,
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                  borderWidth: 1,
+                  borderColor: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.06)',
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                     <View style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: theme.colors.text,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: theme.colors.primary,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginRight: 12,
                     }}>
-                      <Text style={{ 
-                        color: theme.colors.background,
-                        fontSize: 14,
-                        fontWeight: '700',
-                      }}>
-                        {index + 1}
-                      </Text>
+                      <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>M</Text>
                     </View>
-                    
-                    <Text style={{ 
-                      color: theme.colors.text,
-                      fontSize: 22,
-                      fontWeight: '700',
-                      letterSpacing: -0.5,
-                      flex: 1,
-                    }}>
-                      {location.name}
-                    </Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: themeColors.text,
+                        fontSize: 15,
+                        fontWeight: '600',
+                        fontFamily: 'System',
+                      }}>
+                        Maria Santos
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                        <MapPin size={12} color={themeColors.textSecondary} />
+                        <Text style={{
+                          color: themeColors.textSecondary,
+                          fontSize: 12,
+                          marginLeft: 4,
+                          fontFamily: 'System',
+                        }}>
+                          Manila • 2h ago
+                        </Text>
+                      </View>
+                    </View>
                   </View>
                   
+                  <Text style={{
+                    color: themeColors.text,
+                    fontSize: 16,
+                    lineHeight: 22,
+                    fontFamily: 'System',
+                    marginBottom: 12,
+                  }}>
+                    Best coffee shops in Makati? Looking for a good place to work remotely with reliable wifi and great ambiance. Any recommendations?
+                  </Text>
+                  
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
+                      <MessageCircle size={16} color={themeColors.textSecondary} />
+                      <Text style={{
+                        color: themeColors.textSecondary,
+                        fontSize: 14,
+                        marginLeft: 6,
+                        fontFamily: 'System',
+                      }}>
+                        12 replies
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Cebu Post */}
+                <View style={{
+                  backgroundColor: themeColors.background,
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                  borderWidth: 1,
+                  borderColor: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.06)',
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: '#10B981',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}>
+                      <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>J</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: themeColors.text,
+                        fontSize: 15,
+                        fontWeight: '600',
+                        fontFamily: 'System',
+                      }}>
+                        Juan dela Cruz
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                        <MapPin size={12} color={themeColors.textSecondary} />
+                        <Text style={{
+                          color: themeColors.textSecondary,
+                          fontSize: 12,
+                          marginLeft: 4,
+                          fontFamily: 'System',
+                        }}>
+                          Cebu • 4h ago
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  <Text style={{
+                    color: themeColors.text,
+                    fontSize: 16,
+                    lineHeight: 22,
+                    fontFamily: 'System',
+                    marginBottom: 12,
+                  }}>
+                    Planning a weekend trip to Oslob for whale shark watching. What's the best time to visit and any tips for first-timers?
+                  </Text>
+                  
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
+                      <MessageCircle size={16} color={themeColors.textSecondary} />
+                      <Text style={{
+                        color: themeColors.textSecondary,
+                        fontSize: 14,
+                        marginLeft: 6,
+                        fontFamily: 'System',
+                      }}>
+                        8 replies
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
+            )}
+
+            {/* Manila-specific posts */}
+            {selectedLocationFilter === 'Manila' && (
+              <View style={{
+                backgroundColor: themeColors.background,
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.06)',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                   <View style={{
                     width: 36,
                     height: 36,
                     borderRadius: 18,
-                    backgroundColor: theme.colors.background,
+                    backgroundColor: theme.colors.primary,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: theme.colors.border + '30',
+                    marginRight: 12,
                   }}>
-                    <ArrowUpRight 
-                      size={16} 
-                      color={theme.colors.text} 
-                      strokeWidth={2}
-                    />
+                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>M</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      color: themeColors.text,
+                      fontSize: 15,
+                      fontWeight: '600',
+                      fontFamily: 'System',
+                    }}>
+                      Maria Santos
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                      <MapPin size={12} color={themeColors.textSecondary} />
+                      <Text style={{
+                        color: themeColors.textSecondary,
+                        fontSize: 12,
+                        marginLeft: 4,
+                        fontFamily: 'System',
+                      }}>
+                        Manila • 2h ago
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 
-                <Text style={{ 
-                  color: theme.colors.textSecondary,
-                  fontSize: 15,
+                <Text style={{
+                  color: themeColors.text,
+                  fontSize: 16,
                   lineHeight: 22,
-                  marginBottom: 16,
-                  opacity: 0.8,
+                  fontFamily: 'System',
+                  marginBottom: 12,
                 }}>
-                  {location.description}
+                  Best coffee shops in Makati? Looking for a good place to work remotely with reliable wifi and great ambiance. Any recommendations?
                 </Text>
                 
-                {/* Activity Pills with original colors */}
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {location.popularActivities.slice(0, 4).map((activityKey) => {
-                    const activityColor = activityColors[activityKey as ActivityKey];
-                    const activityName = activityNames[activityKey as ActivityKey];
-                    
-                    return (
-                      <View
-                        key={activityKey}
-                        style={{
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 12,
-                          backgroundColor: activityColor + '15',
-                          borderWidth: 1,
-                          borderColor: activityColor + '30',
-                        }}
-                      >
-                        <Text style={{
-                          color: activityColor,
-                          fontSize: 12,
-                          fontWeight: '600',
-                        }}>
-                          {activityName || activityKey}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                  {location.popularActivities.length > 4 && (
-                    <View style={{
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 12,
-                      backgroundColor: theme.colors.background,
-                      borderWidth: 1,
-                      borderColor: theme.colors.border + '40',
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
+                    <MessageCircle size={16} color={themeColors.textSecondary} />
+                    <Text style={{
+                      color: themeColors.textSecondary,
+                      fontSize: 14,
+                      marginLeft: 6,
+                      fontFamily: 'System',
                     }}>
-                      <Text style={{
-                        color: theme.colors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: '600',
-                      }}>
-                        +{location.popularActivities.length - 4}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : (
-          // Enhanced Activities Grid
-          <View style={{ paddingHorizontal: 24 }}>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-              {activityTags.map((activity) => {
-                const activityKey = activity.name.toLowerCase() as ActivityKey;
-                const count = country.subLocations.filter(loc => 
-                  loc.popularActivities.includes(activityKey)
-                ).length;
-                
-                if (count === 0) return null;
-                
-                return (
-                  <TouchableOpacity
-                    key={activity.name}
-                    style={{
-                      width: (width - 80) / 2,
-                      minHeight: 120,
-                      borderRadius: 20,
-                      backgroundColor: theme.colors.backgroundSecondary,
-                      borderWidth: 2,
-                      borderColor: activity.color + '30',
-                      padding: 20,
-                      justifyContent: 'space-between',
-                      shadowColor: activity.color,
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 12,
-                      elevation: 3,
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    {/* Activity Header */}
-                    <View>
-                      <View style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                        backgroundColor: activity.color + '15',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 12,
-                      }}>
-                        <View style={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: 8,
-                          backgroundColor: activity.color,
-                        }} />
-                      </View>
-                      
-                      <Text style={{
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: theme.colors.text,
-                        marginBottom: 6,
-                        letterSpacing: -0.5,
-                      }}>
-                        {activity.name}
-                      </Text>
-                      
-                      <Text style={{
-                        fontSize: 13,
-                        color: theme.colors.textSecondary,
-                        fontWeight: '600',
-                      }}>
-                        {count} {count === 1 ? 'place' : 'places'}
-                      </Text>
-                    </View>
-                    
-                    {/* Visual Indicator */}
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginTop: 16,
-                    }}>
-                      <View style={{
-                        flex: 1,
-                        height: 3,
-                        backgroundColor: activity.color + '20',
-                        borderRadius: 2,
-                        marginRight: 12,
-                      }}>
-                        <View style={{
-                          width: `${Math.min((count / Math.max(...activityTags.map(a => {
-                            const key = a.name.toLowerCase() as ActivityKey;
-                            return country.subLocations.filter(loc => 
-                              loc.popularActivities.includes(key)
-                            ).length;
-                          }))) * 100, 100)}%`,
-                          height: '100%',
-                          backgroundColor: activity.color,
-                          borderRadius: 2,
-                        }} />
-                      </View>
-                      
-                      <ArrowUpRight 
-                        size={16} 
-                        color={activity.color} 
-                        strokeWidth={2}
-                      />
-                    </View>
+                      12 replies
+                    </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
+                </View>
+              </View>
+            )}
+
+            {/* Palawan-specific posts */}
+            {selectedLocationFilter === 'Palawan' && (
+              <View style={{
+                backgroundColor: themeColors.background,
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.06)',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <View style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#F59E0B',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}>
+                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>A</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      color: themeColors.text,
+                      fontSize: 15,
+                      fontWeight: '600',
+                      fontFamily: 'System',
+                    }}>
+                      Anna Reyes
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                      <MapPin size={12} color={themeColors.textSecondary} />
+                      <Text style={{
+                        color: themeColors.textSecondary,
+                        fontSize: 12,
+                        marginLeft: 4,
+                        fontFamily: 'System',
+                      }}>
+                        Palawan • 1h ago
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                
+                <Text style={{
+                  color: themeColors.text,
+                  fontSize: 16,
+                  lineHeight: 22,
+                  fontFamily: 'System',
+                  marginBottom: 12,
+                }}>
+                  El Nido vs Coron - which one should I visit first? I have 5 days and want to make the most of my Palawan trip!
+                </Text>
+                
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
+                    <MessageCircle size={16} color={themeColors.textSecondary} />
+                    <Text style={{
+                      color: themeColors.textSecondary,
+                      fontSize: 14,
+                      marginLeft: 6,
+                      fontFamily: 'System',
+                    }}>
+                      15 replies
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Empty state for other filters */}
+            {!['All', 'Manila', 'Palawan'].includes(selectedLocationFilter) && (
+              <View style={{
+                alignItems: 'center',
+                paddingVertical: 40,
+              }}>
+                <MessageCircle size={48} color={themeColors.textSecondary} strokeWidth={1} />
+                <Text style={{
+                  color: themeColors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: '500',
+                  marginTop: 16,
+                  fontFamily: 'System',
+                }}>
+                  No discussions yet
+                </Text>
+                <Text style={{
+                  color: themeColors.textSecondary,
+                  fontSize: 14,
+                  marginTop: 4,
+                  textAlign: 'center',
+                  fontFamily: 'System',
+                }}>
+                  Be the first to start a conversation in {selectedLocationFilter}
+                </Text>
+              </View>
+            )}
           </View>
         )}
-      </Animated.ScrollView>
+
+        {/* Other tab content */}
+        {activeTab === 'Explore' && (
+          <View style={{ 
+            alignItems: 'center', 
+            paddingVertical: 40,
+            marginHorizontal: 20,
+          }}>
+            <Text style={{
+              color: themeColors.textSecondary,
+              fontSize: 16,
+              fontFamily: 'System',
+            }}>
+              Explore content coming soon
+            </Text>
+          </View>
+        )}
+
+        {activeTab === 'Activities' && (
+          <View style={{ 
+            alignItems: 'center', 
+            paddingVertical: 40,
+            marginHorizontal: 20,
+          }}>
+            <Text style={{
+              color: themeColors.textSecondary,
+              fontSize: 16,
+              fontFamily: 'System',
+            }}>
+              Activities content coming soon
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 };
 
-export default CountryViewScreen;
+export default CountryViewScreen; 

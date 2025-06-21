@@ -21,6 +21,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { useSettings } from '../../contexts/SettingsContext';
 import SettingsToggle from '../../components/SettingsToggle';
+import { getResponsiveDimensions, rs } from '../../utils/responsive';
 
 interface Props {
   onBackPress?: () => void;
@@ -29,6 +30,7 @@ interface Props {
 export default function ProfileSettings({ onBackPress }: Props = {}) {
   const themeColors = useThemeColors();
   const { isImmersiveFeedEnabled, setImmersiveFeedEnabled } = useSettings();
+  const responsiveDimensions = getResponsiveDimensions();
   
   const handleMenuItemPress = (item: string) => {
     if (item === 'signout') {
@@ -82,14 +84,15 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
   ];
 
   const getIcon = (id: string) => {
+    const iconSize = responsiveDimensions.settings.iconSize;
     switch (id) {
-      case 'theme': return <Moon size={20} color={themeColors.text} strokeWidth={2} />;
-      case 'immersive-feed': return <Smartphone size={20} color={themeColors.text} strokeWidth={2} />;
-      case 'account': return <User size={20} color={themeColors.text} strokeWidth={2} />;
-      case 'privacy': return <Shield size={20} color={themeColors.text} strokeWidth={2} />;
-      case 'activity': return <BarChart3 size={20} color={themeColors.text} strokeWidth={2} />;
-      case 'blocked': return <UserX size={20} color={themeColors.text} strokeWidth={2} />;
-      case 'signout': return <LogOut size={20} color="#dc2626" strokeWidth={2} />;
+      case 'theme': return <Moon size={iconSize} color={themeColors.text} strokeWidth={2} />;
+      case 'immersive-feed': return <Smartphone size={iconSize} color={themeColors.text} strokeWidth={2} />;
+      case 'account': return <User size={iconSize} color={themeColors.text} strokeWidth={2} />;
+      case 'privacy': return <Shield size={iconSize} color={themeColors.text} strokeWidth={2} />;
+      case 'activity': return <BarChart3 size={iconSize} color={themeColors.text} strokeWidth={2} />;
+      case 'blocked': return <UserX size={iconSize} color={themeColors.text} strokeWidth={2} />;
+      case 'signout': return <LogOut size={iconSize} color="#dc2626" strokeWidth={2} />;
       default: return null;
     }
   };
@@ -141,10 +144,14 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                 <View style={{ 
                   flexDirection: 'row', 
                   alignItems: 'center', 
-                  paddingVertical: 20 
+                  paddingVertical: responsiveDimensions.settings.itemPadding 
                 }}>
                   {/* Icon */}
-                  <View style={{ width: 24, height: 24, marginRight: 16 }}>
+                  <View style={{ 
+                    width: responsiveDimensions.settings.iconContainer.width, 
+                    height: responsiveDimensions.settings.iconContainer.height, 
+                    marginRight: rs(16) 
+                  }}>
                     {getIcon(item.id)}
                   </View>
                   
@@ -173,10 +180,14 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                 <View style={{ 
                   flexDirection: 'row', 
                   alignItems: 'center', 
-                  paddingVertical: 20 
+                  paddingVertical: responsiveDimensions.settings.itemPadding 
                 }}>
                   {/* Icon */}
-                  <View style={{ width: 24, height: 24, marginRight: 16 }}>
+                  <View style={{ 
+                    width: responsiveDimensions.settings.iconContainer.width, 
+                    height: responsiveDimensions.settings.iconContainer.height, 
+                    marginRight: rs(16) 
+                  }}>
                     {getIcon(item.id)}
                   </View>
                   
@@ -211,12 +222,16 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   style={{ 
                     flexDirection: 'row', 
                     alignItems: 'center', 
-                    paddingVertical: 20 
+                    paddingVertical: responsiveDimensions.settings.itemPadding 
                   }}
                   activeOpacity={0.3}
                 >
                   {/* Icon */}
-                  <View style={{ width: 24, height: 24, marginRight: 16 }}>
+                  <View style={{ 
+                    width: responsiveDimensions.settings.iconContainer.width, 
+                    height: responsiveDimensions.settings.iconContainer.height, 
+                    marginRight: rs(16) 
+                  }}>
                     {getIcon(item.id)}
                   </View>
                   
@@ -241,14 +256,14 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   
                   {/* Arrow */}
                   <View style={{ 
-                    width: 16, 
-                    height: 16, 
+                    width: responsiveDimensions.settings.arrowSize, 
+                    height: responsiveDimensions.settings.arrowSize, 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
                     <View style={{ 
-                      width: 8, 
-                      height: 8, 
+                      width: rs(8), 
+                      height: rs(8), 
                       borderTopWidth: 1, 
                       borderRightWidth: 1, 
                       borderColor: themeColors.textSecondary, 

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Image, TouchableOpacity, View, Dimensions, Animated } from 'react-native';
 import { Album } from 'lucide-react-native';
-import { getResponsiveDimensions, ri, rs, RESPONSIVE_SCREEN } from '../utils/responsive';
+import { getResponsiveDimensions, getGridColumns, ri, rs, RESPONSIVE_SCREEN } from '../utils/responsive';
 
 const { width } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
+const gridColumns = getGridColumns();
 
 interface MediaGridItemProps {
   imageUri: string;
@@ -43,7 +44,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={{ 
-        width: responsiveDimensions.mediaGrid.itemWidth,
+        width: width / gridColumns.media,
         aspectRatio: responsiveDimensions.mediaGrid.aspectRatio,
         padding: responsiveDimensions.mediaGrid.padding
       }}

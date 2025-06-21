@@ -15,7 +15,7 @@ import { getResponsiveDimensions, getTypographyScale, ri, rs, rf } from './blinx
 // Import screens
 import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
 import ProfileScreen, { ProfileScreenRef } from './blinxus/src/screens/Profile/ProfileScreen';
-import PodsMainScreen from './blinxus/src/screens/Pods/PodsMainScreen';
+import PodsMainScreen, { PodsMainScreenRef } from './blinxus/src/screens/Pods/PodsMainScreen';
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
 import NotificationsScreen from './blinxus/src/screens/NotificationsScreen';
 import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
@@ -24,6 +24,7 @@ import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
 import { PostsProvider } from './blinxus/src/store/PostsContext';
 import { SavedPostsProvider } from './blinxus/src/store/SavedPostsContext';
 import { LikedPostsProvider } from './blinxus/src/store/LikedPostsContext';
+import { JoinedPodsProvider } from './blinxus/src/store/JoinedPodsContext';
 import { ThemeProvider } from './blinxus/src/contexts/ThemeContext';
 import { SettingsProvider } from './blinxus/src/contexts/SettingsContext';
 
@@ -97,6 +98,7 @@ function TabNavigator() {
   const podsScrollRef = useRef<ScrollView>(null);
   const profileScrollRef = useRef<ScrollView>(null);
   const exploreScreenRef = useRef<ExploreScreenRef>(null);
+  const podsScreenRef = useRef<PodsMainScreenRef>(null);
   const profileScreenRef = useRef<ProfileScreenRef>(null);
   
   // Double tap detection
@@ -129,8 +131,9 @@ function TabNavigator() {
           }
           break;
         case 'Pods':
-          if (podsScrollRef.current) {
-            podsScrollRef.current.scrollTo({ y: 0, animated: true });
+          // Trigger full screen reset in PodsMainScreen
+          if (podsScreenRef.current) {
+            podsScreenRef.current.resetToTop();
           }
           break;
         case 'Profile':
@@ -201,7 +204,9 @@ function TabNavigator() {
         <Tab.Screen name="Home">
           {() => <ExploreScreen ref={exploreScreenRef} />}
         </Tab.Screen>
-        <Tab.Screen name="Pods" component={PodsMainScreen} />
+        <Tab.Screen name="Pods">
+          {() => <PodsMainScreen ref={podsScreenRef} />}
+        </Tab.Screen>
         <Tab.Screen name="Create" component={CreatePost} />
         <Tab.Screen name="Notifications" component={NotificationsScreen} />
         <Tab.Screen name="Profile">
@@ -237,11 +242,13 @@ export default function App() {
         <PostsProvider>
           <SavedPostsProvider>
             <LikedPostsProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <NavigationContainer>
-                  <RootNavigator />
-                </NavigationContainer>
-              </GestureHandlerRootView>
+              <JoinedPodsProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <NavigationContainer>
+                    <RootNavigator />
+                  </NavigationContainer>
+                </GestureHandlerRootView>
+              </JoinedPodsProvider>
             </LikedPostsProvider>
           </SavedPostsProvider>
         </PostsProvider>

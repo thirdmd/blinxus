@@ -16,6 +16,7 @@ import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getResponsiveDimensions, rs } from '../../utils/responsive';
 
 interface CreateRegularPostProps {
   navigation: {
@@ -27,6 +28,7 @@ interface CreateRegularPostProps {
 const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: CreateRegularPostProps, ref) => {
   const { addPost } = usePosts();
   const themeColors = useThemeColors();
+  const responsiveDimensions = getResponsiveDimensions();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [postText, setPostText] = useState<string>('');
@@ -199,7 +201,11 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
               <View style={{ position: 'relative' }}>
                 <Image
                   source={{ uri: selectedImages[0] }}
-                  style={{ width: '100%', height: 192, borderRadius: 16 }}
+                  style={{ 
+                    width: '100%', 
+                    height: responsiveDimensions.createPost.singleImage.height, 
+                    borderRadius: rs(16) 
+                  }}
                   resizeMode="cover"
                 />
                 <TouchableOpacity
@@ -227,7 +233,11 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
                   <View key={index} style={{ flex: 1, position: 'relative' }}>
                     <Image
                       source={{ uri: image }}
-                      style={{ width: '100%', height: 192, borderRadius: 16 }}
+                      style={{ 
+                        width: '100%', 
+                        height: responsiveDimensions.createPost.doubleImage.height, 
+                        borderRadius: rs(16) 
+                      }}
                       resizeMode="cover"
                     />
                     <TouchableOpacity
@@ -257,7 +267,11 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
                 <View style={{ position: 'relative', marginBottom: 8 }}>
                   <Image
                     source={{ uri: selectedImages[0] }}
-                    style={{ width: '100%', height: 160, borderRadius: 16 }}
+                    style={{ 
+                      width: '100%', 
+                      height: responsiveDimensions.createPost.mainImage.height, 
+                      borderRadius: rs(16) 
+                    }}
                     resizeMode="cover"
                   />
                   <TouchableOpacity
@@ -285,7 +299,11 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
                     <View key={index + 1} style={{ flex: 1, position: 'relative' }}>
                       <Image
                         source={{ uri: image }}
-                        style={{ width: '100%', height: 96, borderRadius: 12 }}
+                        style={{ 
+                          width: '100%', 
+                          height: responsiveDimensions.createPost.secondaryImage.height, 
+                          borderRadius: rs(12) 
+                        }}
                         resizeMode="cover"
                       />
                       <TouchableOpacity
@@ -350,9 +368,9 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
           <TouchableOpacity
             onPress={handleImagePicker}
             style={{
-              height: 128,
+              height: responsiveDimensions.createPost.placeholder.height,
               backgroundColor: themeColors.backgroundSecondary,
-              borderRadius: 16,
+              borderRadius: rs(16),
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 2,

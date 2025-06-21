@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { 
@@ -22,10 +22,24 @@ import ContinentListScreen from '../../screens/Pods/components/ContinentListScre
 import CountryViewScreen from '../../screens/Pods/components/CountryViewScreen';
 import LocationViewScreen from '../../screens/Pods/components/LocationViewScreen';
 
-const PodsMainScreen: React.FC = () => {
+// Export interface for App.tsx ref
+export interface PodsMainScreenRef {
+  resetToTop: () => void;
+}
+
+const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   const themeColors = useThemeColors();
   const [navigationState, setNavigationState] = useState<PodsNavigationState>(createInitialPodsState());
-  const [activeTab, setActiveTab] = useState<PodTabType>('Highlights');
+  const [activeTab, setActiveTab] = useState<PodTabType>('Forum');
+  
+  // State persistence for ContinentListScreen
+  const [continentListState, setContinentListState] = useState({
+    activeContinent: 0,
+    scrollPosition: 0,
+  });
+
+  // Reset key for triggering full screen reset
+  const [resetKey, setResetKey] = useState(0);
   
   // Initialize posting service
   const postingService = PodsPostingService.getInstance();
@@ -63,7 +77,7 @@ const PodsMainScreen: React.FC = () => {
       selectedCountry: philippinesData,
       selectedContinent: asiaData,
     }));
-    setActiveTab('Highlights');
+    setActiveTab('Forum');
   };
 
   const handleCountryPress = (country: Country) => {
@@ -73,12 +87,13 @@ const PodsMainScreen: React.FC = () => {
       selectedCountry: country,
       selectedContinent: asiaData,
     }));
-    setActiveTab('Highlights');
+    setActiveTab('Forum');
   };
 
   const handleBackToMain = () => {
     setNavigationState(createInitialPodsState());
-    setActiveTab('Highlights');
+    setActiveTab('Forum');
+    // Don't reset continent list state - keep user's position
   };
 
   const handleBackToCountry = () => {
@@ -93,6 +108,38 @@ const PodsMainScreen: React.FC = () => {
     setActiveTab(tab);
   };
 
+  // Handle continent tab changes from ContinentListScreen
+  const handleContinentTabChange = (tabIndex: number) => {
+    setContinentListState(prev => ({
+      ...prev,
+      activeContinent: tabIndex,
+    }));
+  };
+
+  // Handle double-tap to reset to "For You" tab - trigger full screen reset
+  const handleDoubleTabPress = () => {
+    // Reset continent list state completely
+    setContinentListState({
+      activeContinent: 0,
+      scrollPosition: 0,
+    });
+    
+    // Increment reset key to trigger useEffect in ContinentListScreen
+    setResetKey(prev => prev + 1);
+  };
+
+  // Expose reset function to parent via ref
+  useImperativeHandle(ref, () => ({
+    resetToTop: () => {
+      // First navigate back to continent list if we're in other screens
+      setNavigationState(createInitialPodsState());
+      setActiveTab('Forum');
+      
+      // Then trigger the full reset
+      handleDoubleTabPress();
+    },
+  }));
+
   // Render appropriate screen based on navigation state
   const renderCurrentScreen = () => {
     switch (navigationState.currentScreen) {
@@ -101,6 +148,10 @@ const PodsMainScreen: React.FC = () => {
           <ContinentListScreen
             theme={podTheme}
             onCountryPress={handleCountryPress}
+            initialActiveContinent={continentListState.activeContinent}
+            onTabChange={handleContinentTabChange}
+            onDoubleTabPress={handleDoubleTabPress}
+            resetKey={resetKey}
           />
         );
       
@@ -138,14 +189,22 @@ const PodsMainScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+    <SafeAreaView style={{ 
+      flex: 1, 
+      backgroundColor: themeColors.isDark 
+        ? 'rgba(26, 35, 50, 0.8)' 
+        : 'rgba(248, 249, 250, 0.9)'
+    }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.background} 
+        backgroundColor={themeColors.isDark 
+          ? 'rgba(26, 35, 50, 0.8)' 
+          : 'rgba(248, 249, 250, 0.9)'
+        } 
       />
       {renderCurrentScreen()}
     </SafeAreaView>
   );
-};
+});
 
 export default PodsMainScreen; 

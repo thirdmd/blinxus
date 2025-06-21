@@ -5,8 +5,9 @@ import { PostCardProps } from '../types/structures/posts_structure';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { RESPONSIVE_SCREEN } from '../utils/responsive';
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = RESPONSIVE_SCREEN;
 
 interface LucidAlbumData {
   title: string;

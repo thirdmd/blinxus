@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,24 @@ import {
   Animated,
   Dimensions,
   ScrollView,
+  Modal,
 } from 'react-native';
 
-import { Search, MapPin, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus } from 'lucide-react-native';
+import { Search, MapPin, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, Country, Continent } from '../../../constants/placesData';
 import { useThemeColors } from '../../../hooks/useThemeColors';
+import { useJoinedPods } from '../../../store/JoinedPodsContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface ContinentListScreenProps {
   theme: PodThemeConfig;
   onCountryPress: (country: Country) => void;
+  initialActiveContinent?: number;
+  onTabChange?: (tabIndex: number) => void;
+  onDoubleTabPress?: () => void;
+  resetKey?: number;
 }
 
 // Separate component for country card to properly use hooks
@@ -29,12 +35,13 @@ const CountryCard: React.FC<{
   theme: PodThemeConfig;
   themeColors: any;
   onPress: (country: Country) => void;
-  userJoinedPods: Set<string>;
+  isPodJoined: (podId: string) => boolean;
   onJoinPod: (countryId: string) => void;
-}> = ({ country, index, theme, themeColors, onPress, userJoinedPods, onJoinPod }) => {
+}> = ({ country, index, theme, themeColors, onPress, isPodJoined, onJoinPod }) => {
   const isPopular = country.subLocations.length > 15;
-  const isUserJoined = userJoinedPods.has(country.id);
-  const memberCount = Math.floor(Math.random() * 5000 + 100); // Mock member count, will come from Firebase
+  const isUserJoined = isPodJoined(country.id);
+  // Generate consistent member count based on country ID (won't change on re-renders)
+  const memberCount = Math.floor((country.id.charCodeAt(0) * country.id.charCodeAt(country.id.length - 1) * 37) % 5000 + 100);
   const cardAnimation = useRef(new Animated.Value(0)).current;
   const scaleAnimation = useRef(new Animated.Value(1)).current;
   
@@ -64,8 +71,8 @@ const CountryCard: React.FC<{
       bounciness: 10,
     }).start();
   };
-  
-  return (
+    
+    return (
     <Animated.View style={{
       opacity: cardAnimation,
       transform: [
@@ -133,7 +140,7 @@ const CountryCard: React.FC<{
             borderRadius: 60,
             backgroundColor: theme.colors.primary,
             opacity: 0.06,
-          }} />
+        }} />
         )}
 
         {/* Content */}
@@ -148,19 +155,19 @@ const CountryCard: React.FC<{
           <View style={{ flex: 1, marginRight: 12 }}>
             {/* Country Name */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-              <Text 
-                style={{ 
+                <Text 
+                  style={{ 
                   color: themeColors.text,
-                  fontSize: 20,
-                  fontWeight: '700',
+                    fontSize: 20,
+                    fontWeight: '700',
                   letterSpacing: -0.6,
                   fontFamily: 'System',
                   lineHeight: 24,
-                }}
+                  }}
                 numberOfLines={1}
-              >
-                {country.name}
-              </Text>
+                >
+                  {country.name}
+                </Text>
               
               {/* Join Button */}
               {!isUserJoined && (
@@ -204,7 +211,7 @@ const CountryCard: React.FC<{
                   alignItems: 'center',
                 }}>
                   <Sparkles size={10} color={theme.colors.primary} strokeWidth={3} />
-                  <Text style={{
+                    <Text style={{ 
                     color: theme.colors.primary,
                     fontSize: 10,
                     fontWeight: '700',
@@ -212,20 +219,20 @@ const CountryCard: React.FC<{
                     fontFamily: 'System',
                     letterSpacing: 0.4,
                     textTransform: 'uppercase',
-                  }}>
+                    }}>
                     Hot
-                  </Text>
-                </View>
-              )}
-            </View>
-            
+                    </Text>
+                  </View>
+                )}
+              </View>
+              
             {/* Stats */}
             <View style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
               opacity: 0.7,
             }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{
                   width: 16,
                   height: 16,
@@ -303,15 +310,32 @@ const CountryCard: React.FC<{
 const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
   theme,
   onCountryPress,
+  initialActiveContinent = 0,
+  onTabChange,
+  onDoubleTabPress,
+  resetKey = 0,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeContinent, setActiveContinent] = useState(0);
+  const [activeContinent, setActiveContinent] = useState(initialActiveContinent);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isJoinedPodsVisible, setIsJoinedPodsVisible] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
   const searchAnimation = useRef(new Animated.Value(0)).current;
+  const slideAnimation = useRef(new Animated.Value(-screenWidth * 0.75)).current;
+  const overlayAnimation = useRef(new Animated.Value(0)).current;
   const tabScrollRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   const themeColors = useThemeColors();
+
+  // Use JoinedPodsContext for session persistence
+  const { 
+    joinPod, 
+    isPodJoined, 
+    joinedPods,
+    togglePodNotifications,
+    isPodNotificationsEnabled 
+  } = useJoinedPods();
 
   // Memoize tabs to prevent re-rendering
   const allTabs = useMemo(() => [
@@ -319,13 +343,40 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     ...placesData
   ], []);
 
-  // User membership state (ready for multi-user implementation)
-  const [userJoinedPods, setUserJoinedPods] = useState<Set<string>>(new Set());
-  // Track recently joined pods (won't be sorted until page reload/navigation)
+  // Track recently joined pods (won't be sorted until screen reset)
   const [recentlyJoinedPods, setRecentlyJoinedPods] = useState<Set<string>>(new Set());
-  
-  // Mock current user ID (ready for Firebase integration)
-  const currentUserId = "third_camacho"; // This will come from auth context later
+
+  // Update active continent when initialActiveContinent changes (for proper back navigation)
+  useEffect(() => {
+    setActiveContinent(initialActiveContinent);
+  }, [initialActiveContinent]);
+
+  // Reset screen completely when resetKey changes (from double-tap)
+  useEffect(() => {
+    if (resetKey > 0) {
+      // Full screen reset - clear all temporary states
+      setActiveContinent(0);
+      setSearchQuery('');
+      setIsSearchExpanded(false);
+      setIsJoinedPodsVisible(false);
+      setRecentlyJoinedPods(new Set()); // Clear recently joined - joined countries will move to top
+      
+      // Reset scroll positions
+      if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
+      if (tabScrollRef.current) {
+        tabScrollRef.current.scrollTo({ x: 0, animated: true });
+      }
+    }
+  }, [resetKey]);
+
+  // Persist active continent when it changes
+  useEffect(() => {
+    if (onTabChange) {
+      onTabChange(activeContinent);
+    }
+  }, [activeContinent]);
 
   // Clear recently joined pods when switching tabs (so they move to top when returning)
   React.useEffect(() => {
@@ -334,33 +385,82 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     setRecentlyJoinedPods(new Set());
   }, [activeContinent]);
 
-  // Simple tab change handler
+  // Enhanced tab change handler with state persistence
   const handleContinentChange = React.useCallback((index: number) => {
     setActiveContinent(index);
     setSearchQuery(''); // Clear search when switching continents
+    
+    // Scroll to top when changing tabs
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+    }
   }, []);
+
+  // Double-tap handler for "For You" tab reset
+  const handleDoubleTabPress = React.useCallback(() => {
+    if (onDoubleTabPress) {
+      onDoubleTabPress();
+    }
+    
+    // Reset to "For You" tab and scroll to top
+    setActiveContinent(0);
+    setSearchQuery('');
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+    }
+    
+    // Scroll tabs to beginning
+    if (tabScrollRef.current) {
+      tabScrollRef.current.scrollTo({ x: 0, animated: true });
+    }
+  }, [onDoubleTabPress]);
   
-  // Join pod function (ready for Firebase implementation)
+  // Enhanced join pod function with session persistence using context
   const handleJoinPod = async (countryId: string) => {
     try {
-      // Future Firebase implementation:
-      // await firestore().collection('userPods').doc(currentUserId).update({
-      //   joinedPods: firestore.FieldValue.arrayUnion(countryId)
-      // });
+      // Use context function for session persistence
+      joinPod(countryId);
       
-      // Update local state - add to both joined and recently joined
-      setUserJoinedPods(prev => new Set([...prev, countryId]));
+      // Add to recently joined for UI sorting
       setRecentlyJoinedPods(prev => new Set([...prev, countryId]));
-      
-      // TODO: Also update pod member count in Firebase
-      // await firestore().collection('pods').doc(countryId).update({
-      //   memberCount: firestore.FieldValue.increment(1),
-      //   members: firestore.FieldValue.arrayUnion(currentUserId)
-      // });
       
     } catch (error) {
       console.error('Error joining pod:', error);
     }
+  };
+
+  // Show/Hide Joined Pods Modal
+  const showJoinedPods = () => {
+    setIsJoinedPodsVisible(true);
+    Animated.parallel([
+      Animated.timing(slideAnimation, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlayAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const hideJoinedPods = () => {
+    Animated.parallel([
+      Animated.timing(slideAnimation, {
+        toValue: -screenWidth * 0.75,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlayAnimation, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsJoinedPodsVisible(false);
+    });
   };
 
   // Search expand/collapse functions
@@ -437,8 +537,8 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     // 2. For "For You" tab: Hot countries (15+ destinations) before featured countries
     // 3. Within same category: by destination count (descending)
     return countries.sort((a, b) => {
-      const aJoined = userJoinedPods.has(a.id) && !recentlyJoinedPods.has(a.id);
-      const bJoined = userJoinedPods.has(b.id) && !recentlyJoinedPods.has(b.id);
+      const aJoined = isPodJoined(a.id) && !recentlyJoinedPods.has(a.id);
+      const bJoined = isPodJoined(b.id) && !recentlyJoinedPods.has(b.id);
       
       // Joined countries always come first
       if (aJoined && !bJoined) return -1;
@@ -448,7 +548,146 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
       // (For You tab already sorted by hot/featured, other tabs keep original order)
       return 0;
     });
-  }, [searchQuery, activeContinent, userJoinedPods]);
+  }, [searchQuery, activeContinent, isPodJoined, recentlyJoinedPods]);
+
+  // Get joined countries for the modal
+  const joinedCountries = useMemo(() => {
+    const allCountries = placesData.reduce((acc, continent) => {
+      return [...acc, ...continent.countries];
+    }, [] as Country[]);
+    
+    return allCountries.filter(country => isPodJoined(country.id));
+  }, [isPodJoined]);
+
+  // Enhanced renderJoinedPodItem with notification toggle
+  const renderJoinedPodItem = ({ item: country, index }: { item: Country; index: number }) => {
+    // Generate consistent member count based on country ID (won't change on re-renders)
+    const memberCount = Math.floor((country.id.charCodeAt(0) * country.id.charCodeAt(country.id.length - 1) * 37) % 5000 + 100);
+    const continent = placesData.find(cont => cont.countries.some(c => c.id === country.id));
+    const notificationsEnabled = isPodNotificationsEnabled(country.id);
+    
+    return (
+      <View
+        style={{
+          marginBottom: 12,
+          marginHorizontal: 16,
+          borderRadius: 16,
+          overflow: 'hidden',
+          backgroundColor: themeColors.isDark 
+            ? 'rgba(26, 35, 50, 0.6)'
+            : 'rgba(255, 255, 255, 0.8)',
+          borderWidth: 0.5,
+          borderColor: themeColors.isDark 
+            ? 'rgba(255, 255, 255, 0.06)' 
+            : 'rgba(0, 0, 0, 0.03)',
+        }}
+      >
+        <View style={{
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <TouchableOpacity
+              onPress={() => {
+                hideJoinedPods();
+                onCountryPress(country);
+              }}
+              style={{ flex: 1 }}
+              activeOpacity={0.7}
+            >
+              <Text style={{
+                color: themeColors.text,
+                fontSize: 16,
+                fontWeight: '700',
+                fontFamily: 'System',
+                letterSpacing: -0.3,
+              }}>
+                {country.name}
+              </Text>
+            </TouchableOpacity>
+            
+            {/* Enhanced Notification Toggle - More obvious it's pressable */}
+            <TouchableOpacity
+              onPress={() => togglePodNotifications(country.id)}
+              style={{
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 12,
+                backgroundColor: notificationsEnabled 
+                  ? theme.colors.primary + '15' 
+                  : themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.04)',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+              activeOpacity={0.7}
+            >
+              {notificationsEnabled ? (
+                <Bell 
+                  size={12} 
+                  color={theme.colors.primary} 
+                  strokeWidth={2.5}
+                />
+              ) : (
+                <BellOff 
+                  size={12} 
+                  color={themeColors.textSecondary} 
+                  strokeWidth={2.5}
+                />
+              )}
+              <Text style={{
+                color: notificationsEnabled ? theme.colors.primary : themeColors.textSecondary,
+                fontSize: 10,
+                fontWeight: '600',
+                fontFamily: 'System',
+                marginLeft: 4,
+              }}>
+                {notificationsEnabled ? 'ON' : 'OFF'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <Text style={{
+              color: themeColors.textSecondary,
+              fontSize: 12,
+              fontWeight: '500',
+              fontFamily: 'System',
+            }}>
+              {continent?.name || 'Unknown'}
+            </Text>
+            <View style={{
+              width: 2,
+              height: 2,
+              borderRadius: 1,
+              backgroundColor: themeColors.textSecondary,
+              marginHorizontal: 8,
+              opacity: 0.5,
+            }} />
+            <Text style={{
+              color: themeColors.textSecondary,
+              fontSize: 12,
+              fontWeight: '500',
+              fontFamily: 'System',
+            }}>
+              {memberCount.toLocaleString()} members
+            </Text>
+          </View>
+          
+          <Text style={{
+            color: themeColors.textSecondary,
+            fontSize: 11,
+            fontWeight: '400',
+            fontFamily: 'System',
+            opacity: 0.7,
+          }}>
+            {country.subLocations.length} destinations
+          </Text>
+        </View>
+      </View>
+    );
+  };
 
   const renderCountryCard = ({ item: country, index }: { item: Country; index: number }) => {
     return (
@@ -458,20 +697,28 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         theme={theme}
         themeColors={themeColors}
         onPress={onCountryPress}
-        userJoinedPods={userJoinedPods}
+        isPodJoined={isPodJoined}
         onJoinPod={handleJoinPod}
       />
     );
   };
 
+  // Enhanced renderContinentTab with double-tap detection
   const renderContinentTab = React.useCallback((continent: Continent | { id: string; name: string }, index: number) => {
     const isActive = activeContinent === index;
     
     return (
       <TouchableOpacity
         key={continent.id}
-        onPress={() => handleContinentChange(index)}
-        style={{
+        onPress={() => {
+          if (index === 0 && activeContinent === 0) {
+            // Double-tap "For You" tab - trigger double-tap handler
+            handleDoubleTabPress();
+          } else {
+            handleContinentChange(index);
+          }
+        }}
+        style={{ 
           paddingHorizontal: 16,
           paddingVertical: 10,
           backgroundColor: isActive 
@@ -499,7 +746,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         </Text>
       </TouchableOpacity>
     );
-  }, [activeContinent, theme.colors.primary, theme.colors.textSecondary, themeColors.isDark, handleContinentChange]);
+  }, [activeContinent, theme.colors.primary, theme.colors.textSecondary, themeColors.isDark, handleContinentChange, handleDoubleTabPress]);
 
   // Header animations
   const headerTranslate = scrollY.interpolate({
@@ -554,12 +801,12 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       {/* Fixed Header Section */}
-      <Animated.View style={{ 
+    <Animated.View style={{ 
         paddingHorizontal: 20,
         paddingTop: 20,
         paddingBottom: 4,
         transform: [{ translateY: headerTranslate }],
-      }}>
+    }}>
         {/* Header with Title and Search */}
         <View style={{ 
           flexDirection: 'row', 
@@ -570,40 +817,67 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           {/* Title Section */}
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-              <Text 
-                style={{ 
-                  color: themeColors.text,
-                  fontSize: 36,
-                  fontWeight: '800',
-                  letterSpacing: -1.5,
-                  fontFamily: 'System',
-                  lineHeight: 40,
+              <TouchableOpacity
+                onPress={showJoinedPods}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 4,
+                  paddingRight: 8,
                 }}
+                activeOpacity={0.7}
               >
-                Pods
-              </Text>
-              <View style={{
-                marginLeft: 10,
-                backgroundColor: theme.colors.primary,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-              }} />
+          <Text 
+            style={{ 
+                    color: themeColors.text,
+                    fontSize: 36,
+                    fontWeight: '800',
+                    letterSpacing: -1.5,
+                    fontFamily: 'System',
+                    lineHeight: 40,
+            }}
+          >
+            Pods
+          </Text>
+                
+                {/* Joined count indicator */}
+                {joinedCountries.length > 0 && (
+                  <View style={{
+                    marginLeft: 6,
+                    minWidth: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    backgroundColor: theme.colors.primary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 6,
+                  }}>
+                    <Text style={{
+                      color: 'white',
+                      fontSize: 10,
+                      fontWeight: '700',
+                      fontFamily: 'System',
+                    }}>
+                      {joinedCountries.length}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
-            <Text 
-              style={{ 
+          <Text 
+            style={{ 
                 color: themeColors.textSecondary,
                 fontSize: 15,
                 fontWeight: '400',
                 letterSpacing: -0.2,
                 fontFamily: 'System',
                 lineHeight: 20,
-              }}
-            >
+            }}
+          >
               Communities by Destination
-            </Text>
-          </View>
-
+          </Text>
+        </View>
+        
           {/* Compact Search */}
           <Animated.View style={{
             width: searchAnimation.interpolate({
@@ -634,11 +908,11 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
               // Search Icon Button
               <TouchableOpacity
                 onPress={expandSearch}
-                style={{
+          style={{ 
                   width: 40,
                   height: 40,
                   borderRadius: 20,
-                  alignItems: 'center',
+            alignItems: 'center',
                   justifyContent: 'center',
                 }}
                 activeOpacity={0.7}
@@ -651,35 +925,35 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
               </TouchableOpacity>
             ) : (
               // Expanded Search Input
-              <View style={{
+          <View style={{
                 flexDirection: 'row',
-                alignItems: 'center',
+            alignItems: 'center',
                 paddingHorizontal: 14,
                 height: 40,
-              }}>
+          }}>
                 <Search 
                   size={16} 
                   color={themeColors.textSecondary} 
                   strokeWidth={2} 
                 />
-                <TextInput
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
                   placeholder={activeContinent === 0 ? "Search trending..." : "Search..."}
                   placeholderTextColor={themeColors.textSecondary}
-                  style={{
-                    flex: 1,
+            style={{
+              flex: 1,
                     marginLeft: 8,
                     fontSize: 14,
                     color: themeColors.text,
                     fontWeight: '400',
                     fontFamily: 'System',
-                  }}
+            }}
                   autoFocus
                   returnKeyType="search"
                   onBlur={collapseSearch}
-                  clearButtonMode="while-editing"
-                />
+            clearButtonMode="while-editing"
+          />
               </View>
             )}
           </Animated.View>
@@ -707,22 +981,22 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
       </View>
 
       {/* Fixed Active Continent Info */}
-      <View style={{
+      <View style={{ 
         marginHorizontal: 20,
         marginBottom: 12,
       }}>
-        <View style={{
+        <View style={{ 
           flexDirection: 'row',
           alignItems: 'center',
         }}>
-          <View style={{
+        <View style={{ 
             width: 4,
             height: 4,
             borderRadius: 2,
             backgroundColor: theme.colors.primary,
             marginRight: 8,
           }} />
-          <Text style={{
+          <Text style={{ 
             fontSize: 11,
             color: themeColors.textSecondary,
             fontWeight: '600',
@@ -738,8 +1012,9 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         </View>
       </View>
 
-      {/* Countries List */}
+      {/* Countries List with ref for scroll control */}
       <FlatList
+        ref={flatListRef}
         data={filteredCountries}
         renderItem={renderCountryCard}
         ListEmptyComponent={ListEmptyComponent}
@@ -767,6 +1042,161 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           index,
         })}
       />
+
+      {/* Joined Pods Modal */}
+      <Modal
+        visible={isJoinedPodsVisible}
+        transparent
+        animationType="none"
+        onRequestClose={hideJoinedPods}
+      >
+        {/* Overlay */}
+        <Animated.View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          opacity: overlayAnimation,
+        }}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={hideJoinedPods}
+          />
+        </Animated.View>
+
+        {/* Slide-in Panel */}
+        <Animated.View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: screenWidth * 0.75,
+          backgroundColor: themeColors.background,
+          transform: [{ translateX: slideAnimation }],
+          shadowColor: '#000',
+          shadowOffset: { width: 2, height: 0 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          elevation: 5,
+        }}>
+          {/* Header */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingTop: 60,
+            paddingBottom: 20,
+            borderBottomWidth: 0.5,
+            borderBottomColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.06)' 
+              : 'rgba(0, 0, 0, 0.03)',
+          }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                color: themeColors.text,
+                fontSize: 24,
+                fontWeight: '800',
+                fontFamily: 'System',
+                letterSpacing: -0.8,
+                marginBottom: 2,
+              }}>
+                My Pods
+              </Text>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 13,
+                fontWeight: '400',
+                fontFamily: 'System',
+                letterSpacing: -0.1,
+              }}>
+                {joinedCountries.length === 0 
+                  ? 'No joined communities yet' 
+                  : `${joinedCountries.length} joined ${joinedCountries.length === 1 ? 'community' : 'communities'}`
+                }
+              </Text>
+            </View>
+            
+            <TouchableOpacity
+              onPress={hideJoinedPods}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.04)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.7}
+            >
+              <X size={18} color={themeColors.textSecondary} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Content */}
+          {joinedCountries.length === 0 ? (
+            <View style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 40,
+            }}>
+              <View style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(26, 35, 50, 0.4)'
+                  : 'rgba(248, 249, 250, 0.7)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+                <Users size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
+              </View>
+              <Text style={{
+                color: themeColors.text,
+                fontSize: 18,
+                fontWeight: '700',
+                fontFamily: 'System',
+                letterSpacing: -0.4,
+                marginBottom: 8,
+                textAlign: 'center',
+              }}>
+                No Communities Yet
+              </Text>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 14,
+                fontWeight: '400',
+                fontFamily: 'System',
+                letterSpacing: -0.1,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}>
+                Start exploring and join communities that match your interests
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={joinedCountries}
+              renderItem={renderJoinedPodItem}
+              keyExtractor={(item) => `joined-${item.id}`}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingTop: 20,
+                paddingBottom: 40,
+              }}
+              // Performance optimizations
+              initialNumToRender={8}
+              maxToRenderPerBatch={8}
+              windowSize={8}
+              removeClippedSubviews={true}
+            />
+          )}
+        </Animated.View>
+      </Modal>
     </View>
   );
 };

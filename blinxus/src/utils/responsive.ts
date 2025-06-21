@@ -7,18 +7,22 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BASE_WIDTH = 393;
 const BASE_HEIGHT = 852;
 
-// Device type detection
+// Enhanced device type detection with more granular categories
 export const getDeviceType = () => {
-  if (SCREEN_WIDTH < 768) return 'phone';
-  if (SCREEN_WIDTH < 1024) return 'tablet';
-  return 'desktop';
+  if (SCREEN_WIDTH < 480) return 'small-phone';    // iPhone SE, small phones
+  if (SCREEN_WIDTH < 768) return 'phone';          // Regular phones
+  if (SCREEN_WIDTH < 1024) return 'tablet';        // iPads, tablets
+  if (SCREEN_WIDTH < 1440) return 'desktop';       // Laptop screens
+  return 'large-desktop';                          // Large monitors
 };
 
-// Screen size categories
+// Enhanced screen size categories
 export const isSmallPhone = () => SCREEN_WIDTH < 375;
 export const isMediumPhone = () => SCREEN_WIDTH >= 375 && SCREEN_WIDTH < 414;
-export const isLargePhone = () => SCREEN_WIDTH >= 414 && SCREEN_WIDTH < 768;
-export const isTablet = () => SCREEN_WIDTH >= 768;
+export const isLargePhone = () => SCREEN_WIDTH >= 414 && SCREEN_WIDTH < 480;
+export const isXLPhone = () => SCREEN_WIDTH >= 480 && SCREEN_WIDTH < 768;
+export const isTablet = () => SCREEN_WIDTH >= 768 && SCREEN_WIDTH < 1024;
+export const isDesktop = () => SCREEN_WIDTH >= 1024;
 
 // Responsive width calculation
 export const wp = (percentage: number): number => {
@@ -64,10 +68,19 @@ export const ri = (size: number): number => {
   return Math.round(PixelRatio.roundToNearestPixel(scaledSize));
 };
 
-// Responsive dimensions for specific use cases
+// Enhanced responsive dimensions for specific use cases
 export const getResponsiveDimensions = () => {
   const deviceType = getDeviceType();
   
+  // Base multipliers for different device types
+  const deviceMultiplier = {
+    'small-phone': 0.9,
+    'phone': 1.0,
+    'tablet': 1.2,
+    'desktop': 1.4,
+    'large-desktop': 1.6
+  }[deviceType] || 1.0;
+
   return {
     // Feed card dimensions
     feedCard: {
@@ -93,6 +106,7 @@ export const getResponsiveDimensions = () => {
       small: rs(32),
       medium: rs(40),
       large: rs(80),
+      xlarge: rs(120), // Added for tablets/desktop
     },
     
     // Button sizes
@@ -100,13 +114,31 @@ export const getResponsiveDimensions = () => {
       small: { width: rs(32), height: rs(32) },
       medium: { width: rs(40), height: rs(40) },
       large: { width: rs(56), height: rs(56) },
+      xlarge: { width: rs(72), height: rs(72) }, // Added for tablets
     },
     
     // Media grid
     mediaGrid: {
-      itemWidth: SCREEN_WIDTH / 3,
+      itemWidth: SCREEN_WIDTH / (deviceType === 'tablet' || deviceType === 'desktop' ? 4 : 3),
       aspectRatio: 4/5,
       padding: rs(1),
+    },
+    
+    // Create post images (responsive heights)
+    createPost: {
+      singleImage: { height: rs(192) },
+      doubleImage: { height: rs(192) },
+      mainImage: { height: rs(160) },
+      secondaryImage: { height: rs(96) },
+      placeholder: { height: rs(128) },
+    },
+    
+    // Settings items
+    settings: {
+      iconSize: rs(24),
+      iconContainer: { width: rs(24), height: rs(24) },
+      itemPadding: rs(20),
+      arrowSize: rs(16),
     },
     
     // Create FAB
@@ -120,6 +152,7 @@ export const getResponsiveDimensions = () => {
     modal: {
       borderRadius: rs(16),
       padding: rs(16),
+      maxWidth: deviceType === 'tablet' || deviceType === 'desktop' ? wp(80) : wp(100),
     },
     
     // Input fields
@@ -127,6 +160,16 @@ export const getResponsiveDimensions = () => {
       height: rs(48),
       borderRadius: rs(12),
       paddingHorizontal: rs(16),
+    },
+    
+    // Post content areas
+    postContent: {
+      textInput: { height: rs(100) },
+      imageGrid: {
+        gap: rs(8),
+        borderRadius: rs(16),
+        smallRadius: rs(12),
+      },
     },
   };
 };
@@ -185,25 +228,31 @@ export const getBorderRadiusScale = () => {
   };
 };
 
-// Safe area adjustments
+// Enhanced safe area adjustments with device-specific values
 export const getSafeAreaAdjustments = () => {
   const deviceType = getDeviceType();
   
   return {
-    top: Platform.OS === 'ios' ? (deviceType === 'phone' ? rs(44) : rs(24)) : rs(24),
-    bottom: Platform.OS === 'ios' ? rs(34) : rs(16),
+    top: Platform.OS === 'ios' ? 
+      (deviceType === 'phone' || deviceType === 'small-phone' ? rs(44) : rs(24)) : 
+      rs(24),
+    bottom: Platform.OS === 'ios' ? 
+      (deviceType === 'phone' || deviceType === 'small-phone' ? rs(34) : rs(16)) : 
+      rs(16),
     horizontal: rs(16),
   };
 };
 
-// Export screen dimensions
+// Enhanced screen dimensions export
 export const RESPONSIVE_SCREEN = {
   width: SCREEN_WIDTH,
   height: SCREEN_HEIGHT,
   isSmallPhone: isSmallPhone(),
   isMediumPhone: isMediumPhone(),
   isLargePhone: isLargePhone(),
+  isXLPhone: isXLPhone(),
   isTablet: isTablet(),
+  isDesktop: isDesktop(),
   deviceType: getDeviceType(),
 };
 
@@ -220,4 +269,172 @@ export default {
   getBorderRadiusScale,
   getSafeAreaAdjustments,
   RESPONSIVE_SCREEN,
+};
+
+// Component-specific responsive dimensions
+export const getComponentDimensions = () => {
+  const deviceType = getDeviceType();
+  
+  return {
+    // Header components
+    header: {
+      height: rs(60),
+      backButtonSize: rs(40),
+      titleFontSize: rf(24),
+      paddingHorizontal: rs(24),
+    },
+    
+    // Navigation components
+    tabBar: {
+      height: rs(80),
+      iconSize: ri(24),
+      labelFontSize: rf(12),
+      paddingTop: rs(10),
+      paddingBottom: rs(20),
+    },
+    
+    // List items
+    listItem: {
+      height: rs(56),
+      paddingHorizontal: rs(16),
+      iconSize: ri(20),
+      fontSize: rf(16),
+      subtitleFontSize: rf(14),
+    },
+    
+    // Cards
+    card: {
+      borderRadius: rs(16),
+      padding: rs(16),
+      marginBottom: rs(16),
+      shadowRadius: rs(8),
+    },
+    
+    // Form elements
+    form: {
+      inputHeight: rs(48),
+      inputPadding: rs(16),
+      inputBorderRadius: rs(12),
+      buttonHeight: rs(48),
+      buttonBorderRadius: rs(12),
+      labelFontSize: rf(14),
+    },
+  };
+};
+
+// Layout helpers for common patterns
+export const getLayoutHelpers = () => {
+  return {
+    // Consistent spacing
+    containerPadding: rs(24),
+    sectionSpacing: rs(32),
+    itemSpacing: rs(16),
+    smallSpacing: rs(8),
+    
+    // Grid layouts
+    gridGap: rs(8),
+    gridItemMinWidth: rs(150),
+    
+    // Modal/overlay
+    modalPadding: rs(20),
+    modalBorderRadius: rs(20),
+    overlayOpacity: 0.5,
+  };
+};
+
+// Responsive grid system
+export const getGridColumns = () => {
+  const deviceType = getDeviceType();
+  
+  switch (deviceType) {
+    case 'small-phone':
+      return { default: 2, media: 2 };
+    case 'phone':
+      return { default: 3, media: 3 };
+    case 'tablet':
+      return { default: 4, media: 4 };
+    case 'desktop':
+      return { default: 5, media: 5 };
+    case 'large-desktop':
+      return { default: 6, media: 6 };
+    default:
+      return { default: 3, media: 3 };
+  }
+};
+
+// Text scaling for different content types
+export const getTextStyles = () => {
+  return {
+    // Display text (large headings)
+    display: {
+      fontSize: rf(40),
+      lineHeight: rf(48),
+      fontWeight: '700' as const,
+    },
+    
+    // Headings
+    h1: {
+      fontSize: rf(32),
+      lineHeight: rf(40),
+      fontWeight: '600' as const,
+    },
+    h2: {
+      fontSize: rf(24),
+      lineHeight: rf(32),
+      fontWeight: '600' as const,
+    },
+    h3: {
+      fontSize: rf(20),
+      lineHeight: rf(28),
+      fontWeight: '500' as const,
+    },
+    h4: {
+      fontSize: rf(18),
+      lineHeight: rf(24),
+      fontWeight: '500' as const,
+    },
+    
+    // Body text
+    body: {
+      fontSize: rf(16),
+      lineHeight: rf(24),
+      fontWeight: '400' as const,
+    },
+    bodySmall: {
+      fontSize: rf(14),
+      lineHeight: rf(20),
+      fontWeight: '400' as const,
+    },
+    
+    // UI elements
+    button: {
+      fontSize: rf(16),
+      lineHeight: rf(20),
+      fontWeight: '500' as const,
+    },
+    caption: {
+      fontSize: rf(12),
+      lineHeight: rf(16),
+      fontWeight: '400' as const,
+    },
+    overline: {
+      fontSize: rf(10),
+      lineHeight: rf(12),
+      fontWeight: '500' as const,
+      letterSpacing: 1,
+    },
+  };
+};
+
+// Responsive breakpoint utilities
+export const useResponsiveValue = <T>(values: {
+  'small-phone'?: T;
+  phone?: T;
+  tablet?: T;
+  desktop?: T;
+  'large-desktop'?: T;
+  default: T;
+}): T => {
+  const deviceType = getDeviceType();
+  return values[deviceType] || values.default;
 }; 

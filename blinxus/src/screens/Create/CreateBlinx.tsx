@@ -13,6 +13,7 @@ import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getResponsiveDimensions, rs } from '../../utils/responsive';
 
 interface CreateBlinxProps {
   navigation: {
@@ -23,6 +24,7 @@ interface CreateBlinxProps {
 
 const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxProps, ref) => {
   const themeColors = useThemeColors();
+  const responsiveDimensions = getResponsiveDimensions();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -132,7 +134,11 @@ setSelectedImage(images[Math.floor(Math.random() * images.length)]);
           <View style={{ position: 'relative' }}>
             <Image
               source={{ uri: selectedImage }}
-              style={{ width: '100%', height: 192, borderRadius: 16 }}
+              style={{ 
+                width: '100%', 
+                height: responsiveDimensions.createPost.singleImage.height, 
+                borderRadius: rs(16) 
+              }}
               resizeMode="cover"
             />
             <TouchableOpacity
@@ -157,9 +163,9 @@ setSelectedImage(images[Math.floor(Math.random() * images.length)]);
           <TouchableOpacity
             onPress={handleImagePicker}
             style={{
-              height: 128,
+              height: responsiveDimensions.createPost.placeholder.height,
               backgroundColor: themeColors.backgroundSecondary,
-              borderRadius: 16,
+              borderRadius: rs(16),
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 2,
