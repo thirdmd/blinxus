@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
+  StatusBar,
 } from 'react-native';
 import { ChevronLeft, Map, Users, MessageCircle, MapPin } from 'lucide-react-native';
 import { 
@@ -13,6 +14,17 @@ import {
   PodTabType, 
 } from '../../../types/structures/podsUIStructure';
 import { Country, SubLocation, placesData } from '../../../constants/placesData';
+import { 
+  ForumPost,
+  LocationFilter,
+  getLocationFilters,
+  filterPostsByLocation,
+  getPostLocationDisplay,
+  generateMockForumPosts,
+  getContinentNameByCountry,
+  getEmptyStateMessage,
+} from '../../../utils/forumLocationLogic';
+import ForumPostModal, { FORUM_CATEGORIES, FORUM_ACTIVITY_TAGS } from '../../../components/ForumPostModal';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface CountryViewScreenProps {
@@ -37,39 +49,70 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
 }) => {
   const themeColors = useThemeColors();
   const scrollY = useRef(new Animated.Value(0)).current;
-  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>('All');
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<LocationFilter>('All');
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [forumPosts, setForumPosts] = useState<ForumPost[]>([]);
   
   // Generate consistent member count based on country ID
   const memberCount = Math.floor((country.id.charCodeAt(0) * country.id.charCodeAt(country.id.length - 1) * 37) % 5000 + 100);
   const postsCount = Math.floor(memberCount * 0.65); // Roughly 65% of members have posts
   
-  // Find which continent this country belongs to
-  const continentName = placesData.find(continent => 
-    continent.countries.some(c => c.id === country.id)
-  )?.name || 'Unknown';
+  // Get continent name using the utility function
+  const continentName = getContinentNameByCountry(country);
   
-  // Get all locations for this country
-  const allLocations = country.subLocations || [];
+  // Generate location filter tabs using the utility function
+  const locationTabs = useMemo(() => getLocationFilters(country), [country]);
   
-  // Create location filter tabs (All + first few locations)
-  const locationTabs = [
-    'All',
-    ...allLocations.slice(0, 5).map(loc => loc.name),
-    ...(allLocations.length > 5 ? ['More'] : [])
-  ];
+  // Initialize forum posts
+  useMemo(() => {
+    if (forumPosts.length === 0) {
+      setForumPosts(generateMockForumPosts(country));
+    }
+  }, [country, forumPosts.length]);
 
-  // Filter locations based on selected tab
-  const filteredLocations = selectedLocationFilter === 'All' 
-    ? allLocations 
-    : allLocations.filter(loc => loc.name === selectedLocationFilter);
+  // Filter posts based on selected location filter
+  const filteredPosts = useMemo(() => 
+    filterPostsByLocation(forumPosts, selectedLocationFilter, country), 
+    [forumPosts, selectedLocationFilter, country]
+  );
 
   const handleMapPress = () => {
     // TODO: Open maps with country location
     console.log('Open maps for:', country.name);
   };
 
+  const handleCreatePost = (newPost: {
+    content: string;
+    category: 'question' | 'tip' | 'recommendation' | 'general';
+    activityTags: string[];
+    locationId: string;
+  }) => {
+    const post: ForumPost = {
+      id: `user-post-${Date.now()}`,
+      authorId: 'current-user',
+      authorName: 'You',
+      authorInitials: 'YU',
+      authorColor: '#3B82F6',
+      content: newPost.content,
+      locationId: newPost.locationId,
+      countryId: country.id,
+      timestamp: 'now',
+      replyCount: 0,
+      likes: 0,
+      isLiked: false,
+      category: newPost.category,
+      activityTags: newPost.activityTags,
+    };
+
+    setForumPosts(prev => [post, ...prev]);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.background}
+      />
       <ScrollView 
         style={{ flex: 1 }} 
         showsVerticalScrollIndicator={false}
@@ -84,8 +127,8 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
         <View
           style={{
             backgroundColor: themeColors.isDark 
-              ? 'rgba(26, 35, 50, 0.8)'
-              : 'rgba(248, 249, 250, 0.9)',
+              ? '#1A2332'
+              : '#F8F9FA',
             borderBottomWidth: 0.2,
             borderBottomColor: themeColors.isDark 
               ? 'rgba(255, 255, 255, 0.1)'
@@ -150,28 +193,29 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
 
             {/* Stats Row */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Users size={16} color={themeColors.textSecondary} strokeWidth={2} />
-              <Text style={{
-                color: themeColors.textSecondary,
-                fontSize: 14,
-                fontWeight: '600',
-                marginLeft: 6,
-                fontFamily: 'System',
-              }}>
-                {(memberCount / 1000).toFixed(1)}M members
-              </Text>
+                <Users size={16} color={themeColors.textSecondary} strokeWidth={2} />
+                <Text style={{
+                  color: themeColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: '600',
+                  marginLeft: 6,
+                  fontFamily: 'System',
+                }}>
+                  {(memberCount / 1000).toFixed(1)}M members
+                </Text>
             </View>
           </View>
         </TouchableOpacity>
         </View>
 
-        {/* Location Filter Tabs */}
+        {/* Location Filter Tabs - Minimalist Design */}
         <View style={{ marginTop: 20, marginBottom: 20 }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal: 20,
+              gap: 24,
             }}
           >
             {locationTabs.map((tab, index) => (
@@ -179,28 +223,34 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                 key={tab}
                 onPress={() => setSelectedLocationFilter(tab)}
                 style={{
-                  paddingHorizontal: 16,
                   paddingVertical: 8,
-                  backgroundColor: selectedLocationFilter === tab 
-                    ? theme.colors.primary 
-                    : themeColors.isDark 
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                  borderRadius: 20,
-                  marginRight: 8,
+                  alignItems: 'center',
+                  position: 'relative',
                 }}
                 activeOpacity={0.7}
               >
                 <Text style={{
                   color: selectedLocationFilter === tab 
-                    ? 'white' 
+                    ? themeColors.text 
                     : themeColors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: selectedLocationFilter === tab ? '600' : '500',
+                  fontSize: 15,
+                  fontWeight: selectedLocationFilter === tab ? '600' : '400',
                   fontFamily: 'System',
+                  letterSpacing: -0.2,
                 }}>
                   {tab}
                 </Text>
+                
+                {/* Active indicator dot */}
+                {selectedLocationFilter === tab && (
+                  <View style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: theme.colors.primary,
+                    marginTop: 4,
+                  }} />
+                )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -286,10 +336,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                   : 'rgba(0, 0, 0, 0.06)',
               }}
               activeOpacity={0.7}
-              onPress={() => {
-                // TODO: Open create post modal
-                console.log('Create post in forum');
-              }}
+              onPress={() => setShowPostModal(true)}
             >
               <Text style={{
                 color: themeColors.textSecondary,
@@ -300,31 +347,87 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
               </Text>
             </TouchableOpacity>
 
-            {/* Mock Forum Posts */}
-            {selectedLocationFilter === 'All' && (
-              <>
-                {/* Manila Post */}
-                <View style={{
+            {/* Dynamic Forum Posts */}
+            {filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => (
+                <View key={post.id} style={{
                   backgroundColor: themeColors.background,
                   borderRadius: 12,
-                  padding: 16,
+                    padding: 16,
                   marginBottom: 16,
                   borderWidth: 1,
-                  borderColor: themeColors.isDark 
+                    borderColor: themeColors.isDark 
                     ? 'rgba(255, 255, 255, 0.08)'
                     : 'rgba(0, 0, 0, 0.06)',
                 }}>
+                  {/* Category and Activity Tags */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 6 }}>
+                    {/* Category Tag */}
+                    {(() => {
+                      const categoryData = FORUM_CATEGORIES.find(cat => cat.id === post.category);
+                      return categoryData ? (
+                        <View style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 12,
+                          backgroundColor: categoryData.color,
+                        }}>
+                          <Text style={{ fontSize: 12, marginRight: 3 }}>{categoryData.emoji}</Text>
+                    <Text style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: 'white',
+                      fontFamily: 'System',
+                    }}>
+                            {categoryData.label}
+                    </Text>
+                  </View>
+                      ) : null;
+                    })()}
+                    
+                    {/* Activity Tags */}
+                    {post.activityTags.map((tagId) => {
+                      const tagData = FORUM_ACTIVITY_TAGS.find(tag => tag.id === tagId);
+                      return tagData ? (
+                        <View key={tagId} style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          borderRadius: 12,
+                          backgroundColor: themeColors.isDark 
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(0, 0, 0, 0.08)',
+                        }}>
+                          <Text style={{ fontSize: 12, marginRight: 3 }}>{tagData.emoji}</Text>
+                          <Text style={{
+                            fontSize: 12,
+                            fontWeight: '500',
+                            color: themeColors.text,
+                            fontFamily: 'System',
+                          }}>
+                            {tagData.label}
+                          </Text>
+                        </View>
+                      ) : null;
+                    })}
+                  </View>
+
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                     <View style={{
                       width: 36,
                       height: 36,
                       borderRadius: 18,
-                      backgroundColor: theme.colors.primary,
+                      backgroundColor: post.authorColor,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginRight: 12,
                     }}>
-                      <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>M</Text>
+                      <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
+                        {post.authorInitials}
+                      </Text>
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
@@ -333,7 +436,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                         fontWeight: '600',
                         fontFamily: 'System',
                       }}>
-                        Maria Santos
+                        {post.authorName}
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                         <MapPin size={12} color={themeColors.textSecondary} />
@@ -343,7 +446,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                           marginLeft: 4,
                           fontFamily: 'System',
                         }}>
-                          Manila • 2h ago
+                          {getPostLocationDisplay(post, country)} • {post.timestamp}
                         </Text>
                       </View>
                     </View>
@@ -356,7 +459,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                     fontFamily: 'System',
                     marginBottom: 12,
                   }}>
-                    Best coffee shops in Makati? Looking for a good place to work remotely with reliable wifi and great ambiance. Any recommendations?
+                    {post.content}
                   </Text>
                   
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -368,233 +471,13 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                         marginLeft: 6,
                         fontFamily: 'System',
                       }}>
-                        12 replies
+                        {post.replyCount} replies
                       </Text>
-                    </TouchableOpacity>
+                </TouchableOpacity>
                   </View>
                 </View>
-
-                {/* Cebu Post */}
-                <View style={{
-                  backgroundColor: themeColors.background,
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 16,
-                  borderWidth: 1,
-                  borderColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.08)'
-                    : 'rgba(0, 0, 0, 0.06)',
-                }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                    <View style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 18,
-                      backgroundColor: '#10B981',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginRight: 12,
-                    }}>
-                      <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>J</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{
-                        color: themeColors.text,
-                        fontSize: 15,
-                        fontWeight: '600',
-                        fontFamily: 'System',
-                      }}>
-                        Juan dela Cruz
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                        <MapPin size={12} color={themeColors.textSecondary} />
-                        <Text style={{
-                          color: themeColors.textSecondary,
-                          fontSize: 12,
-                          marginLeft: 4,
-                          fontFamily: 'System',
-                        }}>
-                          Cebu • 4h ago
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  
-                  <Text style={{
-                    color: themeColors.text,
-                    fontSize: 16,
-                    lineHeight: 22,
-                    fontFamily: 'System',
-                    marginBottom: 12,
-                  }}>
-                    Planning a weekend trip to Oslob for whale shark watching. What's the best time to visit and any tips for first-timers?
-                  </Text>
-                  
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
-                      <MessageCircle size={16} color={themeColors.textSecondary} />
-                      <Text style={{
-                        color: themeColors.textSecondary,
-                        fontSize: 14,
-                        marginLeft: 6,
-                        fontFamily: 'System',
-                      }}>
-                        8 replies
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </>
-            )}
-
-            {/* Manila-specific posts */}
-            {selectedLocationFilter === 'Manila' && (
-              <View style={{
-                backgroundColor: themeColors.background,
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 16,
-                borderWidth: 1,
-                borderColor: themeColors.isDark 
-                  ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(0, 0, 0, 0.06)',
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                  <View style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: theme.colors.primary,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 12,
-                  }}>
-                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>M</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      color: themeColors.text,
-                      fontSize: 15,
-                      fontWeight: '600',
-                      fontFamily: 'System',
-                    }}>
-                      Maria Santos
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                      <MapPin size={12} color={themeColors.textSecondary} />
-                      <Text style={{
-                        color: themeColors.textSecondary,
-                        fontSize: 12,
-                        marginLeft: 4,
-                        fontFamily: 'System',
-                      }}>
-                        Manila • 2h ago
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                
-                <Text style={{
-                  color: themeColors.text,
-                  fontSize: 16,
-                  lineHeight: 22,
-                  fontFamily: 'System',
-                  marginBottom: 12,
-                }}>
-                  Best coffee shops in Makati? Looking for a good place to work remotely with reliable wifi and great ambiance. Any recommendations?
-                </Text>
-                
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
-                    <MessageCircle size={16} color={themeColors.textSecondary} />
-                    <Text style={{
-                      color: themeColors.textSecondary,
-                      fontSize: 14,
-                      marginLeft: 6,
-                      fontFamily: 'System',
-                    }}>
-                      12 replies
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            {/* Palawan-specific posts */}
-            {selectedLocationFilter === 'Palawan' && (
-              <View style={{
-                backgroundColor: themeColors.background,
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 16,
-                borderWidth: 1,
-                borderColor: themeColors.isDark 
-                  ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(0, 0, 0, 0.06)',
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                  <View style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: '#F59E0B',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 12,
-                  }}>
-                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>A</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      color: themeColors.text,
-                      fontSize: 15,
-                      fontWeight: '600',
-                      fontFamily: 'System',
-                    }}>
-                      Anna Reyes
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                      <MapPin size={12} color={themeColors.textSecondary} />
-                      <Text style={{
-                        color: themeColors.textSecondary,
-                        fontSize: 12,
-                        marginLeft: 4,
-                        fontFamily: 'System',
-                      }}>
-                        Palawan • 1h ago
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                
-                <Text style={{
-                  color: themeColors.text,
-                  fontSize: 16,
-                  lineHeight: 22,
-                  fontFamily: 'System',
-                  marginBottom: 12,
-                }}>
-                  El Nido vs Coron - which one should I visit first? I have 5 days and want to make the most of my Palawan trip!
-                </Text>
-                
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}>
-                    <MessageCircle size={16} color={themeColors.textSecondary} />
-                    <Text style={{
-                      color: themeColors.textSecondary,
-                      fontSize: 14,
-                      marginLeft: 6,
-                      fontFamily: 'System',
-                    }}>
-                      15 replies
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            {/* Empty state for other filters */}
-            {!['All', 'Manila', 'Palawan'].includes(selectedLocationFilter) && (
+              ))
+            ) : (
               <View style={{
                 alignItems: 'center',
                 paddingVertical: 40,
@@ -607,7 +490,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                   marginTop: 16,
                   fontFamily: 'System',
                 }}>
-                  No discussions yet
+                  {getEmptyStateMessage(selectedLocationFilter).title}
                 </Text>
                 <Text style={{
                   color: themeColors.textSecondary,
@@ -616,12 +499,12 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                   textAlign: 'center',
                   fontFamily: 'System',
                 }}>
-                  Be the first to start a conversation in {selectedLocationFilter}
+                  {getEmptyStateMessage(selectedLocationFilter).subtitle}
                 </Text>
               </View>
-            )}
-          </View>
-        )}
+              )}
+            </View>
+          )}
 
         {/* Other tab content */}
         {activeTab === 'Explore' && (
@@ -630,15 +513,15 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
             paddingVertical: 40,
             marginHorizontal: 20,
           }}>
-            <Text style={{
-              color: themeColors.textSecondary,
-              fontSize: 16,
-              fontFamily: 'System',
-            }}>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 16,
+                fontFamily: 'System',
+              }}>
               Explore content coming soon
-            </Text>
-          </View>
-        )}
+              </Text>
+            </View>
+          )}
 
         {activeTab === 'Activities' && (
           <View style={{ 
@@ -653,9 +536,18 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
             }}>
               Activities content coming soon
             </Text>
-          </View>
+        </View>
         )}
       </ScrollView>
+      
+      {/* Forum Post Modal */}
+      <ForumPostModal
+        visible={showPostModal}
+        onClose={() => setShowPostModal(false)}
+        onSubmit={handleCreatePost}
+        country={country}
+        defaultLocation={selectedLocationFilter === 'All' ? 'All' : selectedLocationFilter}
+      />
     </View>
   );
 };

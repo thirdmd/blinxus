@@ -35,8 +35,8 @@ const LocationViewScreen: React.FC<LocationViewScreenProps> = ({
   postingService,
 }) => {
   // Removed content functions for now - keeping file structure for future use
-
-  return (
+          
+          return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       {/* Back Button - Top Left Corner */}
       <TouchableOpacity 
@@ -79,7 +79,7 @@ const LocationViewScreen: React.FC<LocationViewScreenProps> = ({
           fontFamily: 'System',
         }}>
           Location content coming soon...
-        </Text>
+            </Text>
       </View>
     </View>
   );

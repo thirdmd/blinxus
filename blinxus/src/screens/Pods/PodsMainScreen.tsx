@@ -192,14 +192,14 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     <SafeAreaView style={{ 
       flex: 1, 
       backgroundColor: themeColors.isDark 
-        ? 'rgba(26, 35, 50, 0.8)' 
-        : 'rgba(248, 249, 250, 0.9)'
+        ? '#1A2332' 
+        : '#F8F9FA'
     }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.isDark 
-          ? 'rgba(26, 35, 50, 0.8)' 
-          : 'rgba(248, 249, 250, 0.9)'
+          ? '#1A2332' 
+          : '#F8F9FA'
         } 
       />
       {renderCurrentScreen()}

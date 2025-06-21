@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
   Modal,
+  StatusBar,
 } from 'react-native';
 
 import { Search, MapPin, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
@@ -210,9 +211,9 @@ const CountryCard: React.FC<{
                   flexDirection: 'row',
                   alignItems: 'center',
                 }}>
-                  <Sparkles size={10} color={theme.colors.primary} strokeWidth={3} />
+                  <Sparkles size={10} color="#FF4500" strokeWidth={3} />
                     <Text style={{ 
-                    color: theme.colors.primary,
+                    color: "#FF4500",
                     fontSize: 10,
                     fontWeight: '700',
                     marginLeft: 4,
@@ -463,6 +464,27 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     });
   };
 
+  const hideJoinedPodsAndNavigate = (country: Country) => {
+    Animated.parallel([
+      Animated.timing(slideAnimation, {
+        toValue: -screenWidth * 0.75,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlayAnimation, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsJoinedPodsVisible(false);
+      // Wait for React to finish state updates before navigating
+      setTimeout(() => {
+        onCountryPress(country);
+      }, 100);
+    });
+  };
+
   // Search expand/collapse functions
   const expandSearch = () => {
     setIsSearchExpanded(true);
@@ -588,10 +610,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
             <TouchableOpacity
-              onPress={() => {
-                hideJoinedPods();
-                onCountryPress(country);
-              }}
+              onPress={() => hideJoinedPodsAndNavigate(country)}
               style={{ flex: 1 }}
               activeOpacity={0.7}
             >
@@ -800,6 +819,13 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
 
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <StatusBar 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        backgroundColor={themeColors.isDark 
+          ? '#1A2332' 
+          : '#F8F9FA'
+        } 
+      />
       {/* Fixed Header Section */}
     <Animated.View style={{ 
         paddingHorizontal: 20,

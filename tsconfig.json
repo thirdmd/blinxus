@@ -1,9 +1,19 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "target": "es2020",
+    "lib": ["es2020"],
+    "allowJs": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
     "types": ["nativewind/types"]
   },
