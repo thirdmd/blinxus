@@ -340,6 +340,276 @@ export const usaData: Country = {
         latitude: 40.7128,
         longitude: -74.0060
       }
+    },
+    {
+      id: 'us-los-angeles',
+      name: 'Los Angeles',
+      alternateNames: ['LA', 'City of Angels', 'Hollywood'],
+      parentId: 'us',
+      popularActivities: ['city', 'cultural', 'amusements'],
+      description: 'Entertainment capital with beaches, Hollywood, and perfect weather.',
+      bestTimeToVisit: 'March to May, September to November',
+      knownFor: ['Hollywood', 'Beverly Hills', 'Santa Monica', 'Universal Studios'],
+      averageStay: '4-5 days',
+      difficulty: 'easy',
+      crowdLevel: 'high',
+      budgetLevel: 'luxury',
+      coordinates: {
+        latitude: 34.0522,
+        longitude: -118.2437
+      }
+    },
+    {
+      id: 'us-las-vegas',
+      name: 'Las Vegas',
+      alternateNames: ['Vegas', 'Sin City', 'Entertainment Capital'],
+      parentId: 'us',
+      popularActivities: ['amusements', 'city', 'special'],
+      description: 'Desert oasis known for casinos, shows, and vibrant nightlife.',
+      bestTimeToVisit: 'March to May, September to November',
+      knownFor: ['The Strip', 'Casinos', 'Shows', 'Grand Canyon nearby'],
+      averageStay: '3-4 days',
+      difficulty: 'easy',
+      crowdLevel: 'high',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 36.1699,
+        longitude: -115.1398
+      }
+    },
+    {
+      id: 'us-miami',
+      name: 'Miami',
+      alternateNames: ['Magic City', 'South Beach'],
+      parentId: 'us',
+      popularActivities: ['aquatics', 'city', 'cultural'],
+      description: 'Tropical paradise with art deco architecture and vibrant culture.',
+      bestTimeToVisit: 'December to April',
+      knownFor: ['South Beach', 'Art Deco District', 'Little Havana', 'Nightlife'],
+      averageStay: '3-4 days',
+      difficulty: 'easy',
+      crowdLevel: 'high',
+      budgetLevel: 'luxury',
+      coordinates: {
+        latitude: 25.7617,
+        longitude: -80.1918
+      }
+    },
+    {
+      id: 'us-san-francisco',
+      name: 'San Francisco',
+      alternateNames: ['SF', 'The City', 'Fog City'],
+      parentId: 'us',
+      popularActivities: ['city', 'cultural', 'heritage'],
+      description: 'Hilly city famous for Golden Gate Bridge and tech innovation.',
+      bestTimeToVisit: 'September to November',
+      knownFor: ['Golden Gate Bridge', 'Alcatraz', 'Cable Cars', 'Fishermans Wharf'],
+      averageStay: '3-4 days',
+      difficulty: 'moderate',
+      crowdLevel: 'high',
+      budgetLevel: 'luxury',
+      coordinates: {
+        latitude: 37.7749,
+        longitude: -122.4194
+      }
+    },
+    {
+      id: 'us-chicago',
+      name: 'Chicago',
+      alternateNames: ['Chi-town', 'Windy City', 'Second City'],
+      parentId: 'us',
+      popularActivities: ['city', 'cultural', 'food'],
+      description: 'Architectural marvel with deep-dish pizza and jazz heritage.',
+      bestTimeToVisit: 'April to October',
+      knownFor: ['Architecture', 'Deep Dish Pizza', 'Millennium Park', 'Navy Pier'],
+      averageStay: '3-4 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 41.8781,
+        longitude: -87.6298
+      }
+    },
+    {
+      id: 'us-washington-dc',
+      name: 'Washington DC',
+      alternateNames: ['DC', 'The Capital', 'District of Columbia'],
+      parentId: 'us',
+      popularActivities: ['heritage', 'cultural', 'city'],
+      description: 'Nations capital with iconic monuments and world-class museums.',
+      bestTimeToVisit: 'March to May, September to November',
+      knownFor: ['White House', 'Capitol Building', 'Smithsonian', 'Lincoln Memorial'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 38.9072,
+        longitude: -77.0369
+      }
+    },
+    {
+      id: 'us-boston',
+      name: 'Boston',
+      alternateNames: ['Beantown', 'The Hub', 'Athens of America'],
+      parentId: 'us',
+      popularActivities: ['heritage', 'cultural', 'city'],
+      description: 'Historic city with colonial charm and prestigious universities.',
+      bestTimeToVisit: 'April to October',
+      knownFor: ['Freedom Trail', 'Harvard', 'Boston Tea Party', 'Fenway Park'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 42.3601,
+        longitude: -71.0589
+      }
+    },
+    {
+      id: 'us-seattle',
+      name: 'Seattle',
+      alternateNames: ['Emerald City', 'Rain City', 'Coffee Capital'],
+      parentId: 'us',
+      popularActivities: ['city', 'cultural', 'food'],
+      description: 'Pacific Northwest gem known for coffee culture and tech innovation.',
+      bestTimeToVisit: 'June to September',
+      knownFor: ['Space Needle', 'Pike Place Market', 'Coffee Culture', 'Mount Rainier'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 47.6062,
+        longitude: -122.3321
+      }
+    },
+    {
+      id: 'us-new-orleans',
+      name: 'New Orleans',
+      alternateNames: ['NOLA', 'The Big Easy', 'Crescent City'],
+      parentId: 'us',
+      popularActivities: ['cultural', 'food', 'heritage'],
+      description: 'Vibrant city with unique culture, jazz music, and Creole cuisine.',
+      bestTimeToVisit: 'February to May',
+      knownFor: ['French Quarter', 'Jazz Music', 'Mardi Gras', 'Creole Cuisine'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 29.9511,
+        longitude: -90.0715
+      }
+    },
+    {
+      id: 'us-hawaii',
+      name: 'Hawaii',
+      alternateNames: ['Aloha State', 'Paradise', 'Hawaiian Islands'],
+      parentId: 'us',
+      popularActivities: ['aquatics', 'outdoors', 'wellness'],
+      description: 'Tropical paradise with volcanic landscapes and pristine beaches.',
+      bestTimeToVisit: 'April to June, September to November',
+      knownFor: ['Waikiki Beach', 'Pearl Harbor', 'Volcanoes', 'Luau Culture'],
+      averageStay: '5-7 days',
+      difficulty: 'easy',
+      crowdLevel: 'high',
+      budgetLevel: 'luxury',
+      coordinates: {
+        latitude: 21.3099,
+        longitude: -157.8581
+      }
+    },
+    {
+      id: 'us-orlando',
+      name: 'Orlando',
+      alternateNames: ['Theme Park Capital', 'O-Town'],
+      parentId: 'us',
+      popularActivities: ['amusements', 'city', 'special'],
+      description: 'Family-friendly destination with world-famous theme parks.',
+      bestTimeToVisit: 'March to May, September to November',
+      knownFor: ['Disney World', 'Universal Studios', 'Theme Parks', 'Family Fun'],
+      averageStay: '4-7 days',
+      difficulty: 'easy',
+      crowdLevel: 'high',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 28.5383,
+        longitude: -81.3792
+      }
+    },
+    {
+      id: 'us-nashville',
+      name: 'Nashville',
+      alternateNames: ['Music City', 'Athens of South'],
+      parentId: 'us',
+      popularActivities: ['cultural', 'heritage', 'city'],
+      description: 'Country music capital with rich musical heritage.',
+      bestTimeToVisit: 'April to October',
+      knownFor: ['Country Music', 'Grand Ole Opry', 'Broadway Honky Tonks', 'Music Scene'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 36.1627,
+        longitude: -86.7816
+      }
+    },
+    {
+      id: 'us-austin',
+      name: 'Austin',
+      alternateNames: ['Live Music Capital', 'Weird City'],
+      parentId: 'us',
+      popularActivities: ['cultural', 'food', 'city'],
+      description: 'Eclectic city known for live music, food trucks, and tech scene.',
+      bestTimeToVisit: 'March to May, September to November',
+      knownFor: ['SXSW', 'Live Music', 'Food Trucks', 'Keep Austin Weird'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 30.2672,
+        longitude: -97.7431
+      }
+    },
+    {
+      id: 'us-denver',
+      name: 'Denver',
+      alternateNames: ['Mile High City', 'Queen City of Plains'],
+      parentId: 'us',
+      popularActivities: ['outdoors', 'city', 'cultural'],
+      description: 'Gateway to Rocky Mountains with outdoor adventures and craft beer.',
+      bestTimeToVisit: 'April to October',
+      knownFor: ['Rocky Mountains', 'Craft Beer', 'Outdoor Activities', 'Red Rocks'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 39.7392,
+        longitude: -104.9903
+      }
+    },
+    {
+      id: 'us-portland',
+      name: 'Portland',
+      alternateNames: ['PDX', 'City of Roses', 'Portlandia'],
+      parentId: 'us',
+      popularActivities: ['cultural', 'food', 'city'],
+      description: 'Quirky city known for food scene, craft beer, and eco-consciousness.',
+      bestTimeToVisit: 'June to September',
+      knownFor: ['Food Trucks', 'Craft Beer', 'Powell\'s Books', 'Keep Portland Weird'],
+      averageStay: '2-3 days',
+      difficulty: 'easy',
+      crowdLevel: 'moderate',
+      budgetLevel: 'mid-range',
+      coordinates: {
+        latitude: 45.5152,
+        longitude: -122.6784
+      }
     }
   ]
 };
@@ -494,7 +764,991 @@ export const asiaData: Continent = {
   name: 'Asia',
   alternateNames: ['Asian Continent'],
   description: 'The largest and most diverse continent with rich cultures and stunning landscapes.',
-  countries: [philippinesData]
+  countries: [
+    philippinesData,
+    // Singapore
+    {
+      id: 'sg',
+      name: 'Singapore',
+      alternateNames: ['SG', 'Lion City', 'Garden City'],
+      continentId: 'asia',
+      currency: 'SGD',
+      language: ['English', 'Mandarin', 'Malay', 'Tamil'],
+      timezone: 'GMT+8',
+      description: 'Modern city-state known for its cleanliness, food, and efficiency.',
+      coordinates: { latitude: 1.3521, longitude: 103.8198 },
+      subLocations: [
+        {
+          id: 'sg-singapore',
+          name: 'Singapore City',
+          alternateNames: ['Downtown', 'CBD', 'Marina Bay'],
+          parentId: 'sg',
+          popularActivities: ['city', 'food', 'cultural', 'amusements'],
+          description: 'Futuristic city with amazing food and attractions.',
+          bestTimeToVisit: 'February to April',
+          knownFor: ['Marina Bay Sands', 'Gardens by the Bay', 'Hawker Centers', 'Sentosa'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 1.3521, longitude: 103.8198 }
+        }
+      ]
+    },
+    // Thailand
+    {
+      id: 'th',
+      name: 'Thailand',
+      alternateNames: ['TH', 'Land of Smiles', 'Siam'],
+      continentId: 'asia',
+      currency: 'THB',
+      language: ['Thai'],
+      timezone: 'GMT+7',
+      description: 'Land of smiles with beautiful temples, beaches, and street food.',
+      coordinates: { latitude: 15.8700, longitude: 100.9925 },
+      subLocations: [
+        {
+          id: 'th-bangkok',
+          name: 'Bangkok',
+          alternateNames: ['BKK', 'Krung Thep', 'City of Angels'],
+          parentId: 'th',
+          popularActivities: ['city', 'cultural', 'food', 'heritage'],
+          description: 'Vibrant capital with temples, markets, and street food.',
+          bestTimeToVisit: 'November to March',
+          knownFor: ['Grand Palace', 'Wat Pho', 'Floating Markets', 'Street Food'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 13.7563, longitude: 100.5018 }
+        },
+        {
+          id: 'th-phuket',
+          name: 'Phuket',
+          alternateNames: ['Pearl of Andaman', 'Phuket Island'],
+          parentId: 'th',
+          popularActivities: ['aquatics', 'wellness', 'amusements'],
+          description: 'Thailand\'s largest island with beautiful beaches.',
+          bestTimeToVisit: 'November to April',
+          knownFor: ['Patong Beach', 'Phi Phi Islands', 'Big Buddha', 'Nightlife'],
+          averageStay: '4-5 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 7.8804, longitude: 98.3923 }
+        }
+      ]
+    },
+    // Japan
+    {
+      id: 'jp',
+      name: 'Japan',
+      alternateNames: ['JP', 'Nippon', 'Land of Rising Sun'],
+      continentId: 'asia',
+      currency: 'JPY',
+      language: ['Japanese'],
+      timezone: 'GMT+9',
+      description: 'Land of ancient traditions and modern innovation.',
+      coordinates: { latitude: 36.2048, longitude: 138.2529 },
+      subLocations: [
+        {
+          id: 'jp-tokyo',
+          name: 'Tokyo',
+          alternateNames: ['Capital', 'Edo', 'Greater Tokyo'],
+          parentId: 'jp',
+          popularActivities: ['city', 'cultural', 'food', 'amusements'],
+          description: 'Ultra-modern capital with traditional touches.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Shibuya Crossing', 'Tokyo Tower', 'Sushi', 'Anime Culture'],
+          averageStay: '4-6 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 35.6762, longitude: 139.6503 }
+        },
+        {
+          id: 'jp-osaka',
+          name: 'Osaka',
+          alternateNames: ['Kitchen of Japan', 'Osaka-fu'],
+          parentId: 'jp',
+          popularActivities: ['food', 'cultural', 'amusements'],
+          description: 'Food capital of Japan with friendly locals.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Takoyaki', 'Osaka Castle', 'Universal Studios', 'Street Food'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 34.6937, longitude: 135.5023 }
+        },
+        {
+          id: 'jp-kyoto',
+          name: 'Kyoto',
+          alternateNames: ['Ancient Capital', 'City of Temples'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural', 'wellness'],
+          description: 'Former imperial capital with thousands of temples.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Fushimi Inari', 'Bamboo Grove', 'Geishas', 'Traditional Gardens'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 35.0116, longitude: 135.7681 }
+        },
+        {
+          id: 'jp-hiroshima',
+          name: 'Hiroshima',
+          alternateNames: ['Peace City'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural'],
+          description: 'Historic city with powerful peace memorial.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Peace Memorial', 'Atomic Bomb Dome', 'Miyajima Island'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 34.3853, longitude: 132.4553 }
+        },
+        {
+          id: 'jp-nara',
+          name: 'Nara',
+          alternateNames: ['Deer Park City'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural', 'outdoors'],
+          description: 'Ancient capital famous for free-roaming deer.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Todaiji Temple', 'Nara Deer Park', 'Kasuga Taisha'],
+          averageStay: '1 day',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 34.6851, longitude: 135.8048 }
+        },
+        {
+          id: 'jp-hakone',
+          name: 'Hakone',
+          alternateNames: ['Mount Fuji Gateway'],
+          parentId: 'jp',
+          popularActivities: ['wellness', 'outdoors', 'cultural'],
+          description: 'Mountain resort town with hot springs and Mount Fuji views.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Hot Springs', 'Mount Fuji Views', 'Lake Ashi', 'Ryokan'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 35.2324, longitude: 139.1069 }
+        },
+        {
+          id: 'jp-nikko',
+          name: 'Nikko',
+          alternateNames: ['UNESCO World Heritage'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural', 'outdoors'],
+          description: 'Sacred city with ornate shrines and natural beauty.',
+          bestTimeToVisit: 'April to November',
+          knownFor: ['Toshogu Shrine', 'Lake Chuzenji', 'Kegon Falls'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 36.7581, longitude: 139.6040 }
+        },
+        {
+          id: 'jp-kanazawa',
+          name: 'Kanazawa',
+          alternateNames: ['Gold Leaf City'],
+          parentId: 'jp',
+          popularActivities: ['cultural', 'heritage', 'food'],
+          description: 'Historic city known for gold leaf and beautiful gardens.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Kenrokuen Garden', 'Gold Leaf', 'Geisha Districts', 'Fresh Seafood'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 36.5944, longitude: 136.6256 }
+        },
+        {
+          id: 'jp-takayama',
+          name: 'Takayama',
+          alternateNames: ['Little Kyoto of Hida'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural', 'food'],
+          description: 'Historic mountain town with preserved Edo-period streets.',
+          bestTimeToVisit: 'April to November',
+          knownFor: ['Historic Streets', 'Sake Breweries', 'Hida Beef', 'Morning Markets'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 36.1397, longitude: 137.2530 }
+        },
+        {
+          id: 'jp-shirakawa-go',
+          name: 'Shirakawa-go',
+          alternateNames: ['Gassho-zukuri Village'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural', 'outdoors'],
+          description: 'UNESCO World Heritage village with traditional thatched houses.',
+          bestTimeToVisit: 'April to November',
+          knownFor: ['Gassho-zukuri Houses', 'Traditional Village', 'Mountain Views'],
+          averageStay: '1 day',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 36.2576, longitude: 136.9062 }
+        },
+        {
+          id: 'jp-mount-fuji',
+          name: 'Mount Fuji',
+          alternateNames: ['Fuji-san', 'Sacred Mountain'],
+          parentId: 'jp',
+          popularActivities: ['outdoors', 'heritage', 'wellness'],
+          description: 'Japan\'s highest mountain and spiritual symbol.',
+          bestTimeToVisit: 'July to September (climbing season)',
+          knownFor: ['Mountain Climbing', 'Five Lakes', 'Sunrise Views', 'Spiritual Significance'],
+          averageStay: '1-2 days',
+          difficulty: 'challenging',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 35.3606, longitude: 138.7274 }
+        },
+        {
+          id: 'jp-okinawa',
+          name: 'Okinawa',
+          alternateNames: ['Tropical Paradise', 'Ryukyu Islands'],
+          parentId: 'jp',
+          popularActivities: ['aquatics', 'wellness', 'cultural'],
+          description: 'Tropical island chain with unique culture and pristine beaches.',
+          bestTimeToVisit: 'April to June, October to December',
+          knownFor: ['Pristine Beaches', 'Diving', 'Unique Culture', 'Longevity'],
+          averageStay: '4-5 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 26.2124, longitude: 127.6792 }
+        },
+        {
+          id: 'jp-yokohama',
+          name: 'Yokohama',
+          alternateNames: ['Port City'],
+          parentId: 'jp',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Modern port city near Tokyo with international flair.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Chinatown', 'Red Brick Warehouse', 'Ramen Museum', 'Cosmo World'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 35.4437, longitude: 139.6380 }
+        },
+        {
+          id: 'jp-kamakura',
+          name: 'Kamakura',
+          alternateNames: ['Ancient Capital', 'Great Buddha City'],
+          parentId: 'jp',
+          popularActivities: ['heritage', 'cultural', 'outdoors'],
+          description: 'Historic coastal city with the famous Great Buddha.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Great Buddha', 'Bamboo Forest', 'Historic Temples', 'Beach'],
+          averageStay: '1 day',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 35.3193, longitude: 139.5519 }
+        },
+        {
+          id: 'jp-nagoya',
+          name: 'Nagoya',
+          alternateNames: ['Castle City'],
+          parentId: 'jp',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Industrial city with historic castle and unique local cuisine.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Nagoya Castle', 'Atsuta Shrine', 'Miso Katsu', 'Toyota Museum'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 35.1815, longitude: 136.9066 }
+        },
+        {
+          id: 'jp-sendai',
+          name: 'Sendai',
+          alternateNames: ['City of Trees'],
+          parentId: 'jp',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Northern city known for beef tongue and natural beauty.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Beef Tongue', 'Tanabata Festival', 'Zuihoden Mausoleum'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 38.2682, longitude: 140.8694 }
+        }
+      ]
+    },
+    // South Korea
+    {
+      id: 'kr',
+      name: 'South Korea',
+      alternateNames: ['KR', 'Korea', 'Republic of Korea'],
+      continentId: 'asia',
+      currency: 'KRW',
+      language: ['Korean'],
+      timezone: 'GMT+9',
+      description: 'Land of K-pop, kimchi, and technological innovation.',
+      coordinates: { latitude: 35.9078, longitude: 127.7669 },
+      subLocations: [
+        {
+          id: 'kr-seoul',
+          name: 'Seoul',
+          alternateNames: ['Capital', 'Hanyang', 'Seoul Special City'],
+          parentId: 'kr',
+          popularActivities: ['city', 'cultural', 'food', 'amusements'],
+          description: 'Dynamic capital of K-pop and Korean culture.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Gangnam', 'Myeongdong', 'Korean BBQ', 'K-pop Culture'],
+          averageStay: '4-5 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 37.5665, longitude: 126.9780 }
+        },
+        {
+          id: 'kr-busan',
+          name: 'Busan',
+          alternateNames: ['Coastal City', 'Summer Capital'],
+          parentId: 'kr',
+          popularActivities: ['aquatics', 'cultural', 'food'],
+          description: 'Coastal city with beautiful beaches and fresh seafood.',
+          bestTimeToVisit: 'May to October',
+          knownFor: ['Haeundae Beach', 'Gamcheon Village', 'Fresh Seafood', 'Film Festival'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 35.1796, longitude: 129.0756 }
+        },
+        {
+          id: 'kr-jeju',
+          name: 'Jeju Island',
+          alternateNames: ['Jeju-do', 'Honeymoon Island'],
+          parentId: 'kr',
+          popularActivities: ['outdoors', 'wellness', 'aquatics'],
+          description: 'Volcanic island paradise with beautiful nature.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Hallasan Mountain', 'Seongsan Sunrise Peak', 'Beaches', 'Tangerines'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 33.4996, longitude: 126.5312 }
+        },
+        {
+          id: 'kr-gyeongju',
+          name: 'Gyeongju',
+          alternateNames: ['Ancient Capital', 'Museum Without Walls'],
+          parentId: 'kr',
+          popularActivities: ['heritage', 'cultural'],
+          description: 'Ancient capital with UNESCO World Heritage sites.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Bulguksa Temple', 'Seokguram Grotto', 'Tumuli Park', 'Traditional Architecture'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 35.8562, longitude: 129.2247 }
+        },
+        {
+          id: 'kr-incheon',
+          name: 'Incheon',
+          alternateNames: ['Gateway City', 'Port City'],
+          parentId: 'kr',
+          popularActivities: ['city', 'cultural', 'heritage'],
+          description: 'Historic port city with international airport.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Chinatown', 'Songdo', 'Incheon Bridge', 'Modern Architecture'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 37.4563, longitude: 126.7052 }
+        },
+        {
+          id: 'kr-daegu',
+          name: 'Daegu',
+          alternateNames: ['Textile City'],
+          parentId: 'kr',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Traditional city known for textiles and local culture.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Seomun Market', 'Apsan Park', 'Traditional Medicine', 'Local Cuisine'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 35.8714, longitude: 128.6014 }
+        },
+        {
+          id: 'kr-jeonju',
+          name: 'Jeonju',
+          alternateNames: ['Hanok Village', 'Food Capital'],
+          parentId: 'kr',
+          popularActivities: ['heritage', 'cultural', 'food'],
+          description: 'Traditional city famous for hanok village and bibimbap.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Hanok Village', 'Bibimbap', 'Traditional Architecture', 'Korean Paper'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 35.8242, longitude: 127.1480 }
+        },
+        {
+          id: 'kr-sokcho',
+          name: 'Sokcho',
+          alternateNames: ['Gateway to Seoraksan'],
+          parentId: 'kr',
+          popularActivities: ['outdoors', 'aquatics', 'food'],
+          description: 'Coastal city near Seoraksan National Park.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Seoraksan National Park', 'Fresh Seafood', 'Beach', 'Hiking'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 38.2070, longitude: 128.5918 }
+        },
+        {
+          id: 'kr-andong',
+          name: 'Andong',
+          alternateNames: ['Traditional Culture City'],
+          parentId: 'kr',
+          popularActivities: ['heritage', 'cultural'],
+          description: 'Historic city preserving traditional Korean culture.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Hahoe Folk Village', 'Mask Dance', 'Traditional Culture', 'Confucian Academy'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 36.5684, longitude: 128.7294 }
+        },
+        {
+          id: 'kr-gangneung',
+          name: 'Gangneung',
+          alternateNames: ['Coffee City', 'Olympic City'],
+          parentId: 'kr',
+          popularActivities: ['aquatics', 'cultural', 'food'],
+          description: 'Coastal city famous for coffee culture and beaches.',
+          bestTimeToVisit: 'May to October',
+          knownFor: ['Coffee Street', 'Beaches', 'Olympic Venues', 'Pine Forests'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 37.7519, longitude: 128.8761 }
+        },
+        {
+          id: 'kr-yeosu',
+          name: 'Yeosu',
+          alternateNames: ['Beautiful Water City'],
+          parentId: 'kr',
+          popularActivities: ['aquatics', 'cultural', 'food'],
+          description: 'Scenic coastal city with beautiful islands.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Yeosu Expo', 'Beautiful Islands', 'Seafood', 'Cable Car'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 34.7604, longitude: 127.6622 }
+        },
+        {
+          id: 'kr-suwon',
+          name: 'Suwon',
+          alternateNames: ['Fortress City'],
+          parentId: 'kr',
+          popularActivities: ['heritage', 'cultural'],
+          description: 'Historic city with UNESCO World Heritage fortress.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Hwaseong Fortress', 'Korean Folk Village', 'Traditional Architecture'],
+          averageStay: '1 day',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 37.2636, longitude: 127.0286 }
+        },
+        {
+          id: 'kr-chuncheon',
+          name: 'Chuncheon',
+          alternateNames: ['Lake City', 'Dakgalbi City'],
+          parentId: 'kr',
+          popularActivities: ['outdoors', 'food', 'cultural'],
+          description: 'Lakeside city famous for dakgalbi (spicy chicken).',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Dakgalbi', 'Lake Activities', 'Nami Island nearby', 'Natural Beauty'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 37.8813, longitude: 127.7298 }
+        },
+        {
+          id: 'kr-gwangju',
+          name: 'Gwangju',
+          alternateNames: ['City of Light', 'Culture City'],
+          parentId: 'kr',
+          popularActivities: ['cultural', 'heritage', 'food'],
+          description: 'Cultural city known for art and democratic movements.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Art Museums', 'Democratic History', 'Traditional Markets', 'Cultural Events'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 35.1595, longitude: 126.8526 }
+        },
+        {
+          id: 'kr-pohang',
+          name: 'Pohang',
+          alternateNames: ['Steel City', 'Sunrise City'],
+          parentId: 'kr',
+          popularActivities: ['aquatics', 'cultural', 'heritage'],
+          description: 'Industrial coastal city with beautiful sunrise views.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Homigot Sunrise', 'Steel Industry', 'Beaches', 'Fresh Seafood'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 36.0190, longitude: 129.3435 }
+        }
+      ]
+    },
+    // Indonesia
+    {
+      id: 'id',
+      name: 'Indonesia',
+      alternateNames: ['ID', 'Archipelago', 'Republic of Indonesia'],
+      continentId: 'asia',
+      currency: 'IDR',
+      language: ['Indonesian'],
+      timezone: 'GMT+7 to GMT+9',
+      description: 'Largest archipelago with diverse cultures and stunning islands.',
+      coordinates: { latitude: -0.7893, longitude: 113.9213 },
+      subLocations: [
+        {
+          id: 'id-bali',
+          name: 'Bali',
+          alternateNames: ['Island of Gods', 'Bali Island'],
+          parentId: 'id',
+          popularActivities: ['aquatics', 'cultural', 'wellness', 'outdoors'],
+          description: 'Hindu island paradise with temples and beaches.',
+          bestTimeToVisit: 'April to September',
+          knownFor: ['Ubud Rice Terraces', 'Tanah Lot Temple', 'Kuta Beach', 'Yoga Retreats'],
+          averageStay: '5-7 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: -8.3405, longitude: 115.0920 }
+        },
+        {
+          id: 'id-jakarta',
+          name: 'Jakarta',
+          alternateNames: ['Capital', 'Big Durian'],
+          parentId: 'id',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Bustling capital with modern skyscrapers and traditional markets.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Monas Tower', 'Old Town Batavia', 'Street Food', 'Shopping Malls'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -6.2088, longitude: 106.8456 }
+        },
+        {
+          id: 'id-yogyakarta',
+          name: 'Yogyakarta',
+          alternateNames: ['Jogja', 'Cultural Heart'],
+          parentId: 'id',
+          popularActivities: ['heritage', 'cultural', 'food'],
+          description: 'Cultural center with ancient temples and royal heritage.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Borobudur Temple', 'Prambanan', 'Sultan Palace', 'Batik Art'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -7.7956, longitude: 110.3695 }
+        },
+        {
+          id: 'id-lombok',
+          name: 'Lombok',
+          alternateNames: ['Next Bali', 'Island Paradise'],
+          parentId: 'id',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          description: 'Pristine island with stunning beaches and Mount Rinjani.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Gili Islands', 'Mount Rinjani', 'Pink Beach', 'Surfing'],
+          averageStay: '4-5 days',
+          difficulty: 'moderate',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -8.6500, longitude: 116.3242 }
+        },
+        {
+          id: 'id-komodo',
+          name: 'Komodo National Park',
+          alternateNames: ['Dragon Island', 'Komodo'],
+          parentId: 'id',
+          popularActivities: ['outdoors', 'aquatics', 'heritage'],
+          description: 'Home to the famous Komodo dragons and pristine waters.',
+          bestTimeToVisit: 'April to December',
+          knownFor: ['Komodo Dragons', 'Pink Beach', 'Diving', 'Unique Wildlife'],
+          averageStay: '3-4 days',
+          difficulty: 'moderate',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: -8.5500, longitude: 119.4883 }
+        },
+        {
+          id: 'id-bandung',
+          name: 'Bandung',
+          alternateNames: ['Paris of Java', 'Flower City'],
+          parentId: 'id',
+          popularActivities: ['city', 'cultural', 'food', 'outdoors'],
+          description: 'Cool highland city known for fashion and culinary scene.',
+          bestTimeToVisit: 'March to September',
+          knownFor: ['Factory Outlets', 'Tea Plantations', 'Art Deco Architecture', 'Street Food'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -6.9175, longitude: 107.6191 }
+        },
+        {
+          id: 'id-surabaya',
+          name: 'Surabaya',
+          alternateNames: ['City of Heroes', 'Shark City'],
+          parentId: 'id',
+          popularActivities: ['city', 'heritage', 'food'],
+          description: 'Historic port city and gateway to East Java.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Heroes Monument', 'House of Sampoerna', 'Traditional Markets', 'Local Cuisine'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -7.2575, longitude: 112.7521 }
+        },
+        {
+          id: 'id-malang',
+          name: 'Malang',
+          alternateNames: ['Apple City', 'Cool City'],
+          parentId: 'id',
+          popularActivities: ['city', 'cultural', 'outdoors'],
+          description: 'Cool highland city with colonial architecture.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Colonial Architecture', 'Apple Farms', 'Cool Climate', 'Coffee Culture'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -7.9666, longitude: 112.6326 }
+        },
+        {
+          id: 'id-solo',
+          name: 'Solo (Surakarta)',
+          alternateNames: ['Cultural City', 'Spirit of Java'],
+          parentId: 'id',
+          popularActivities: ['heritage', 'cultural', 'food'],
+          description: 'Royal city preserving Javanese culture and traditions.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Royal Palaces', 'Batik Art', 'Traditional Markets', 'Javanese Culture'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -7.5755, longitude: 110.8243 }
+        },
+        {
+          id: 'id-medan',
+          name: 'Medan',
+          alternateNames: ['Gateway to Sumatra'],
+          parentId: 'id',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Largest city in Sumatra with diverse cultural influences.',
+          bestTimeToVisit: 'June to September',
+          knownFor: ['Maimun Palace', 'Great Mosque', 'Diverse Cuisine', 'Cultural Diversity'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 3.5952, longitude: 98.6722 }
+        },
+        {
+          id: 'id-toba',
+          name: 'Lake Toba',
+          alternateNames: ['Largest Volcanic Lake', 'Samosir Island'],
+          parentId: 'id',
+          popularActivities: ['outdoors', 'cultural', 'wellness'],
+          description: 'Massive volcanic lake with Batak culture and traditions.',
+          bestTimeToVisit: 'June to September',
+          knownFor: ['Volcanic Lake', 'Batak Culture', 'Samosir Island', 'Traditional Villages'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 2.6845, longitude: 98.8756 }
+        },
+        {
+          id: 'id-bromo',
+          name: 'Mount Bromo',
+          alternateNames: ['Bromo Tengger Semeru', 'Volcanic Landscape'],
+          parentId: 'id',
+          popularActivities: ['outdoors', 'heritage'],
+          description: 'Active volcano with stunning sunrise views and lunar landscape.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Sunrise Views', 'Volcanic Landscape', 'Tengger People', 'Jeep Tours'],
+          averageStay: '1-2 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -7.9425, longitude: 112.9530 }
+        },
+        {
+          id: 'id-flores',
+          name: 'Flores',
+          alternateNames: ['Flower Island'],
+          parentId: 'id',
+          popularActivities: ['outdoors', 'cultural', 'aquatics'],
+          description: 'Volcanic island with colorful crater lakes and traditional villages.',
+          bestTimeToVisit: 'April to December',
+          knownFor: ['Kelimutu Lakes', 'Traditional Villages', 'Volcanic Landscape', 'Cultural Diversity'],
+          averageStay: '3-4 days',
+          difficulty: 'moderate',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -8.6573, longitude: 121.0794 }
+        },
+        {
+          id: 'id-raja-ampat',
+          name: 'Raja Ampat',
+          alternateNames: ['Four Kings', 'Marine Paradise'],
+          parentId: 'id',
+          popularActivities: ['aquatics', 'outdoors'],
+          description: 'Remote marine paradise with world\'s richest underwater biodiversity.',
+          bestTimeToVisit: 'October to April',
+          knownFor: ['World-class Diving', 'Marine Biodiversity', 'Remote Islands', 'Pristine Waters'],
+          averageStay: '5-7 days',
+          difficulty: 'challenging',
+          crowdLevel: 'low',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: -0.2315, longitude: 130.5256 }
+        },
+        {
+          id: 'id-toraja',
+          name: 'Toraja',
+          alternateNames: ['Tana Toraja', 'Land of Heavenly Kings'],
+          parentId: 'id',
+          popularActivities: ['cultural', 'heritage', 'outdoors'],
+          description: 'Highland region famous for unique funeral ceremonies and traditional houses.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Funeral Ceremonies', 'Traditional Houses', 'Coffee Plantations', 'Unique Culture'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'low',
+          budgetLevel: 'budget',
+          coordinates: { latitude: -2.9441, longitude: 119.8707 }
+        }
+      ]
+    },
+    // Malaysia
+    {
+      id: 'my',
+      name: 'Malaysia',
+      alternateNames: ['MY', 'Truly Asia'],
+      continentId: 'asia',
+      currency: 'MYR',
+      language: ['Malay', 'English'],
+      timezone: 'GMT+8',
+      description: 'Multicultural nation with diverse food and modern cities.',
+      coordinates: { latitude: 4.2105, longitude: 101.9758 },
+      subLocations: [
+        {
+          id: 'my-kuala-lumpur',
+          name: 'Kuala Lumpur',
+          alternateNames: ['KL', 'Garden City of Lights'],
+          parentId: 'my',
+          popularActivities: ['city', 'food', 'cultural', 'amusements'],
+          description: 'Modern capital with iconic twin towers.',
+          bestTimeToVisit: 'May to July, December to February',
+          knownFor: ['Petronas Towers', 'Batu Caves', 'Street Food', 'Shopping'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 3.1390, longitude: 101.6869 }
+        }
+      ]
+    },
+    // Vietnam
+    {
+      id: 'vn',
+      name: 'Vietnam',
+      alternateNames: ['VN', 'Socialist Republic of Vietnam'],
+      continentId: 'asia',
+      currency: 'VND',
+      language: ['Vietnamese'],
+      timezone: 'GMT+7',
+      description: 'Long coastal country with rich history and amazing food.',
+      coordinates: { latitude: 14.0583, longitude: 108.2772 },
+      subLocations: [
+        {
+          id: 'vn-ho-chi-minh',
+          name: 'Ho Chi Minh City',
+          alternateNames: ['Saigon', 'HCMC'],
+          parentId: 'vn',
+          popularActivities: ['city', 'heritage', 'food', 'cultural'],
+          description: 'Bustling southern metropolis with French colonial charm.',
+          bestTimeToVisit: 'December to April',
+          knownFor: ['War Remnants Museum', 'Ben Thanh Market', 'Pho', 'Motorbike Tours'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 10.8231, longitude: 106.6297 }
+        }
+      ]
+    },
+    // Taiwan
+    {
+      id: 'tw',
+      name: 'Taiwan',
+      alternateNames: ['TW', 'Republic of China', 'Formosa', 'Chinese Taipei'],
+      continentId: 'asia',
+      currency: 'TWD',
+      language: ['Mandarin Chinese', 'Taiwanese'],
+      timezone: 'GMT+8',
+      description: 'Beautiful island nation known for night markets, mountains, and technology.',
+      coordinates: { latitude: 23.6978, longitude: 120.9605 },
+      subLocations: [
+        {
+          id: 'tw-taipei',
+          name: 'Taipei',
+          alternateNames: ['Capital City', 'Taipei City'],
+          parentId: 'tw',
+          popularActivities: ['city', 'food', 'cultural', 'heritage'],
+          description: 'Modern capital city famous for night markets and Taipei 101.',
+          bestTimeToVisit: 'October to March',
+          knownFor: ['Taipei 101', 'Night Markets', 'Bubble Tea', 'Hot Springs'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 25.0330, longitude: 121.5654 }
+        },
+        {
+          id: 'tw-taichung',
+          name: 'Taichung',
+          alternateNames: ['Central Taiwan', 'Cultural City'],
+          parentId: 'tw',
+          popularActivities: ['cultural', 'food', 'heritage'],
+          description: 'Cultural hub with traditional temples and modern attractions.',
+          bestTimeToVisit: 'October to April',
+          knownFor: ['Rainbow Village', 'Fengjia Night Market', 'National Museum'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 24.1477, longitude: 120.6736 }
+        },
+        {
+          id: 'tw-kaohsiung',
+          name: 'Kaohsiung',
+          alternateNames: ['Southern Capital', 'Harbor City'],
+          parentId: 'tw',
+          popularActivities: ['city', 'heritage', 'aquatics'],
+          description: 'Major port city with beautiful harbor and cultural sites.',
+          bestTimeToVisit: 'November to March',
+          knownFor: ['Love River', 'Dragon Tiger Pagodas', 'Pier-2 Art Center'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 22.6273, longitude: 120.3014 }
+        }
+      ]
+    },
+    // Hong Kong
+    {
+      id: 'hk',
+      name: 'Hong Kong',
+      alternateNames: ['HK', 'Hong Kong SAR', 'Fragrant Harbor', 'Pearl of Orient'],
+      continentId: 'asia',
+      currency: 'HKD',
+      language: ['Cantonese', 'English'],
+      timezone: 'GMT+8',
+      description: 'Dynamic financial hub with stunning skyline and rich cultural blend.',
+      coordinates: { latitude: 22.3193, longitude: 114.1694 },
+      subLocations: [
+        {
+          id: 'hk-central',
+          name: 'Central Hong Kong',
+          alternateNames: ['Central District', 'CBD', 'Financial District'],
+          parentId: 'hk',
+          popularActivities: ['city', 'cultural', 'food', 'heritage'],
+          description: 'Heart of Hong Kong with iconic skyline and business district.',
+          bestTimeToVisit: 'October to December',
+          knownFor: ['Victoria Harbour', 'Peak Tram', 'IFC Tower', 'Star Ferry'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 22.2783, longitude: 114.1747 }
+        },
+        {
+          id: 'hk-tsim-sha-tsui',
+          name: 'Tsim Sha Tsui',
+          alternateNames: ['TST', 'Kowloon Waterfront'],
+          parentId: 'hk',
+          popularActivities: ['cultural', 'food', 'heritage'],
+          description: 'Cultural district with museums, shopping, and waterfront promenade.',
+          bestTimeToVisit: 'October to December',
+          knownFor: ['Avenue of Stars', 'Symphony of Lights', 'Space Museum', 'Shopping'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 22.2987, longitude: 114.1719 }
+        },
+        {
+          id: 'hk-lantau',
+          name: 'Lantau Island',
+          alternateNames: ['Big Buddha Island', 'Disneyland Island'],
+          parentId: 'hk',
+          popularActivities: ['cultural', 'amusements', 'heritage', 'outdoors'],
+          description: 'Largest island with Big Buddha, Disneyland, and nature trails.',
+          bestTimeToVisit: 'October to March',
+          knownFor: ['Big Buddha', 'Hong Kong Disneyland', 'Po Lin Monastery', 'Cable Car'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 22.2588, longitude: 113.9277 }
+        }
+      ]
+    },
+
+  ]
 };
 
 // Europe continent data
@@ -503,7 +1757,242 @@ export const europeData: Continent = {
   name: 'Europe',
   alternateNames: ['European Continent'],
   description: 'Historic continent with rich cultural heritage and architectural marvels.',
-  countries: [franceData]
+  countries: [
+    franceData,
+    // Italy
+    {
+      id: 'it',
+      name: 'Italy',
+      alternateNames: ['IT', 'Italia', 'Boot'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['Italian'],
+      timezone: 'GMT+1',
+      description: 'Land of art, history, and incredible cuisine.',
+      coordinates: { latitude: 41.8719, longitude: 12.5674 },
+      subLocations: [
+        {
+          id: 'it-rome',
+          name: 'Rome',
+          alternateNames: ['Eternal City', 'Roma'],
+          parentId: 'it',
+          popularActivities: ['heritage', 'cultural', 'food'],
+          description: 'Ancient capital with incredible historical sites.',
+          bestTimeToVisit: 'April to June, September to October',
+          knownFor: ['Colosseum', 'Vatican City', 'Trevi Fountain', 'Roman Forum'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 41.9028, longitude: 12.4964 }
+        }
+      ]
+    },
+    // Spain
+    {
+      id: 'es',
+      name: 'Spain',
+      alternateNames: ['ES', 'España', 'Kingdom of Spain'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['Spanish'],
+      timezone: 'GMT+1',
+      description: 'Passionate country of flamenco, tapas, and stunning architecture.',
+      coordinates: { latitude: 40.4637, longitude: -3.7492 },
+      subLocations: [
+        {
+          id: 'es-barcelona',
+          name: 'Barcelona',
+          alternateNames: ['Barca', 'City of Gaudí'],
+          parentId: 'es',
+          popularActivities: ['cultural', 'heritage', 'food', 'aquatics'],
+          description: 'Artistic city with unique architecture and Mediterranean beaches.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Sagrada Familia', 'Park Güell', 'Las Ramblas', 'Tapas'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 41.3851, longitude: 2.1734 }
+        }
+      ]
+    },
+    // United Kingdom
+    {
+      id: 'gb',
+      name: 'United Kingdom',
+      alternateNames: ['UK', 'Britain', 'Great Britain'],
+      continentId: 'europe',
+      currency: 'GBP',
+      language: ['English'],
+      timezone: 'GMT+0',
+      description: 'Historic kingdom with royal heritage and modern culture.',
+      coordinates: { latitude: 55.3781, longitude: -3.4360 },
+      subLocations: [
+        {
+          id: 'gb-london',
+          name: 'London',
+          alternateNames: ['Big Smoke', 'The Capital'],
+          parentId: 'gb',
+          popularActivities: ['heritage', 'cultural', 'city', 'food'],
+          description: 'Historic capital with royal palaces and modern attractions.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Big Ben', 'Buckingham Palace', 'Tower Bridge', 'British Museum'],
+          averageStay: '4-5 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 51.5074, longitude: -0.1278 }
+        }
+      ]
+    },
+    // Netherlands
+    {
+      id: 'nl',
+      name: 'Netherlands',
+      alternateNames: ['NL', 'Holland', 'Kingdom of Netherlands'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['Dutch'],
+      timezone: 'GMT+1',
+      description: 'Land of tulips, windmills, and canals.',
+      coordinates: { latitude: 52.1326, longitude: 5.2913 },
+      subLocations: [
+        {
+          id: 'nl-amsterdam',
+          name: 'Amsterdam',
+          alternateNames: ['Venice of North', 'Dam'],
+          parentId: 'nl',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Canal city with rich history and vibrant culture.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Canals', 'Anne Frank House', 'Van Gogh Museum', 'Red Light District'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 52.3676, longitude: 4.9041 }
+        }
+      ]
+    },
+    // Germany
+    {
+      id: 'de',
+      name: 'Germany',
+      alternateNames: ['DE', 'Deutschland', 'Federal Republic of Germany'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['German'],
+      timezone: 'GMT+1',
+      description: 'Land of castles, beer, and efficient engineering.',
+      coordinates: { latitude: 51.1657, longitude: 10.4515 },
+      subLocations: [
+        {
+          id: 'de-berlin',
+          name: 'Berlin',
+          alternateNames: ['Capital', 'City of Freedom'],
+          parentId: 'de',
+          popularActivities: ['heritage', 'cultural', 'city'],
+          description: 'Historic capital with remnants of the Cold War.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Brandenburg Gate', 'Berlin Wall', 'Museum Island', 'Oktoberfest'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 52.5200, longitude: 13.4050 }
+        }
+      ]
+    },
+    // Switzerland
+    {
+      id: 'ch',
+      name: 'Switzerland',
+      alternateNames: ['CH', 'Swiss Confederation', 'Land of Alps'],
+      continentId: 'europe',
+      currency: 'CHF',
+      language: ['German', 'French', 'Italian'],
+      timezone: 'GMT+1',
+      description: 'Alpine paradise with pristine mountains and lakes.',
+      coordinates: { latitude: 46.8182, longitude: 8.2275 },
+      subLocations: [
+        {
+          id: 'ch-zurich',
+          name: 'Zurich',
+          alternateNames: ['Financial Capital', 'Zürich'],
+          parentId: 'ch',
+          popularActivities: ['outdoors', 'cultural', 'city'],
+          description: 'Financial hub with beautiful lake and mountain views.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Lake Zurich', 'Swiss Alps', 'Chocolate', 'Luxury Shopping'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 47.3769, longitude: 8.5417 }
+        }
+      ]
+    },
+    // Iceland
+    {
+      id: 'is',
+      name: 'Iceland',
+      alternateNames: ['IS', 'Land of Fire and Ice'],
+      continentId: 'europe',
+      currency: 'ISK',
+      language: ['Icelandic'],
+      timezone: 'GMT+0',
+      description: 'Nordic island nation with dramatic landscapes and natural wonders.',
+      coordinates: { latitude: 64.9631, longitude: -19.0208 },
+      subLocations: [
+        {
+          id: 'is-reykjavik',
+          name: 'Reykjavik',
+          alternateNames: ['Capital', 'Smoky Bay'],
+          parentId: 'is',
+          popularActivities: ['cultural', 'heritage', 'city', 'wellness'],
+          description: 'Colorful capital with vibrant culture and northern lights.',
+          bestTimeToVisit: 'June to August, September to March (Northern Lights)',
+          knownFor: ['Northern Lights', 'Blue Lagoon', 'Hallgrimskirkja', 'Viking Heritage'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 64.1466, longitude: -21.9426 }
+        },
+        {
+          id: 'is-golden-circle',
+          name: 'Golden Circle',
+          alternateNames: ['Classic Route', 'Tourist Route'],
+          parentId: 'is',
+          popularActivities: ['outdoors', 'wellness', 'heritage'],
+          description: 'Famous tourist route with geysers, waterfalls, and national park.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Geysir', 'Gullfoss Waterfall', 'Thingvellir National Park'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 64.3078, longitude: -20.1222 }
+        },
+        {
+          id: 'is-south-coast',
+          name: 'South Coast',
+          alternateNames: ['Ring Road South', 'Black Sand Beaches'],
+          parentId: 'is',
+          popularActivities: ['outdoors', 'heritage'],
+          description: 'Dramatic coastline with black sand beaches and glaciers.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Reynisfjara Beach', 'Skogafoss', 'Seljalandsfoss', 'Glacier Lagoon'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 63.5311, longitude: -19.0208 }
+        }
+      ]
+    }
+  ]
 };
 
 // North America continent data
@@ -512,7 +2001,38 @@ export const northAmericaData: Continent = {
   name: 'North America',
   alternateNames: ['North American Continent'],
   description: 'Diverse continent from arctic tundra to tropical beaches.',
-  countries: [usaData]
+  countries: [
+    usaData,
+    // Canada
+    {
+      id: 'ca',
+      name: 'Canada',
+      alternateNames: ['CA', 'Great White North'],
+      continentId: 'north-america',
+      currency: 'CAD',
+      language: ['English', 'French'],
+      timezone: 'GMT-3.5 to GMT-8',
+      description: 'Vast country with stunning natural beauty and friendly people.',
+      coordinates: { latitude: 56.1304, longitude: -106.3468 },
+      subLocations: [
+        {
+          id: 'ca-toronto',
+          name: 'Toronto',
+          alternateNames: ['T-Dot', 'The 6ix'],
+          parentId: 'ca',
+          popularActivities: ['city', 'cultural', 'food'],
+          description: 'Multicultural metropolis with iconic CN Tower.',
+          bestTimeToVisit: 'May to October',
+          knownFor: ['CN Tower', 'Niagara Falls', 'Diverse Food Scene', 'Toronto Islands'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 43.6532, longitude: -79.3832 }
+        }
+      ]
+    }
+  ]
 };
 
 // South America continent data
@@ -521,7 +2041,38 @@ export const southAmericaData: Continent = {
   name: 'South America',
   alternateNames: ['South American Continent'],
   description: 'Vibrant continent with Amazon rainforest and Andes mountains.',
-  countries: [brazilData]
+  countries: [
+    brazilData,
+    // Argentina
+    {
+      id: 'ar',
+      name: 'Argentina',
+      alternateNames: ['AR', 'Land of Silver'],
+      continentId: 'south-america',
+      currency: 'ARS',
+      language: ['Spanish'],
+      timezone: 'GMT-3',
+      description: 'Land of tango, beef, and passionate culture.',
+      coordinates: { latitude: -38.4161, longitude: -63.6167 },
+      subLocations: [
+        {
+          id: 'ar-buenos-aires',
+          name: 'Buenos Aires',
+          alternateNames: ['BA', 'Paris of South America'],
+          parentId: 'ar',
+          popularActivities: ['cultural', 'food', 'city', 'heritage'],
+          description: 'Elegant capital known for tango and European architecture.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Tango', 'Beef Steaks', 'Recoleta Cemetery', 'La Boca'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: -34.6118, longitude: -58.3960 }
+        }
+      ]
+    }
+  ]
 };
 
 // Africa continent data
@@ -530,7 +2081,38 @@ export const africaData: Continent = {
   name: 'Africa',
   alternateNames: ['African Continent'],
   description: 'Cradle of humanity with incredible wildlife and diverse cultures.',
-  countries: [southAfricaData]
+  countries: [
+    southAfricaData,
+    // Egypt
+    {
+      id: 'eg',
+      name: 'Egypt',
+      alternateNames: ['EG', 'Land of Pharaohs'],
+      continentId: 'africa',
+      currency: 'EGP',
+      language: ['Arabic'],
+      timezone: 'GMT+2',
+      description: 'Ancient civilization with pyramids and the Nile River.',
+      coordinates: { latitude: 26.0975, longitude: 31.2357 },
+      subLocations: [
+        {
+          id: 'eg-cairo',
+          name: 'Cairo',
+          alternateNames: ['City of Thousand Minarets'],
+          parentId: 'eg',
+          popularActivities: ['heritage', 'cultural', 'city'],
+          description: 'Ancient capital with pyramids and rich history.',
+          bestTimeToVisit: 'October to April',
+          knownFor: ['Pyramids of Giza', 'Sphinx', 'Egyptian Museum', 'Nile River'],
+          averageStay: '3-4 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 30.0444, longitude: 31.2357 }
+        }
+      ]
+    }
+  ]
 };
 
 // Oceania continent data
@@ -539,7 +2121,38 @@ export const oceaniaData: Continent = {
   name: 'Oceania',
   alternateNames: ['Australia & Oceania', 'Pacific Islands'],
   description: 'Island continent with unique ecosystems and laid-back culture.',
-  countries: [australiaData]
+  countries: [
+    australiaData,
+    // New Zealand
+    {
+      id: 'nz',
+      name: 'New Zealand',
+      alternateNames: ['NZ', 'Aotearoa', 'Land of Long White Cloud'],
+      continentId: 'oceania',
+      currency: 'NZD',
+      language: ['English', 'Māori'],
+      timezone: 'GMT+12',
+      description: 'Adventure paradise with stunning landscapes and Māori culture.',
+      coordinates: { latitude: -40.9006, longitude: 174.8860 },
+      subLocations: [
+        {
+          id: 'nz-auckland',
+          name: 'Auckland',
+          alternateNames: ['City of Sails'],
+          parentId: 'nz',
+          popularActivities: ['outdoors', 'aquatics', 'city'],
+          description: 'Largest city with beautiful harbors and outdoor activities.',
+          bestTimeToVisit: 'December to March',
+          knownFor: ['Sky Tower', 'Waitemata Harbour', 'Adventure Sports', 'Wine Regions'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: -36.8485, longitude: 174.7633 }
+        }
+      ]
+    }
+  ]
 };
 
 // Antarctica continent data
