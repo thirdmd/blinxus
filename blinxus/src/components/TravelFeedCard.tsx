@@ -552,9 +552,19 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   // MEMORY OPTIMIZATION: Memoize all handlers to prevent recreation
   const handleProfilePress = useCallback(() => {
     if (authorName === 'Third Camacho') {
-      navigation.navigate('Profile' as never);
+      // Navigate to current user's profile
+      (navigation as any).navigate('Profile', { 
+        fromFeed: true,
+        previousScreen: 'Explore' 
+      });
     } else {
-      // Navigate to author profile
+      // Navigate to other user's profile (future implementation)
+      // For now, could navigate to a generic UserProfile screen
+      // (navigation as any).navigate('UserProfile', { 
+      //   userId: authorId,
+      //   fromFeed: true,
+      //   previousScreen: 'Explore' 
+      // });
     }
   }, [authorName, navigation]);
 

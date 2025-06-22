@@ -13,6 +13,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   FlatList,
+  Animated,
 } from 'react-native';
 
 import { ProfileDataType } from '../userData/profile_data';
@@ -37,6 +38,8 @@ interface Props {
   onSettingsPress: () => void;
   scrollRef?: React.RefObject<ScrollView | null>;
   onResetToTop?: React.MutableRefObject<(() => void) | null>;
+  fromFeed?: boolean;
+  previousScreen?: string;
 }
 
 export default function ProfileStructure({
@@ -45,6 +48,8 @@ export default function ProfileStructure({
   onSettingsPress,
   scrollRef,
   onResetToTop,
+  fromFeed,
+  previousScreen,
 }: Props) {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
@@ -52,6 +57,9 @@ export default function ProfileStructure({
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [showLibrary, setShowLibrary] = useState(false);
   const localScrollViewRef = useRef<ScrollView>(null);
+  
+  // Animation values for smooth Library transition
+  const librarySlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
   // Use the scrollRef from props (for double tap functionality) or fallback to local ref
   const scrollViewRef = scrollRef || localScrollViewRef;
   
@@ -66,11 +74,42 @@ export default function ProfileStructure({
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
   
+  // Ultra-smooth Library open animation
+  const openLibrary = () => {
+    setShowLibrary(true);
+    Animated.timing(librarySlideAnim, {
+      toValue: 0,
+      duration: 180, // Faster
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Ultra-smooth Library close animation
+  const closeLibrary = () => {
+    Animated.timing(librarySlideAnim, {
+      toValue: width,
+      duration: 150, // Faster
+      useNativeDriver: true,
+    }).start(() => {
+      setShowLibrary(false);
+    });
+  };
+
   // Internal reset function that handles all ProfileStructure states
   const handleResetToTop = () => {
     // Reset all internal states
     setIsFullscreen(false);
-    setShowLibrary(false);
+    
+    // Close library with animation if open
+    if (showLibrary) {
+      closeLibrary();
+    } else {
+      setShowLibrary(false);
+    }
+    
+    // Reset animation state
+    librarySlideAnim.setValue(width);
+    
     // Reset app bar states
     setScrollY(0);
     setAppBarOpacity(1);
@@ -86,6 +125,15 @@ export default function ProfileStructure({
       }
     }, 100);
   };
+
+  // Reset library state when coming from feed
+  React.useEffect(() => {
+    if (fromFeed) {
+      setShowLibrary(false);
+      setIsFullscreen(false);
+      librarySlideAnim.setValue(width); // Reset animation
+    }
+  }, [fromFeed]);
   
   // Expose the reset function to parent component
   React.useEffect(() => {
@@ -256,11 +304,6 @@ export default function ProfileStructure({
     );
   };
 
-  // Show library screen if showLibrary is true
-  if (showLibrary) {
-    return <Library onBackPress={() => setShowLibrary(false)} />;
-  }
-
   // If in fullscreen mode, show TravelFeedCard view
   if (isFullscreen) {
     const filteredPosts = (posts || []).filter(post => {
@@ -339,25 +382,86 @@ export default function ProfileStructure({
     );
   }
 
+  // Handle back navigation to specific previous screen
+  const handleBackToPreviousScreen = () => {
+    // Clear route params first to reset state
+    (navigation as any).setParams({ 
+      fromFeed: false, 
+      previousScreen: undefined 
+    });
+    
+    // Navigate to specific screen based on previous screen context
+    switch (previousScreen) {
+      case 'Explore':
+        (navigation as any).navigate('MainTabs', { screen: 'Home' });
+        break;
+      case 'Forum':
+        (navigation as any).navigate('MainTabs', { screen: 'Pods' });
+        break;
+      case 'Library':
+        // For Library, just goBack since it's within the Profile screen
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        break;
+      case 'PostDetail':
+        // For post detail, use generic goBack since it's a modal/overlay
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        break;
+      default:
+        // Fallback to generic goBack
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        break;
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background} 
       />
-      {/* Dynamic App Bar - Same as ExploreScreen */}
+      {/* Dynamic App Bar - Conditional layout based on navigation source */}
       <View style={{
         height: responsiveDimensions.appBar.height,
         backgroundColor: scrollY > 50 ? 'transparent' : themeColors.background,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: responsiveDimensions.appBar.paddingHorizontal,
+        justifyContent: fromFeed ? 'flex-start' : 'space-between',
+        paddingHorizontal: fromFeed ? rs(8) : responsiveDimensions.appBar.paddingHorizontal,
         borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
         borderBottomColor: `${themeColors.border}20`,
       }}>
-        {/* Username - fades out when scrolling */}
-        <View style={{ flex: 1, justifyContent: 'center' }}>
+        {/* Back button - Only show when coming from feed */}
+        {fromFeed && (
+          <TouchableOpacity 
+            onPress={handleBackToPreviousScreen}
+            style={{ 
+              width: responsiveDimensions.button.small.width, 
+              height: responsiveDimensions.button.small.height, 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              borderRadius: rs(16),
+              backgroundColor: 'transparent',
+              marginRight: rs(8),
+              opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+            }}
+            activeOpacity={0.7}
+          >
+            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+          </TouchableOpacity>
+        )}
+        
+        {/* Username - always positioned on far left */}
+        <View style={{ 
+          flex: 1, 
+          justifyContent: 'center',
+          alignItems: 'flex-start'
+        }}>
           <Text style={{ 
             fontSize: typography.appTitle, 
             fontWeight: '600', 
@@ -368,49 +472,51 @@ export default function ProfileStructure({
           </Text>
         </View>
         
-        {/* Action buttons - fade out when scrolling */}
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center',
-          opacity: scrollY > 50 ? 0 : 1,
-        }}>
-          {/* Library Button */}
-          <TouchableOpacity
-            onPress={() => setShowLibrary(true)}
-            style={{ 
-              width: responsiveDimensions.button.small.width, 
-              height: responsiveDimensions.button.small.height, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: rs(16),
-              backgroundColor: scrollY > 20 
-                ? `${themeColors.backgroundSecondary}40` 
-                : 'transparent',
-              marginRight: rs(8),
-            }}
-            activeOpacity={0.7}
-          >
-            <Bookmark size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
-          </TouchableOpacity>
-          
-          {/* Settings Button */}
-          <TouchableOpacity
-            onPress={onSettingsPress}
-            style={{ 
-              width: responsiveDimensions.button.small.width, 
-              height: responsiveDimensions.button.small.height, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: rs(16),
-              backgroundColor: scrollY > 20 
-                ? `${themeColors.backgroundSecondary}40` 
-                : 'transparent',
-            }}
-            activeOpacity={0.7}
-          >
-            <Settings size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
-          </TouchableOpacity>
-        </View>
+        {/* Action buttons - only show when NOT coming from feed */}
+        {!fromFeed && (
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center',
+            opacity: scrollY > 50 ? 0 : 1,
+          }}>
+            {/* Library Button */}
+            <TouchableOpacity
+              onPress={openLibrary}
+              style={{ 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16),
+                backgroundColor: scrollY > 20 
+                  ? `${themeColors.backgroundSecondary}40` 
+                  : 'transparent',
+                marginRight: rs(8),
+              }}
+              activeOpacity={0.7}
+            >
+              <Bookmark size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
+            </TouchableOpacity>
+            
+            {/* Settings Button */}
+            <TouchableOpacity
+              onPress={onSettingsPress}
+              style={{ 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16),
+                backgroundColor: scrollY > 20 
+                  ? `${themeColors.backgroundSecondary}40` 
+                  : 'transparent',
+              }}
+              activeOpacity={0.7}
+            >
+              <Settings size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <ScrollView 
@@ -540,8 +646,6 @@ export default function ProfileStructure({
           </View>
         </View>
 
-
-
         {/* Media Grid - Edge to edge with smooth corners */}
         <View style={{ paddingTop: 32 }}>
           {(() => {
@@ -630,6 +734,24 @@ export default function ProfileStructure({
           })()}
         </View>
       </ScrollView>
+      
+      {/* Library Overlay - Slides in from right */}
+      {showLibrary && (
+        <Animated.View 
+          style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            transform: [{ translateX: librarySlideAnim }],
+            backgroundColor: themeColors.background,
+            zIndex: 1000,
+          }}
+        >
+          <Library onBackPress={closeLibrary} />
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }

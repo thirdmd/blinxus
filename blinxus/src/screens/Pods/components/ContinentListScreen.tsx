@@ -10,6 +10,8 @@ import {
   ScrollView,
   Modal,
   StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 
 import { Search, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
@@ -496,14 +498,15 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
   };
 
   const collapseSearch = () => {
-    if (searchQuery === '') {
-      setIsSearchExpanded(false);
-      Animated.timing(searchAnimation, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
+    // RADICAL FIX: Always allow collapse, clear search, dismiss keyboard
+    setSearchQuery(''); // Clear the search
+    setIsSearchExpanded(false);
+    Keyboard.dismiss(); // Dismiss keyboard
+    Animated.timing(searchAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
   };
 
   // Define regional groupings for MVP countries
@@ -952,7 +955,15 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+    <TouchableWithoutFeedback onPress={() => {
+      // RADICAL FIX: Dismiss keyboard and collapse search on tap outside
+      if (isSearchExpanded) {
+        collapseSearch();
+      } else {
+        Keyboard.dismiss();
+      }
+    }}>
+      <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background}
@@ -1101,6 +1112,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             style={{
               flex: 1,
                     marginLeft: 8,
+                    marginRight: 8,
                     fontSize: 14,
                     color: themeColors.text,
                     fontWeight: '400',
@@ -1108,9 +1120,26 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             }}
                   autoFocus
                   returnKeyType="search"
-                  onBlur={collapseSearch}
-            clearButtonMode="while-editing"
+            clearButtonMode="never"
           />
+                <TouchableOpacity
+                  onPress={collapseSearch}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 4,
+                  }}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <X 
+                    size={14} 
+                    color={themeColors.textSecondary} 
+                    strokeWidth={2} 
+                  />
+                </TouchableOpacity>
               </View>
             )}
           </Animated.View>
@@ -1351,6 +1380,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         </Animated.View>
       </Modal>
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -126,38 +126,109 @@ function TabNavigator() {
   // Track the previously active tab
   const previousTabRef = useRef<string>('Home');
   
-  const handleTabPress = (routeName: string, navigation: any) => {
+  const handleTabPress = (routeName: string, navigation: any, isFocused: boolean) => {
     const now = Date.now();
     const lastTap = lastTapRef.current[routeName] || 0;
+    const isDoubleTap = now - lastTap < 300; // Double tap detected (within 300ms)
     
-    if (now - lastTap < 300) { // Double tap detected (within 300ms)
-      // Scroll to top based on route
+    if (isFocused) {
+      // SAME SCREEN: Single press = reset, Double press = refresh
       switch (routeName) {
         case 'Home':
-          // Reset to "All" tab and scroll to top
+          // Single tap: Reset to "All" tab and scroll to top
           if (exploreScreenRef.current) {
             exploreScreenRef.current.resetToAll();
           }
-          break;
-        case 'Pods':
-          // Trigger full screen reset in PodsMainScreen
-          if (podsScreenRef.current) {
-            podsScreenRef.current.resetToTop();
+          
+          // Double tap: Additional refresh
+          if (isDoubleTap) {
+            // Additional refresh logic can go here if needed
           }
           break;
-        case 'Notifications':
-          // Navigate to Notifications and refresh (reset state)
-          navigation.navigate('Notifications');
+          
+        case 'Pods':
+          if (isDoubleTap) {
+            // Double tap: Full reset (reset everything)
+            if (podsScreenRef.current) {
+              podsScreenRef.current.resetToTop();
+            }
+          } else {
+            // Single tap: Just scroll to top of current page (no reset)
+            if (podsScreenRef.current) {
+              podsScreenRef.current.scrollToTop();
+            }
+          }
           break;
+          
+        case 'Notifications':
+          // Single tap: Reset notifications state
+          navigation.navigate('Notifications');
+          
+          // Double tap: Additional refresh
+          if (isDoubleTap) {
+            // Additional refresh logic can go here if needed
+          }
+          break;
+          
         case 'Profile':
-          // For Profile, use the resetToTop function to handle all states
+          // Single tap: Navigate back to main Profile page (reset Library state)
           if (profileScreenRef.current) {
             profileScreenRef.current.resetToTop();
           }
-          // Also navigate to Profile tab (in case we're in Settings/Library)
-          navigation.navigate('Profile');
+          // Clear any feed navigation params and navigate to Profile tab
+          navigation.navigate('Profile', { 
+            fromFeed: false, 
+            previousScreen: undefined 
+          });
+          
+          // Double tap: Additional refresh
+          if (isDoubleTap) {
+            // Additional refresh logic can go here if needed
+          }
           break;
       }
+    } else {
+      // DIFFERENT SCREEN: Single press = just change screen, Double press = change + reset
+      if (isDoubleTap) {
+        // Double tap: Change screen + Reset
+        switch (routeName) {
+          case 'Home':
+            navigation.navigate('Home');
+            setTimeout(() => {
+              if (exploreScreenRef.current) {
+                exploreScreenRef.current.resetToAll();
+              }
+            }, 50);
+            break;
+            
+          case 'Pods':
+            navigation.navigate('Pods');
+            setTimeout(() => {
+              if (podsScreenRef.current) {
+                podsScreenRef.current.resetToTop();
+              }
+            }, 50);
+            break;
+            
+          case 'Notifications':
+            navigation.navigate('Notifications');
+            break;
+            
+          case 'Profile':
+            navigation.navigate('Profile', { 
+              fromFeed: false, 
+              previousScreen: undefined 
+            });
+            setTimeout(() => {
+              if (profileScreenRef.current) {
+                profileScreenRef.current.resetToTop();
+              }
+            }, 50);
+            break;
+        }
+      }
+      // Single tap: Just change screen (default navigation behavior, no reset)
+      // Navigation will happen automatically via React Navigation
     }
     
     // Update the previous tab
@@ -209,8 +280,9 @@ function TabNavigator() {
           },
         })}
         screenListeners={({ route, navigation }) => ({
-          tabPress: () => {
-            handleTabPress(route.name, navigation);
+          tabPress: (e) => {
+            const isFocused = navigation.isFocused();
+            handleTabPress(route.name, navigation, isFocused);
           },
         })}
       >

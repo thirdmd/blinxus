@@ -27,7 +27,7 @@ export const useForumPosts = ({
   // State management
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [uiState, setUIState] = useState<ForumUIState>({
-    isLoading: false,
+    isLoading: true, // Show loading state initially
     isLoadingMore: false,
     isRefreshing: false,
     error: null,
@@ -71,7 +71,7 @@ export const useForumPosts = ({
       currentRequestRef.current = new AbortController();
 
       updateUIState({ 
-        isLoading: reset, 
+        isLoading: reset, // Show loading state for better UX
         isLoadingMore: !reset,
         error: null 
       });

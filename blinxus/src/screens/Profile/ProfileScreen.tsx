@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { View, Animated, Dimensions } from 'react-native';
 import ProfileStructure from '../../types/structures/profile_structure';
 import { profileData } from '../../types/userData/profile_data';
 import { usePosts } from '../../store/PostsContext';
 import ProfileSettings from '../Settings/profile_settings';
 import { useScrollContext } from '../../contexts/ScrollContext';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
+import { useThemeColors } from '../../hooks/useThemeColors';
+
+const { width } = Dimensions.get('window');
 
 export interface ProfileScreenRef {
   resetToTop: () => void;
@@ -15,6 +19,14 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   const { posts } = usePosts();
   const { profileScrollRef } = useScrollContext();
   const navigation = useNavigation();
+  const route = useRoute();
+  const themeColors = useThemeColors();
+  
+  // Animation values for smooth Settings transition
+  const settingsSlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
+  
+  // Get route params to detect navigation source
+  const routeParams = route.params as { fromFeed?: boolean; previousScreen?: string } | undefined;
   
   // Create a ref to hold the reset function from ProfileStructure
   const profileStructureResetRef = useRef<(() => void) | null>(null);
@@ -22,10 +34,39 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Track if this is a fresh navigation (from post click)
   const isNavigatingFromPost = useRef(false);
   
+  // Ultra-smooth Settings open animation
+  const openSettings = () => {
+    setShowSettings(true);
+    Animated.timing(settingsSlideAnim, {
+      toValue: 0,
+      duration: 180, // Faster
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Ultra-smooth Settings close animation
+  const closeSettings = () => {
+    Animated.timing(settingsSlideAnim, {
+      toValue: width,
+      duration: 150, // Faster
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSettings(false);
+    });
+  };
+  
   // Create a reset function that can be called externally
   const resetToTop = () => {
-    // Reset settings state
-    setShowSettings(false);
+    // Close settings with animation if open
+    if (showSettings) {
+      closeSettings();
+    } else {
+      setShowSettings(false);
+    }
+    
+    // Reset animation state
+    settingsSlideAnim.setValue(width);
+    
     // Call ProfileStructure's reset function if available
     if (profileStructureResetRef.current) {
       profileStructureResetRef.current();
@@ -47,28 +88,65 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Auto-reset to top when navigating to Profile from post
   useFocusEffect(
     React.useCallback(() => {
-      // Always reset to top when Profile screen is focused
-      // This ensures clicking profile names/pictures always goes to top
-      resetToTop();
-    }, [])
+      // Only reset to top if NOT coming from feed (preserve feed navigation behavior)
+      if (!routeParams?.fromFeed) {
+        resetToTop();
+      } else {
+        // Reset animation state when coming from feed
+        settingsSlideAnim.setValue(width);
+        setShowSettings(false);
+      }
+    }, [routeParams?.fromFeed])
   );
+
+  // Clear feed params when navigating away from Profile
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      // Clear route params when leaving Profile screen
+      if (routeParams?.fromFeed) {
+        (navigation as any).setParams({ 
+          fromFeed: false, 
+          previousScreen: undefined 
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, routeParams?.fromFeed]);
 
   // Debug logging
       // Profile data loaded
 
-  // Show settings screen if showSettings is true
-  if (showSettings) {
-    return <ProfileSettings onBackPress={() => setShowSettings(false)} />;
-  }
-
   return (
-    <ProfileStructure
-      profileData={profileData}
-      posts={posts}
-      onSettingsPress={() => setShowSettings(true)}
-      scrollRef={profileScrollRef}
-      onResetToTop={profileStructureResetRef}
-    />
+    <View style={{ flex: 1 }}>
+      <ProfileStructure
+        profileData={profileData}
+        posts={posts}
+        onSettingsPress={openSettings}
+        scrollRef={profileScrollRef}
+        onResetToTop={profileStructureResetRef}
+        fromFeed={routeParams?.fromFeed}
+        previousScreen={routeParams?.previousScreen}
+      />
+      
+      {/* Settings Overlay - Slides in from right */}
+      {showSettings && (
+        <Animated.View 
+          style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            transform: [{ translateX: settingsSlideAnim }],
+            backgroundColor: themeColors.background,
+            zIndex: 1000,
+          }}
+        >
+          <ProfileSettings onBackPress={closeSettings} />
+        </Animated.View>
+      )}
+    </View>
   );
 });
 

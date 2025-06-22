@@ -102,9 +102,19 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
 
   const handleProfilePress = () => {
     if (currentPost.authorName === 'Third Camacho') {
-      navigation.navigate('Profile' as never);
+      // Navigate to current user's profile from Post Detail
+      (navigation as any).navigate('Profile', { 
+        fromFeed: true,
+        previousScreen: 'PostDetail' 
+      });
     } else {
-      // TODO: Navigate to other user profiles
+      // Navigate to other user's profile (future implementation)
+      // For now, could navigate to a generic UserProfile screen
+      // (navigation as any).navigate('UserProfile', { 
+      //   userId: currentPost.authorId,
+      //   fromFeed: true,
+      //   previousScreen: 'PostDetail' 
+      // });
     }
   };
 

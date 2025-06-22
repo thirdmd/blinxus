@@ -366,8 +366,8 @@ const API_CONFIG = {
 };
 
 // Utility function to simulate API delay
-const simulateApiDelay = (ms: number = 1000) => 
-  new Promise<void>(resolve => setTimeout(resolve, ms));
+const simulateApiDelay = (ms: number = 150) => 
+  new Promise<void>(resolve => setTimeout(resolve, ms)); // Fast but smooth loading
 
 // Error handling utility
 const handleApiError = (error: any): string => {
@@ -393,11 +393,30 @@ const findCountryById = (countryId: string): Country | null => {
 export class ForumAPI {
   private static posts: Map<string, ForumPost[]> = new Map();
   private static userPosts: Map<string, ForumPost[]> = new Map(); // Separate storage for user posts
+  private static isPreloaded: boolean = false;
+
+  // RADICAL FIX: Preload all posts for instant access
+  private static preloadAllPosts() {
+    if (this.isPreloaded) return;
+    
+    // Preload posts for major countries
+    const majorCountries = ['jp', 'ph', 'th', 'sg', 'my', 'vn', 'id'];
+    majorCountries.forEach(countryId => {
+      const actualCountry = findCountryById(countryId);
+      if (actualCountry && !this.posts.has(countryId)) {
+        this.posts.set(countryId, generateMockPosts(actualCountry, 15));
+      }
+    });
+    
+    this.isPreloaded = true;
+  }
 
   // GET /api/forum/posts
   static async getPosts(params: GetForumPostsRequest): Promise<GetForumPostsResponse> {
     try {
-      await simulateApiDelay(200); // Faster loading for better UX
+      // FAST: Preload posts + tiny delay for smooth loading animation
+      this.preloadAllPosts();
+      await simulateApiDelay(100); // Just enough for smooth loading animation
 
       // For real API, this would be:
       // const response = await fetch(`${API_CONFIG.baseUrl}/api/forum/posts`, {
@@ -523,7 +542,7 @@ export class ForumAPI {
   // POST /api/forum/posts
   static async createPost(data: CreateForumPostRequest): Promise<CreateForumPostResponse> {
     try {
-      await simulateApiDelay(500); // Faster post creation
+      await simulateApiDelay(200); // Fast post creation with smooth feedback
 
       // For real API, this would be:
       // const formData = new FormData();
@@ -610,7 +629,7 @@ export class ForumAPI {
   // PUT /api/forum/posts/:id/interactions
   static async updatePostInteraction(data: UpdatePostInteractionRequest): Promise<UpdatePostInteractionResponse> {
     try {
-      await simulateApiDelay(100); // Very quick interactions
+      await simulateApiDelay(50); // Fast interactions with smooth feedback
 
       // For real API:
       // const response = await fetch(`${API_CONFIG.baseUrl}/api/forum/posts/${data.postId}/interactions`, {

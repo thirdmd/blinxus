@@ -21,6 +21,7 @@ import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { useNavigation } from '@react-navigation/native';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -34,6 +35,7 @@ interface LibraryProps {
 
 export default function Library({ onBackPress }: LibraryProps = {}) {
   const themeColors = useThemeColors();
+  const navigation = useNavigation();
   
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
@@ -103,6 +105,25 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     const postsInCategory = getPostsForActivity(category.name);
     return [...acc, ...postsInCategory];
   }, []);
+
+  // Handle profile navigation - same logic as feeds
+  const handleProfilePress = (authorName: string) => {
+    if (authorName === 'Third Camacho') {
+      // Navigate to current user's profile from Library
+      (navigation as any).navigate('Profile', { 
+        fromFeed: true,
+        previousScreen: 'Library' 
+      });
+    } else {
+      // Navigate to other user's profile (future implementation)
+      // For now, could navigate to a generic UserProfile screen
+      // (navigation as any).navigate('UserProfile', { 
+      //   userId: authorId,
+      //   fromFeed: true,
+      //   previousScreen: 'Library' 
+      // });
+    }
+  };
 
 
 
@@ -179,13 +200,11 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
 
   // Render item for Activities Tab (grid-based) - needs category context
   const renderActivityPostItem = (categoryName: string) => ({ item }: { item: PostCardProps }) => (
-    <View style={{ width: width / 3 - 8 }}>
-      <MediaGridItem
-        imageUri={item.images![0]}
-        isLucid={item.type === 'lucid'}
-        onPress={() => handlePostPress(item, 'activities', categoryName)}
-      />
-    </View>
+    <MediaGridItem
+      imageUri={item.images![0]}
+      isLucid={item.type === 'lucid'}
+      onPress={() => handlePostPress(item, 'activities', categoryName)}
+    />
   );
 
   // Enhanced scroll handler for Recent tab - Same as ExploreScreen

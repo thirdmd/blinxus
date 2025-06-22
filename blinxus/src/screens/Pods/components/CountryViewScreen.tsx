@@ -1,6 +1,6 @@
 // Refactored CountryViewScreen - Clean, focused, and scalable
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,10 @@ import {
   Animated,
   StatusBar,
   TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
-import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search } from 'lucide-react-native';
+import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -32,21 +34,28 @@ interface CountryViewScreenProps {
   theme: PodThemeConfig;
 }
 
+export interface CountryViewScreenRef {
+  scrollToTop: () => void;
+}
+
 const { width } = Dimensions.get('window');
 
-const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
+const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProps>(({
   country,
   activeTab,
   onTabChange,
   onLocationPress,
   onBack,
   theme,
-}) => {
+}, ref) => {
   const themeColors = useThemeColors();
   const scrollY = useRef(new Animated.Value(0)).current;
   
   // Forum-specific state
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<LocationFilter>('All');
+  
+  // Scroll ref for the main content area
+  const forumScrollRef = useRef<any>(null);
   
   // ADDED: Search functionality state
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,14 +122,15 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
   };
 
   const collapseSearch = () => {
-    if (searchQuery === '') {
-      setIsSearchExpanded(false);
-      Animated.timing(searchAnimation, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
+    // RADICAL FIX: Always allow collapse, clear search, dismiss keyboard
+    setSearchQuery(''); // Clear the search
+    setIsSearchExpanded(false);
+    Keyboard.dismiss(); // Dismiss keyboard
+    Animated.timing(searchAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
   };
 
   // ADDED: Filter location tabs based on search
@@ -143,8 +153,25 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
     // Open maps for country
   };
 
+  // Expose scroll function to parent
+  useImperativeHandle(ref, () => ({
+    scrollToTop: () => {
+      if (forumScrollRef.current?.scrollToTop) {
+        forumScrollRef.current.scrollToTop();
+      }
+    }
+  }), []);
+
   return (
-    <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+    <TouchableWithoutFeedback onPress={() => {
+      // RADICAL FIX: Dismiss keyboard and collapse search on tap outside
+      if (isSearchExpanded) {
+        collapseSearch();
+      } else {
+        Keyboard.dismiss();
+      }
+    }}>
+      <View style={{ flex: 1, backgroundColor: themeColors.background }}>
         {/* Header Section */}
         <View
           style={{
@@ -349,15 +376,33 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
                     style={{
                       flex: 1,
                       marginLeft: 8,
+                      marginRight: 8,
                       fontSize: 14,
                       color: themeColors.text,
                       fontFamily: 'System',
                     }}
                     autoFocus
                     returnKeyType="search"
-                    onBlur={collapseSearch}
-                    clearButtonMode="while-editing"
+                    clearButtonMode="never"
                   />
+                  <TouchableOpacity
+                    onPress={collapseSearch}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 4,
+                    }}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <X 
+                      size={14} 
+                      color={themeColors.textSecondary} 
+                      strokeWidth={2} 
+                    />
+                  </TouchableOpacity>
                 </Animated.View>
               )}
             </View>
@@ -482,6 +527,7 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
       {/* Content Area - Now Clean and Modular */}
       {activeTab === 'Forum' && (
         <ForumPostsList
+          ref={forumScrollRef}
           country={country}
           selectedLocationFilter={selectedLocationFilter}
           onLocationFilterChange={setSelectedLocationFilter}
@@ -522,7 +568,8 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
         </View>
       )}
     </View>
+    </TouchableWithoutFeedback>
   );
-};
+});
 
 export default CountryViewScreen; 

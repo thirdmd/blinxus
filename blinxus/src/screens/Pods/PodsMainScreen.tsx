@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
-import { SafeAreaView, StatusBar, View } from 'react-native';
+import { SafeAreaView, StatusBar, View, ScrollView } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { 
   PodsNavigationState,
@@ -19,12 +19,13 @@ import {
 
 // Import screen components
 import ContinentListScreen from '../../screens/Pods/components/ContinentListScreen';
-import CountryViewScreen from '../../screens/Pods/components/CountryViewScreen';
+import CountryViewScreen, { CountryViewScreenRef } from '../../screens/Pods/components/CountryViewScreen';
 import LocationViewScreen from '../../screens/Pods/components/LocationViewScreen';
 
 // Export interface for App.tsx ref
 export interface PodsMainScreenRef {
   resetToTop: () => void;
+  scrollToTop: () => void;
 }
 
 const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
@@ -40,6 +41,12 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
 
   // Reset key for triggering full screen reset
   const [resetKey, setResetKey] = useState(0);
+  
+  // Scroll key for smooth re-render
+  const [scrollKey, setScrollKey] = useState(0);
+  
+  // Ref for CountryViewScreen to enable scroll to top
+  const countryScreenRef = useRef<CountryViewScreenRef>(null);
   
   // Initialize posting service
   const postingService = PodsPostingService.getInstance();
@@ -146,6 +153,15 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
       // Then trigger the full reset
       handleDoubleTabPress();
     },
+    scrollToTop: () => {
+      // RADICAL FIX: Now uses actual scroll animation instead of refresh!
+      if (navigationState.currentScreen === 'country-view' && countryScreenRef.current) {
+        countryScreenRef.current.scrollToTop();
+      } else {
+        // For other screens, still use key-based re-render as fallback
+        setScrollKey(prev => prev + 0.01);
+      }
+    },
   }));
 
   // Render appropriate screen based on navigation state
@@ -171,6 +187,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
         {/* Render country view when active */}
         {navigationState.currentScreen === 'country-view' && navigationState.selectedCountry && (
           <CountryViewScreen
+            ref={countryScreenRef}
             country={navigationState.selectedCountry}
             activeTab={activeTab}
             onTabChange={handleTabChange}
@@ -183,6 +200,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
         {/* Render location view when active */}
         {navigationState.currentScreen === 'location-view' && navigationState.selectedLocation && navigationState.selectedCountry && (
           <LocationViewScreen
+            key={`location-${scrollKey}`}
             location={navigationState.selectedLocation}
             country={navigationState.selectedCountry}
             activeTab={activeTab}

@@ -1,6 +1,6 @@
 // Forum Posts List Container - Handles all forum functionality
 
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import {
   View,
   Text,
@@ -26,13 +26,20 @@ interface ForumPostsListProps {
   onLocationFilterChange: (filter: LocationFilter) => void;
 }
 
-export const ForumPostsList: React.FC<ForumPostsListProps> = ({
+export interface ForumPostsListRef {
+  scrollToTop: () => void;
+}
+
+export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>(({
   country,
   selectedLocationFilter,
   onLocationFilterChange,
-}) => {
+}, ref) => {
   const themeColors = useThemeColors();
   const navigation = useNavigation();
+  
+  // Scroll ref for FlatList
+  const flatListRef = useRef<FlatList>(null);
   
   // Use the custom hook for all forum functionality
   const {
@@ -49,6 +56,15 @@ export const ForumPostsList: React.FC<ForumPostsListProps> = ({
 
   // Local UI state
   const [showFilters, setShowFilters] = useState(false);
+
+  // Expose scroll function to parent
+  useImperativeHandle(ref, () => ({
+    scrollToTop: () => {
+      if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
+    }
+  }), []);
 
   // Get location filter tabs
   const locationTabs = ForumAPI.getLocationFilters(country);
@@ -95,10 +111,19 @@ export const ForumPostsList: React.FC<ForumPostsListProps> = ({
   const handleAuthorPress = (authorId: string) => {
     // Navigate to profile if it's the current user, otherwise show message
     if (authorId === 'current_user') {
-      (navigation as any).navigate('Profile');
+      // Navigate to current user's profile from Forum
+      (navigation as any).navigate('Profile', { 
+        fromFeed: true,
+        previousScreen: 'Forum' 
+      });
     } else {
-      // View author profile
-      // TODO: Navigate to other user profiles when implemented
+      // Navigate to other user's profile (future implementation)
+      // For now, could navigate to a generic UserProfile screen
+      // (navigation as any).navigate('UserProfile', { 
+      //   userId: authorId,
+      //   fromFeed: true,
+      //   previousScreen: 'Forum' 
+      // });
     }
   };
 
@@ -342,6 +367,7 @@ export const ForumPostsList: React.FC<ForumPostsListProps> = ({
         <EmptyState />
       ) : (
         <FlatList
+          ref={flatListRef}
           data={posts}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={ListHeaderComponent}
@@ -403,4 +429,4 @@ export const ForumPostsList: React.FC<ForumPostsListProps> = ({
       />
     </View>
   );
-}; 
+}); 
