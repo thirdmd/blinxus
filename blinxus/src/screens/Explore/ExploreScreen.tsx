@@ -297,7 +297,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Handle travel details popup
   const handleShowTravelDetails = useCallback((post: PostCardProps) => {
     // Travel details are now handled within TravelFeedCard component
-    console.log('Travel details for post:', post.id);
+          // Show travel details
   }, []);
 
   // Create activity key mapping for filter functionality

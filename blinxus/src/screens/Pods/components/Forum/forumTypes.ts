@@ -213,10 +213,10 @@ export interface UseForumPostsReturn {
 
 // Constants for categories and tags
 export const FORUM_CATEGORIES: ForumCategory[] = [
+  { id: 'general', label: 'General', emoji: '💬', color: '#6B7280', description: 'General discussion' },
   { id: 'question', label: 'Question', emoji: '🤔', color: '#3B82F6', description: 'Ask for advice or help' },
   { id: 'tip', label: 'Tip', emoji: '💡', color: '#10B981', description: 'Share helpful tips' },
   { id: 'recommendation', label: 'Recommendation', emoji: '⭐', color: '#F59E0B', description: 'Recommend places or activities' },
-  { id: 'general', label: 'General', emoji: '💬', color: '#6B7280', description: 'General discussion' },
   { id: 'meetup', label: 'Meetup', emoji: '👥', color: '#8B5CF6', description: 'Organize meetups' },
   { id: 'alert', label: 'Alert', emoji: '⚠️', color: '#EF4444', description: 'Important alerts or warnings' },
 ];

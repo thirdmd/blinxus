@@ -96,8 +96,7 @@ export default function ProfileStructure({
   }, [onResetToTop]);
   
   // Debug logging
-  console.log('ProfileStructure - profileData received:', profileData);
-  console.log('ProfileStructure - profileData.profileImage:', profileData?.profileImage);
+  // Profile structure initialized
 
   // Get filtered posts for current user with media (for Feed tab)
   const userMediaPosts = (posts || []).filter(post => 

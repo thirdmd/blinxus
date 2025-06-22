@@ -79,17 +79,17 @@ export const ForumPostsList: React.FC<ForumPostsListProps> = ({
 
   const handleReply = (postId: string) => {
     // TODO: Open reply modal/screen
-    console.log('Reply to post:', postId);
+    // Reply to post
   };
 
   const handleShare = (postId: string) => {
     // TODO: Implement share functionality
-    console.log('Share post:', postId);
+    // Share post
   };
 
   const handleMore = (postId: string) => {
     // TODO: Show more options modal
-    console.log('More options for post:', postId);
+    // Show more options
   };
 
   const handleAuthorPress = (authorId: string) => {
@@ -97,7 +97,7 @@ export const ForumPostsList: React.FC<ForumPostsListProps> = ({
     if (authorId === 'current_user') {
       (navigation as any).navigate('Profile');
     } else {
-      console.log('View author profile:', authorId);
+      // View author profile
       // TODO: Navigate to other user profiles when implemented
     }
   };

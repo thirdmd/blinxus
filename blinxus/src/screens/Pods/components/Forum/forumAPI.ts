@@ -436,13 +436,26 @@ export class ForumAPI {
 
       // Apply filters
       if (params.locationId && params.locationId !== 'All') {
-        // Filter by location name or locationId to support both formats
+        // FIXED: Improved location filtering to handle multiple formats
         const locationFilter = params.locationId;
-        posts = posts.filter(post => 
-          post.locationId === locationFilter || 
-          post.location.name === locationFilter ||
-          post.locationId.includes(locationFilter)
-        );
+        posts = posts.filter(post => {
+          // Direct match with locationId
+          if (post.locationId === locationFilter) return true;
+          
+          // Match with location name
+          if (post.location.name === locationFilter) return true;
+          
+          // Handle legacy format (countryId-locationId)
+          if (post.locationId.includes('-')) {
+            const locationPart = post.locationId.split('-').pop();
+            if (locationPart === locationFilter) return true;
+          }
+          
+          // Handle case where locationFilter is a location name and post.locationId is also a name
+          if (post.locationId === locationFilter) return true;
+          
+          return false;
+        });
       }
 
       if (params.category) {
@@ -540,7 +553,9 @@ export class ForumAPI {
         locationId: data.locationId,
         location: {
           id: data.locationId,
-          name: data.locationId === 'All' ? 'General' : data.locationId.split('-').pop() || data.locationId,
+          name: data.locationId === 'All' 
+            ? (findCountryById(data.countryId)?.name || data.countryId) 
+            : data.locationId,
           type: 'city',
           countryId: data.countryId
         },

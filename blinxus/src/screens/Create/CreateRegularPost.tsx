@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Camera, Plus, X, ChevronRight, Navigation } from 'lucide-react-native';
-import { colors } from '../../constants';
+import { colors } from '../../constants/colors';
 import { activityTags, activityNames, ActivityKey } from '../../constants/activityTags';
 import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
@@ -152,7 +152,7 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
       // Close the modal and return to previous screen
       navigation.goBack();
     } catch (error) {
-      console.log('Error creating post:', error);
+      // Error creating post
     }
   };
 

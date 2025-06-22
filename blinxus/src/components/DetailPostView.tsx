@@ -104,7 +104,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
     if (currentPost.authorName === 'Third Camacho') {
       navigation.navigate('Profile' as never);
     } else {
-      console.log(`Navigating to ${currentPost.authorName}'s profile`);
+      // TODO: Navigate to other user profiles
     }
   };
 
@@ -298,7 +298,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
           text: 'Report',
           style: 'destructive',
           onPress: () => {
-            console.log('Reporting comment:', commentId);
+            // TODO: Implement comment reporting
             setOpenCommentMenu(null);
           }
         }

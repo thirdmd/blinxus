@@ -5,9 +5,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { colors } from './blinxus/src/constants';
+import { colors } from './blinxus/src/constants/colors';
 import { Home, Users2, UserCircle, Bell, Plus } from 'lucide-react-native';
-import ScrollContext from './blinxus/src/contexts/ScrollContext';
+import ScrollContext, { useScrollContext } from './blinxus/src/contexts/ScrollContext';
 import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
 import { getResponsiveDimensions, getTypographyScale, ri, rs, rf } from './blinxus/src/utils/responsive';
 
@@ -93,6 +93,21 @@ function CreateTabButton({ onPress, accessibilityState, navigation }: any) {
   );
 }
 
+// Wrapper components to avoid inline functions
+const ExploreScreenWithRef = React.memo(React.forwardRef<ExploreScreenRef>((props, ref) => {
+  return <ExploreScreen ref={ref} />;
+}));
+
+const PodsScreenWithRef = React.memo(React.forwardRef<PodsMainScreenRef>((props, ref) => {
+  return <PodsMainScreen ref={ref} />;
+}));
+
+const ProfileScreenWithRef = React.memo(React.forwardRef<ProfileScreenRef>((props, ref) => {
+  return <ProfileScreen ref={ref} />;
+}));
+
+const EmptyComponent = () => null;
+
 // Tab Navigator
 function TabNavigator() {
   const themeColors = useThemeColors();
@@ -129,6 +144,10 @@ function TabNavigator() {
           if (podsScreenRef.current) {
             podsScreenRef.current.resetToTop();
           }
+          break;
+        case 'Notifications':
+          // Navigate to Notifications and refresh (reset state)
+          navigation.navigate('Notifications');
           break;
         case 'Profile':
           // For Profile, use the resetToTop function to handle all states
@@ -195,17 +214,20 @@ function TabNavigator() {
           },
         })}
       >
-        <Tab.Screen name="Home">
-          {() => <ExploreScreen ref={exploreScreenRef} />}
-        </Tab.Screen>
-        <Tab.Screen name="Pods">
-          {() => <PodsMainScreen ref={podsScreenRef} />}
-        </Tab.Screen>
-        <Tab.Screen name="Create" component={() => null} />
+        <Tab.Screen 
+          name="Home" 
+          children={() => <ExploreScreenWithRef ref={exploreScreenRef} />} 
+        />
+        <Tab.Screen 
+          name="Pods" 
+          children={() => <PodsScreenWithRef ref={podsScreenRef} />} 
+        />
+        <Tab.Screen name="Create" component={EmptyComponent} />
         <Tab.Screen name="Notifications" component={NotificationsScreen} />
-        <Tab.Screen name="Profile">
-          {() => <ProfileScreen ref={profileScreenRef} />}
-        </Tab.Screen>
+        <Tab.Screen 
+          name="Profile" 
+          children={() => <ProfileScreenWithRef ref={profileScreenRef} />} 
+        />
       </Tab.Navigator>
     </ScrollContext.Provider>
   );

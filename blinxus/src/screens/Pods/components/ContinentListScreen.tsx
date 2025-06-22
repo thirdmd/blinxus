@@ -426,7 +426,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
       setRecentlyJoinedPods(prev => new Set([...prev, countryId]));
       
     } catch (error) {
-      console.error('Error joining pod:', error);
+      // Error joining pod
     }
   };
 

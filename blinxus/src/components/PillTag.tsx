@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
-import { colors } from '../constants';
+import { colors } from '../constants/colors';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { rs, rf } from '../utils/responsive';
 

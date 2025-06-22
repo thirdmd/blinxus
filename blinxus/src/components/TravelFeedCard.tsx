@@ -50,22 +50,38 @@ const ImmersiveImageCarousel: React.FC<{
   const translateY = useSharedValue(0);
   const [isZoomedOut, setIsZoomedOut] = useState(false);
   
+  // FIXED: Add state to track scale for render-time decisions
+  const [currentScale, setCurrentScale] = useState(1);
+  
   // Toggle zoom mode with button - FIXED: Keep scale at 1.0 for edge-to-edge contain mode
   const toggleZoomMode = useCallback(() => {
     if (isZoomedOut) {
       // Return to fullscreen cover mode
-      scale.value = withTiming(1);
+      scale.value = withTiming(1, undefined, (finished) => {
+        if (finished) {
+          runOnJS(setCurrentScale)(1);
+        }
+      });
       translateX.value = withTiming(0);
       translateY.value = withTiming(0);
       setIsZoomedOut(false);
     } else {
       // Switch to original aspect ratio (contain mode) - keep scale at 1.0 for edge-to-edge
-      scale.value = withTiming(1);
+      scale.value = withTiming(1, undefined, (finished) => {
+        if (finished) {
+          runOnJS(setCurrentScale)(1);
+        }
+      });
       translateX.value = withTiming(0);
       translateY.value = withTiming(0);
       setIsZoomedOut(true);
     }
   }, [isZoomedOut, scale, translateX, translateY]);
+
+  // FIXED: Initialize currentScale
+  React.useEffect(() => {
+    setCurrentScale(1); // Initialize to default scale
+  }, []);
 
   // Pass toggle function to parent
   useEffect(() => {
@@ -87,13 +103,15 @@ const ImmersiveImageCarousel: React.FC<{
       translateX.value = 0;
       translateY.value = 0;
       setIsZoomedOut(false);
+      setCurrentScale(1);
     };
   }, [heartScale, scale, translateX, translateY]);
 
   // Pan gesture handler for details panel (original functionality)
   const panGestureHandler = useAnimatedGestureHandler({
     onStart: () => {
-      if (onGestureStart && scale.value <= 1.1) {
+      // FIXED: Remove .value access during gesture
+      if (onGestureStart) {
         runOnJS(onGestureStart)();
       }
     },
@@ -260,7 +278,7 @@ const ImmersiveImageCarousel: React.FC<{
         <ReanimatedAnimated.View style={{ flex: 1 }}>
           <ScrollView
             horizontal
-            pagingEnabled={!isLucid && scale.value <= 1.1}
+            pagingEnabled={!isLucid && currentScale <= 1.1}
             showsHorizontalScrollIndicator={false}
             onScroll={!isLucid ? handleScroll : undefined}
             onScrollEndDrag={!isLucid ? handleScrollEnd : undefined}
@@ -268,7 +286,7 @@ const ImmersiveImageCarousel: React.FC<{
             scrollEventThrottle={1} // INSTANT: Maximum responsiveness
             style={{ flex: 1 }}
             bounces={true}
-            scrollEnabled={!isLucid && scale.value <= 1.1}
+            scrollEnabled={!isLucid && currentScale <= 1.1}
             removeClippedSubviews={false} // INSTANT: Keep all views ready
             contentInsetAdjustmentBehavior="never"
             decelerationRate="fast"
@@ -536,7 +554,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     if (authorName === 'Third Camacho') {
       navigation.navigate('Profile' as never);
     } else {
-      console.log(`Navigating to ${authorName}'s profile`);
+      // Navigate to author profile
     }
   }, [authorName, navigation]);
 
@@ -642,7 +660,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           text: 'Share', 
           onPress: () => {
             setShareCount(prev => prev + 1);
-            console.log('Sharing post:', id);
+            // Share post functionality
           }
         }
       ]

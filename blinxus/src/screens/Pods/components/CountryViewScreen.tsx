@@ -9,8 +9,9 @@ import {
   Dimensions,
   Animated,
   StatusBar,
+  TextInput,
 } from 'react-native';
-import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus } from 'lucide-react-native';
+import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -46,6 +47,11 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
   
   // Forum-specific state
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<LocationFilter>('All');
+  
+  // ADDED: Search functionality state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchAnimation = useRef(new Animated.Value(0)).current;
   
   // Join/Leave functionality using global context
   const { 
@@ -96,9 +102,45 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
   // Get location filter tabs
   const locationTabs = ForumAPI.getLocationFilters(country);
 
+  // ADDED: Search functionality
+  const expandSearch = () => {
+    setIsSearchExpanded(true);
+    Animated.timing(searchAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const collapseSearch = () => {
+    if (searchQuery === '') {
+      setIsSearchExpanded(false);
+      Animated.timing(searchAnimation, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
+
+  // ADDED: Filter location tabs based on search
+  const filteredLocationTabs = React.useMemo(() => {
+    if (!searchQuery.trim()) return locationTabs;
+    
+    const query = searchQuery.toLowerCase();
+    return locationTabs.filter(tab => 
+      tab.toLowerCase().includes(query) ||
+      // Also search in sublocation alternate names if available
+      (tab !== 'All' && country.subLocations.some(loc => 
+        loc.name.toLowerCase() === tab.toLowerCase() && 
+        loc.alternateNames?.some((alt: string) => alt.toLowerCase().includes(query))
+      ))
+    );
+  }, [locationTabs, searchQuery, country.subLocations]);
+
   const handleMapPress = () => {
     // TODO: Open maps with country location
-    console.log('Open maps for:', country.name);
+    // Open maps for country
   };
 
   return (
@@ -242,60 +284,139 @@ const CountryViewScreen: React.FC<CountryViewScreenProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Location Filter Tabs */}
+        {/* Location Filter Tabs with Search */}
         <View style={{ marginTop: 20, marginBottom: 20 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              gap: 6,
-            }}
-          >
-            {locationTabs.map((tab) => (
-              <TouchableOpacity
-                key={tab}
-                onPress={() => setSelectedLocationFilter(tab)}
-                style={{
-                  paddingVertical: 8,
-                  paddingHorizontal: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 20,
-                  minHeight: 36,
-                  // Border-only style like continent tabs
-                  backgroundColor: selectedLocationFilter === tab 
-                    ? theme.colors.primary 
-                    : 'transparent',
-                  borderWidth: selectedLocationFilter === tab ? 0 : 1,
-                  borderColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'rgba(0, 0, 0, 0.12)',
-                  // Enhanced shadow for selected state
-                  ...(selectedLocationFilter === tab && {
-                    shadowColor: theme.colors.primary,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 4,
-                    elevation: 3,
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center',
+          }}>
+            {/* ADDED: Search Icon Button */}
+            <View style={{ paddingLeft: 20, paddingRight: 8 }}>
+              {!isSearchExpanded ? (
+                <TouchableOpacity
+                  onPress={expandSearch}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: themeColors.isDark 
+                      ? 'rgba(255, 255, 255, 0.08)'
+                      : 'rgba(0, 0, 0, 0.05)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: themeColors.isDark 
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.08)',
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Search 
+                    size={16} 
+                    color={themeColors.textSecondary} 
+                    strokeWidth={2} 
+                  />
+                </TouchableOpacity>
+              ) : (
+                <Animated.View style={{
+                  width: searchAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [36, 160],
                   }),
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={{
-                  color: selectedLocationFilter === tab 
-                    ? '#FFFFFF'
-                    : theme.colors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: selectedLocationFilter === tab ? '700' : '500',
-                  fontFamily: 'System',
-                  letterSpacing: -0.1,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.05)',
+                  borderWidth: 1,
+                  borderColor: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(0, 0, 0, 0.08)',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 12,
                 }}>
-                  {tab}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <Search 
+                    size={14} 
+                    color={themeColors.textSecondary} 
+                    strokeWidth={2} 
+                  />
+                  <TextInput
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Search locations..."
+                    placeholderTextColor={themeColors.textSecondary}
+                    style={{
+                      flex: 1,
+                      marginLeft: 8,
+                      fontSize: 14,
+                      color: themeColors.text,
+                      fontFamily: 'System',
+                    }}
+                    autoFocus
+                    returnKeyType="search"
+                    onBlur={collapseSearch}
+                    clearButtonMode="while-editing"
+                  />
+                </Animated.View>
+              )}
+            </View>
+            
+            {/* Location Tabs */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingRight: 20,
+                gap: 6,
+              }}
+              style={{ flex: 1 }}
+            >
+              {filteredLocationTabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab}
+                  onPress={() => setSelectedLocationFilter(tab)}
+                  style={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 20,
+                    minHeight: 36,
+                    // Border-only style like continent tabs
+                    backgroundColor: selectedLocationFilter === tab 
+                      ? theme.colors.primary 
+                      : 'transparent',
+                    borderWidth: selectedLocationFilter === tab ? 0 : 1,
+                    borderColor: themeColors.isDark 
+                      ? 'rgba(255, 255, 255, 0.15)' 
+                      : 'rgba(0, 0, 0, 0.12)',
+                    // Enhanced shadow for selected state
+                    ...(selectedLocationFilter === tab && {
+                      shadowColor: theme.colors.primary,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 4,
+                      elevation: 3,
+                    }),
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{
+                    color: selectedLocationFilter === tab 
+                      ? '#FFFFFF'
+                      : theme.colors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: selectedLocationFilter === tab ? '700' : '500',
+                    fontFamily: 'System',
+                    letterSpacing: -0.1,
+                  }}>
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
         {/* Tab Navigation */}

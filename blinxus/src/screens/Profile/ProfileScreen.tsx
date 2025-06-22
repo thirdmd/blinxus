@@ -54,8 +54,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   );
 
   // Debug logging
-  console.log('ProfileScreen - profileData:', profileData);
-  console.log('ProfileScreen - posts:', posts);
+      // Profile data loaded
 
   // Show settings screen if showSettings is true
   if (showSettings) {

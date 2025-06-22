@@ -8,7 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Navigation, ChevronRight, Plus, Calendar, Image } from 'lucide-react-native';
-import { colors } from '../../constants';
+import { colors } from '../../constants/colors';
 import { activityTags, ActivityKey } from '../../constants/activityTags';
 import Button from '../../components/Button';
 import { usePosts } from '../../store/PostsContext';
@@ -82,14 +82,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
     
     const isValid = hasLocation && allDaysHaveRequiredImages && totalImages >= 4;
     
-    console.log('LUCIDS VALIDATION:', { 
-      hasLocation, 
-      totalDays, 
-      allDaysHaveRequiredImages, 
-      totalImages, 
-      isValid, 
-      dayPhotos 
-    });
+    // Validation check complete
     onValidationChange(isValid);
   }, [selectedLocation, dayPhotos, duration, durationMode, startDate, endDate]);
 
@@ -172,21 +165,16 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
 
   // Handle photo selection for a specific day
   const handleDayPhotoSelection = (dayIndex: number) => {
-    console.log(`Photo selection for day ${dayIndex}`);
-    console.log('Current dayPhotos state:', dayPhotos);
     
     // Check if photos already exist for this day
     if (dayPhotos[dayIndex]) {
-      console.log(`Removing photos from day ${dayIndex}`);
       // If photos exist, remove them
       setDayPhotos(prev => {
         const updated = { ...prev };
         delete updated[dayIndex];
-        console.log('Updated dayPhotos after removal:', updated);
         return updated;
       });
     } else {
-      console.log(`Adding photos to day ${dayIndex}`);
       // Automatically add 4 photos without popup
       const timestamp = Date.now();
       const travelImages = [
@@ -207,15 +195,10 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
         travelImages[(dayIndex * 4 + 2) % travelImages.length],
         travelImages[(dayIndex * 4 + 3) % travelImages.length],
       ];
-      console.log('Generated mockPhotos:', mockPhotos);
-      setDayPhotos(prev => {
-        const updated = {
-          ...prev,
-          [dayIndex]: mockPhotos
-        };
-        console.log('Updated dayPhotos after adding:', updated);
-        return updated;
-      });
+      setDayPhotos(prev => ({
+        ...prev,
+        [dayIndex]: mockPhotos
+      }));
     }
   };
 
@@ -235,9 +218,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
         }
       }
       
-      console.log(`Creating Lucid post with ${allImages.length} images from ${finalDuration} days`);
-      console.log('dayPhotos state:', dayPhotos);
-      console.log('allImages array:', allImages);
+      // Create Lucid post with collected images
       
       addPost({
         authorId: 'current_user',
@@ -255,7 +236,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           // Close the modal and return to previous screen
       navigation.goBack();
     } catch (error) {
-      console.log('Error creating Lucid:', error);
+      // Error handling for Lucid creation
     }
   };
 

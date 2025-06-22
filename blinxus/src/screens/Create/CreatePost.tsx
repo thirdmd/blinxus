@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { X, ArrowRight, Edit3, Zap, Camera } from 'lucide-react-native';
-import { colors } from '../../constants';
+import { colors } from '../../constants/colors';
 import CreateRegularPost from './CreateRegularPost';
 import CreateLucids from './CreateLucids';
 import CreateBlinx from './CreateBlinx';

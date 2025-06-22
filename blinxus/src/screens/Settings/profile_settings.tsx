@@ -35,12 +35,12 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
   const handleMenuItemPress = (item: string) => {
     if (item === 'signout') {
       // Handle sign out
-      console.log('Signing out...');
+      // Sign out user
       // You can add sign out logic here later
       // For example: logout(), clearUserData(), navigate to login screen, etc.
     } else {
       // Handle navigation to different settings screens
-      console.log(`Navigating to ${item}`);
+      // Navigate to settings item
       // You can add navigation logic here later
     }
   };

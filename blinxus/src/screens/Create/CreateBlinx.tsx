@@ -8,7 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import { Navigation, Camera, X, ChevronRight } from 'lucide-react-native';
-import { colors, activityTags } from '../../constants';
+import { colors } from '../../constants/colors';
+import { activityTags } from '../../constants/activityTags';
 import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
@@ -83,11 +84,7 @@ setSelectedImage(images[Math.floor(Math.random() * images.length)]);
       return;
     }
     
-    console.log('Creating Blinx...', {
-      location: selectedLocation,
-      activity: selectedActivity,
-      photo: selectedImage,
-    });
+    // Create Blinx post
     
     // Close the modal and return to previous screen
     navigation.goBack();

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,24 +13,15 @@ import {
 import { X, Search, Send } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { Country, SubLocation } from '../constants/placesData';
-import { FORUM_ACTIVITY_TAGS as IMPORTED_FORUM_ACTIVITY_TAGS } from '../screens/Pods/components/Forum/forumTypes';
+import { 
+  FORUM_ACTIVITY_TAGS, 
+  FORUM_CATEGORIES, 
+  ForumCategory 
+} from '../screens/Pods/components/Forum/forumTypes';
 import { getForumTagsByCategory, hasCustomForumTags } from '../screens/Pods/components/Forum/countryForumTags';
 
-// Forum categories
-export const FORUM_CATEGORIES = [
-  { id: 'question', label: 'Question', emoji: '🤔', color: '#3B82F6' },
-  { id: 'tip', label: 'Tip', emoji: '💡', color: '#10B981' },
-  { id: 'recommendation', label: 'Recommendation', emoji: '🏆', color: '#F59E0B' },
-  { id: 'general', label: 'General', emoji: '💬', color: '#6B7280' },
-  { id: 'meetup', label: 'Meetup', emoji: '👥', color: '#8B5CF6' },
-  { id: 'alert', label: 'Alert', emoji: '⚠️', color: '#EF4444' },
-] as const;
-
-// Use the activity tags from forum types to avoid duplicates
-const FORUM_ACTIVITY_TAGS = IMPORTED_FORUM_ACTIVITY_TAGS;
-
-export type ForumCategoryId = typeof FORUM_CATEGORIES[number]['id'];
-export type ForumActivityId = typeof IMPORTED_FORUM_ACTIVITY_TAGS[number]['id'];
+export type ForumCategoryId = ForumCategory['id'];
+export type ForumActivityId = typeof FORUM_ACTIVITY_TAGS[number]['id'];
 
 interface ForumPostModalProps {
   visible: boolean;
@@ -54,11 +45,28 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 }) => {
   const themeColors = useThemeColors();
   const [content, setContent] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ForumCategoryId>('question');
+  const [selectedCategory, setSelectedCategory] = useState<ForumCategoryId>('general');
   const [selectedActivityTags, setSelectedActivityTags] = useState<ForumActivityId[]>([]);
   const [selectedLocation, setSelectedLocation] = useState(defaultLocation);
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationSearch, setShowLocationSearch] = useState(false);
+
+  // ADDED: Sync selectedLocation with defaultLocation when it changes
+  useEffect(() => {
+    setSelectedLocation(defaultLocation);
+  }, [defaultLocation]);
+
+  // ADDED: Reset form when modal opens
+  useEffect(() => {
+    if (visible) {
+      setContent('');
+      setSelectedCategory('general');
+      setSelectedActivityTags([]);
+      setSelectedLocation(defaultLocation);
+      setLocationSearch('');
+      setShowLocationSearch(false);
+    }
+  }, [visible, defaultLocation]);
 
   // Get country-specific tags
   const getCountryTags = (category: 'activity' | 'accommodation' | 'transport' | 'food' | 'culture') => {
@@ -72,7 +80,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
   const handleSubmit = () => {
     if (!content.trim()) return;
 
-    // Handle location ID properly
+    // FIXED: Handle location ID properly with better format consistency
     let locationId: string;
     
     if (selectedLocation === 'General' || selectedLocation === 'All') {
@@ -82,26 +90,33 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
       // Find the specific location and format the ID correctly
       const location = country.subLocations.find(loc => loc.name === selectedLocation);
       if (location) {
-        // Use the proper format: countryId-locationId
-        locationId = `${country.id}-${location.id}`;
+        // FIXED: Use consistent format for location filtering
+        locationId = location.name; // Use location name for consistency with filtering
       } else {
         // Fallback to 'All' if location not found
         locationId = 'All';
       }
     }
 
-    onSubmit({
+    const postData = {
       content: content.trim(),
       category: selectedCategory,
-      activityTags: selectedActivityTags,
+      activityTags: [...selectedActivityTags], // Create a copy to prevent state mutation
       locationId,
-    });
+    };
 
-    // Reset form
-    setContent('');
-    setSelectedCategory('question');
-    setSelectedActivityTags([]);
+    // FIXED: Call onSubmit first, then close modal
+    onSubmit(postData);
     onClose();
+    
+    // FIXED: Reset form state after modal closes
+    // This prevents the form from clearing before submission
+    setTimeout(() => {
+      setContent('');
+      setSelectedCategory('general');
+      setSelectedActivityTags([]);
+      setSelectedLocation(defaultLocation);
+    }, 200);
   };
 
   const toggleActivityTag = (tagId: ForumActivityId) => {
@@ -117,8 +132,18 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
   // Filter locations based on search
   const filteredLocations = useMemo(() => {
     const allOptions = [
-      { id: 'all', name: 'General', isGeneral: true, alternateNames: [] as string[] },
-      ...country.subLocations.map(loc => ({ ...loc, isGeneral: false }))
+      { 
+        id: 'all', 
+        name: 'General', 
+        isGeneral: true, 
+        alternateNames: [] as string[],
+        displayName: country.name // FIXED: Show country name instead of 'General' in search results
+      },
+      ...country.subLocations.map(loc => ({ 
+        ...loc, 
+        isGeneral: false,
+        displayName: loc.name // Regular locations show their name
+      }))
     ];
 
     if (!locationSearch.trim()) {
@@ -131,7 +156,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
         alt.toLowerCase().includes(locationSearch.toLowerCase())
       ))
     );
-  }, [country.subLocations, locationSearch]);
+  }, [country.subLocations, country.name, locationSearch]);
 
   const handleLocationSelect = (locationName: string) => {
     setSelectedLocation(locationName);
@@ -250,7 +275,12 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   flex: 1,
                   fontFamily: 'System',
                 }}>
-                  {selectedLocation === 'All' ? `Select location in ${country.name}` : selectedLocation}
+                  {selectedLocation === 'All' || selectedLocation === 'General' 
+                    ? selectedLocation === 'General' 
+                      ? country.name  // FIXED: Show country name when General is selected
+                      : `Select location in ${country.name}` 
+                    : selectedLocation
+                  }
                 </Text>
                 <Search size={16} color={themeColors.textSecondary} />
               </TouchableOpacity>
@@ -710,7 +740,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   fontWeight: selectedLocation === item.name ? '600' : '400',
                   flex: 1,
                 }}>
-                  {item.name}
+                  {item.isGeneral ? item.displayName : item.name}
                 </Text>
                 {item.isGeneral && (
                   <Text style={{
@@ -718,7 +748,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                     color: themeColors.textSecondary,
                     fontFamily: 'System',
                   }}>
-                    (All locations)
+                    General
                   </Text>
                 )}
                 {selectedLocation === item.name && (
