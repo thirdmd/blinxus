@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar, View } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { 
   PodsNavigationState,
@@ -91,9 +91,17 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   };
 
   const handleBackToMain = () => {
-    setNavigationState(createInitialPodsState());
+    setNavigationState(prev => ({
+      ...prev,
+      currentScreen: 'continent-list',
+      selectedCountry: null,
+      selectedLocation: null,
+      selectedContinent: null,
+      searchQuery: '',
+      isSearchMode: false,
+    }));
     setActiveTab('Forum');
-    // Don't reset continent list state - keep user's position
+    // Keep continent list state - user returns to their previous continent tab position
   };
 
   const handleBackToCountry = () => {
@@ -142,10 +150,15 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
 
   // Render appropriate screen based on navigation state
   const renderCurrentScreen = () => {
-    switch (navigationState.currentScreen) {
-      case 'continent-list':
-        return (
+    return (
+      <>
+        {/* Always render ContinentListScreen but hide it when not active */}
+        <View style={{ 
+          flex: 1, 
+          display: navigationState.currentScreen === 'continent-list' ? 'flex' : 'none' 
+        }}>
           <ContinentListScreen
+            key="continent-list-persistent"
             theme={podTheme}
             onCountryPress={handleCountryPress}
             initialActiveContinent={continentListState.activeContinent}
@@ -153,11 +166,10 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
             onDoubleTabPress={handleDoubleTabPress}
             resetKey={resetKey}
           />
-        );
-      
-      case 'country-view':
-        if (!navigationState.selectedCountry) return null;
-        return (
+        </View>
+
+        {/* Render country view when active */}
+        {navigationState.currentScreen === 'country-view' && navigationState.selectedCountry && (
           <CountryViewScreen
             country={navigationState.selectedCountry}
             activeTab={activeTab}
@@ -165,13 +177,11 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
             onLocationPress={handleLocationPress}
             onBack={handleBackToMain}
             theme={podTheme}
-            postingService={postingService}
           />
-        );
-      
-      case 'location-view':
-        if (!navigationState.selectedLocation || !navigationState.selectedCountry) return null;
-        return (
+        )}
+
+        {/* Render location view when active */}
+        {navigationState.currentScreen === 'location-view' && navigationState.selectedLocation && navigationState.selectedCountry && (
           <LocationViewScreen
             location={navigationState.selectedLocation}
             country={navigationState.selectedCountry}
@@ -179,28 +189,20 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
             onTabChange={handleTabChange}
             onBack={handleBackToCountry}
             theme={podTheme}
-            postingService={postingService}
           />
-        );
-      
-      default:
-        return null;
-    }
+        )}
+      </>
+    );
   };
 
   return (
     <SafeAreaView style={{ 
       flex: 1, 
-      backgroundColor: themeColors.isDark 
-        ? '#1A2332' 
-        : '#F8F9FA'
+      backgroundColor: themeColors.background
     }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.isDark 
-          ? '#1A2332' 
-          : '#F8F9FA'
-        } 
+        backgroundColor={themeColors.background}
       />
       {renderCurrentScreen()}
     </SafeAreaView>

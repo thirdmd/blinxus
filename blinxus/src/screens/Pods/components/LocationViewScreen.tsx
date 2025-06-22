@@ -22,7 +22,7 @@ interface LocationViewScreenProps {
   onTabChange: (tab: PodTabType) => void;
   onBack: () => void;
   theme: PodThemeConfig;
-  postingService: PodsPostingService;
+  postingService?: PodsPostingService;
 }
 
 const LocationViewScreen: React.FC<LocationViewScreenProps> = ({

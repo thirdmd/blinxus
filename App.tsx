@@ -53,15 +53,19 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
   }
 }
 
-// Special Create Tab Button
-function CreateTabButton({ onPress, accessibilityState }: any) {
+// Special Create Tab Button - Now opens modal instead of tab
+function CreateTabButton({ onPress, accessibilityState, navigation }: any) {
   const themeColors = useThemeColors();
   const responsiveDimensions = getResponsiveDimensions();
-  const focused = accessibilityState?.selected;
+  
+  const handlePress = () => {
+    // Navigate to CreatePost modal instead of tab
+    navigation.navigate('CreatePost');
+  };
   
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       style={{
         flex: 1,
         justifyContent: 'center',
@@ -111,16 +115,6 @@ function TabNavigator() {
     const now = Date.now();
     const lastTap = lastTapRef.current[routeName] || 0;
     
-    // Check if we're coming from the Create tab to Home tab
-    if (routeName === 'Home' && previousTabRef.current === 'Create') {
-      // Automatically scroll to top when navigating from Create to Home
-      setTimeout(() => {
-        if (exploreScreenRef.current) {
-          exploreScreenRef.current.resetToAll();
-        }
-      }, 100);
-    }
-    
     if (now - lastTap < 300) { // Double tap detected (within 300ms)
       // Scroll to top based on route
       switch (routeName) {
@@ -155,7 +149,7 @@ function TabNavigator() {
   return (
     <ScrollContext.Provider value={{ exploreScrollRef, podsScrollRef, profileScrollRef }}>
       <Tab.Navigator
-        screenOptions={({ route }) => ({
+        screenOptions={({ route, navigation }) => ({
           headerShown: false,
           tabBarIcon: ({ color, focused }) => {
             if (route.name === 'Create') {
@@ -163,7 +157,7 @@ function TabNavigator() {
             }
             return <TabIcon name={route.name} color={color} focused={focused} />;
           },
-          tabBarButton: route.name === 'Create' ? CreateTabButton : undefined,
+          tabBarButton: route.name === 'Create' ? (props: any) => <CreateTabButton {...props} navigation={navigation} /> : undefined,
           tabBarStyle: {
             backgroundColor: themeColors.background,
             borderTopColor: themeColors.border,
@@ -207,7 +201,7 @@ function TabNavigator() {
         <Tab.Screen name="Pods">
           {() => <PodsMainScreen ref={podsScreenRef} />}
         </Tab.Screen>
-        <Tab.Screen name="Create" component={CreatePost} />
+        <Tab.Screen name="Create" component={() => null} />
         <Tab.Screen name="Notifications" component={NotificationsScreen} />
         <Tab.Screen name="Profile">
           {() => <ProfileScreen ref={profileScreenRef} />}
@@ -222,6 +216,14 @@ function RootNavigator() {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="MainTabs" component={TabNavigator} />
+      <RootStack.Screen 
+        name="CreatePost" 
+        component={CreatePost}
+        options={{
+          presentation: 'modal',
+          gestureEnabled: true,
+        }}
+      />
       <RootStack.Screen 
         name="LucidFullscreen" 
         component={LucidFullscreen}

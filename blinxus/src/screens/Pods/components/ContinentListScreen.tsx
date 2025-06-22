@@ -12,7 +12,7 @@ import {
   StatusBar,
 } from 'react-native';
 
-import { Search, MapPin, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
+import { Search, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, Country, Continent } from '../../../constants/placesData';
 import { useThemeColors } from '../../../hooks/useThemeColors';
@@ -324,7 +324,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
   const searchAnimation = useRef(new Animated.Value(0)).current;
   const slideAnimation = useRef(new Animated.Value(-screenWidth * 0.75)).current;
   const overlayAnimation = useRef(new Animated.Value(0)).current;
-  const tabScrollRef = useRef<ScrollView>(null);
+  const tabScrollRef = useRef<FlatList>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const themeColors = useThemeColors();
@@ -367,7 +367,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         flatListRef.current.scrollToOffset({ offset: 0, animated: true });
       }
       if (tabScrollRef.current) {
-        tabScrollRef.current.scrollTo({ x: 0, animated: true });
+        tabScrollRef.current.scrollToOffset({ offset: 0, animated: true });
       }
     }
   }, [resetKey]);
@@ -411,9 +411,9 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     }
     
     // Scroll tabs to beginning
-    if (tabScrollRef.current) {
-      tabScrollRef.current.scrollTo({ x: 0, animated: true });
-    }
+          if (tabScrollRef.current) {
+        tabScrollRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
   }, [onDoubleTabPress]);
   
   // Enhanced join pod function with session persistence using context
@@ -506,6 +506,35 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     }
   };
 
+  // Define regional groupings for MVP countries
+  const regionalGroups = useMemo(() => ({
+    'asia': {
+      'Southeast Asia (SEA)': ['ph', 'sg', 'th', 'id', 'my', 'vn', 'kh'],
+      'East Asia': ['jp', 'kr', 'tw', 'hk', 'cn'],
+      'South Asia': ['mv'],
+      'West Asia / Middle East': ['ae', 'sa', 'tr']
+    },
+    'europe': {
+      'Western Europe': ['fr', 'nl', 'gb', 'de', 'ch', 'at'],
+      'Southern Europe': ['it', 'es', 'pt', 'gr'],
+      'Eastern & Central Europe': ['pl', 'cz'],
+      'Nordic Countries': ['is', 'no', 'se', 'dk', 'fi'],
+      'Microstates': ['mc']
+    },
+    'north-america': {
+      'North America': ['us', 'ca', 'mx']
+    },
+    'south-america': {
+      'South America': ['br', 'ar', 'pe']
+    },
+    'africa': {
+      'Africa': ['za', 'eg', 'ke', 'ma']
+    },
+    'oceania': {
+      'Oceania / Pacific': ['au', 'nz']
+    }
+  }), []);
+
   // Filter countries based on search and active continent
   const filteredCountries = useMemo(() => {
     let countries = [];
@@ -543,15 +572,34 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
       countries = continent.countries;
     }
 
-    // Apply search filter
+    // Enhanced search filter - now searches all places in pods
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      countries = countries.filter(country =>
-        country.name.toLowerCase().includes(query) ||
-        country.subLocations.some(loc => 
-          loc.name.toLowerCase().includes(query)
-        )
-      );
+      countries = countries.filter(country => {
+        // Search country name
+        if (country.name.toLowerCase().includes(query)) {
+          return true;
+        }
+        
+        // Search all sub-locations (cities, regions, landmarks)
+        const hasMatchingLocation = country.subLocations.some(loc => {
+          // Search location name
+          if (loc.name.toLowerCase().includes(query)) {
+            return true;
+          }
+          
+          // Search alternate names if available
+          if (loc.alternateNames && loc.alternateNames.some((alt: string) => 
+            alt.toLowerCase().includes(query)
+          )) {
+            return true;
+          }
+          
+          return false;
+        });
+        
+        return hasMatchingLocation;
+      });
     }
 
     // Final sorting: 
@@ -580,6 +628,54 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     
     return allCountries.filter(country => isPodJoined(country.id));
   }, [isPodJoined]);
+
+  // Helper function to get regional group for a country
+  const getRegionalGroup = (country: Country, continentId: string): string | null => {
+    const groups = regionalGroups[continentId as keyof typeof regionalGroups];
+    if (!groups) return null;
+    
+    for (const [groupName, countryIds] of Object.entries(groups)) {
+      if (countryIds.includes(country.id)) {
+        return groupName;
+      }
+    }
+    return null;
+  };
+
+  // Create grouped countries data for rendering with headers
+  const groupedCountries = useMemo(() => {
+    if (activeContinent === 0 || searchQuery) {
+      // For "For You" tab or when searching, don't show groups
+      return filteredCountries.map(country => ({ type: 'country' as const, country }));
+    }
+
+    const continent = placesData[activeContinent - 1];
+    if (!continent) return [];
+
+    const groups = regionalGroups[continent.id as keyof typeof regionalGroups];
+    if (!groups) {
+      // No regional groups defined, show countries normally
+      return filteredCountries.map(country => ({ type: 'country' as const, country }));
+    }
+
+    const result: Array<{ type: 'header' | 'country'; groupName?: string; country?: Country }> = [];
+    
+    Object.entries(groups).forEach(([groupName, countryIds]) => {
+      const groupCountries = filteredCountries.filter(country => countryIds.includes(country.id));
+      
+      if (groupCountries.length > 0) {
+        // Add group header
+        result.push({ type: 'header', groupName });
+        
+        // Add countries in this group
+        groupCountries.forEach(country => {
+          result.push({ type: 'country', country });
+        });
+      }
+    });
+
+    return result;
+  }, [filteredCountries, activeContinent, searchQuery, regionalGroups]);
 
   // Enhanced renderJoinedPodItem with notification toggle
   const renderJoinedPodItem = ({ item: country, index }: { item: Country; index: number }) => {
@@ -722,13 +818,51 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     );
   };
 
+  // Render function for grouped items (headers + countries)
+  const renderGroupedItem = ({ item, index }: { item: any; index: number }) => {
+    if (item.type === 'header') {
+      return (
+        <View style={{
+          marginHorizontal: 20,
+          marginTop: index === 0 ? 0 : 16,
+          marginBottom: 8,
+        }}>
+          <Text style={{
+            color: themeColors.textSecondary,
+            fontSize: 11,
+            fontWeight: '600',
+            fontFamily: 'System',
+            textTransform: 'uppercase',
+            letterSpacing: 0.8,
+            opacity: 0.7,
+          }}>
+            {item.groupName}
+          </Text>
+        </View>
+      );
+    } else {
+      // Calculate the country index for animations (excluding headers)
+      const countryIndex = groupedCountries.slice(0, index).filter(i => i.type === 'country').length;
+      return (
+        <CountryCard
+          country={item.country}
+          index={countryIndex}
+          theme={theme}
+          themeColors={themeColors}
+          onPress={onCountryPress}
+          isPodJoined={isPodJoined}
+          onJoinPod={handleJoinPod}
+        />
+      );
+    }
+  };
+
   // Enhanced renderContinentTab with double-tap detection
   const renderContinentTab = React.useCallback((continent: Continent | { id: string; name: string }, index: number) => {
     const isActive = activeContinent === index;
     
     return (
       <TouchableOpacity
-        key={continent.id}
         onPress={() => {
           if (index === 0 && activeContinent === 0) {
             // Double-tap "For You" tab - trigger double-tap handler
@@ -747,8 +881,8 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           marginRight: 8,
           borderWidth: isActive ? 0 : 1,
           borderColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.08)' 
-            : 'rgba(0, 0, 0, 0.05)',
+            ? 'rgba(255, 255, 255, 0.15)' 
+            : 'rgba(0, 0, 0, 0.12)',
         }}
         activeOpacity={0.7}
       >
@@ -821,10 +955,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.isDark 
-          ? '#1A2332' 
-          : '#F8F9FA'
-        } 
+        backgroundColor={themeColors.background}
       />
       {/* Fixed Header Section */}
     <Animated.View style={{ 
@@ -986,10 +1117,13 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         </View>
       </Animated.View>
 
-      {/* Fixed Continent Tabs */}
+      {/* Fixed Continent Tabs - Replace ScrollView with horizontal FlatList */}
       <View style={{ marginBottom: 12 }}>
-        <ScrollView
+        <FlatList
           ref={tabScrollRef}
+          data={allTabs}
+          renderItem={({ item: continent, index }) => renderContinentTab(continent, index)}
+          keyExtractor={(item, index) => `tab-${index}`}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
@@ -999,11 +1133,8 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             flexGrow: 0,
           }}
           scrollsToTop={false}
-          automaticallyAdjustContentInsets={false}
           keyboardShouldPersistTaps="handled"
-        >
-          {allTabs.map((continent, index) => renderContinentTab(continent, index))}
-        </ScrollView>
+        />
       </View>
 
       {/* Fixed Active Continent Info */}
@@ -1041,10 +1172,10 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
       {/* Countries List with ref for scroll control */}
       <FlatList
         ref={flatListRef}
-        data={filteredCountries}
-        renderItem={renderCountryCard}
+        data={groupedCountries}
+        renderItem={renderGroupedItem}
         ListEmptyComponent={ListEmptyComponent}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.type === 'header' ? `header-${item.groupName}` : `country-${item.country?.id}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingBottom: 30,
@@ -1062,11 +1193,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         maxToRenderPerBatch={10}
         windowSize={10}
         removeClippedSubviews={true}
-        getItemLayout={(data, index) => ({
-          length: 96, // 88px height + 8px margin
-          offset: 96 * index,
-          index,
-        })}
+        // Remove getItemLayout since we have variable heights now (headers vs countries)
       />
 
       {/* Joined Pods Modal */}

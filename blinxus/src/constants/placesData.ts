@@ -182,7 +182,7 @@ export const philippinesData: Country = {
     {
       id: 'ph-batangas',
       name: 'Batangas',
-      alternateNames: ['Batangas Province', 'Bats'],
+      alternateNames: ['Batangas Province', 'Btg'],
       parentId: 'ph',
       popularActivities: ['aquatics', 'heritage', 'food'],
       description: 'Southern Luzon province known for beaches and historical sites.',
@@ -218,7 +218,7 @@ export const philippinesData: Country = {
     {
       id: 'ph-zambales',
       name: 'Zambales',
-      alternateNames: ['Zambales Province', 'Subic', 'Iba'],
+      alternateNames: ['Zambales Province', 'Subic','Zamba', 'Iba'],
       parentId: 'ph',
       popularActivities: ['aquatics', 'outdoors', 'thrill'],
       description: 'Western Luzon province with pristine beaches and adventure activities.',
@@ -1747,6 +1747,180 @@ export const asiaData: Continent = {
         }
       ]
     },
+    // Cambodia
+    {
+      id: 'kh',
+      name: 'Cambodia',
+      alternateNames: ['KH', 'Kingdom of Cambodia', 'Kampuchea'],
+      continentId: 'asia',
+      currency: 'KHR',
+      language: ['Khmer'],
+      timezone: 'GMT+7',
+      description: 'Ancient kingdom famous for Angkor Wat and rich cultural heritage.',
+      coordinates: { latitude: 12.5657, longitude: 104.9910 },
+      subLocations: [
+        {
+          id: 'kh-siem-reap',
+          name: 'Siem Reap',
+          alternateNames: ['Angkor', 'Temple City'],
+          parentId: 'kh',
+          popularActivities: ['heritage', 'cultural', 'outdoors'],
+          description: 'Gateway to the magnificent Angkor temple complex.',
+          bestTimeToVisit: 'November to March',
+          knownFor: ['Angkor Wat', 'Angkor Thom', 'Ta Prohm', 'Bayon Temple'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 13.3671, longitude: 103.8448 }
+        }
+      ]
+    },
+    // China
+    {
+      id: 'cn',
+      name: 'China',
+      alternateNames: ['CN', 'People\'s Republic of China', 'Middle Kingdom'],
+      continentId: 'asia',
+      currency: 'CNY',
+      language: ['Mandarin'],
+      timezone: 'GMT+8',
+      description: 'Ancient civilization with modern cities and diverse landscapes.',
+      coordinates: { latitude: 35.8617, longitude: 104.1954 },
+      subLocations: [
+        {
+          id: 'cn-beijing',
+          name: 'Beijing',
+          alternateNames: ['Capital', 'Peking'],
+          parentId: 'cn',
+          popularActivities: ['heritage', 'cultural', 'city'],
+          description: 'Capital city with imperial palaces and modern architecture.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Great Wall', 'Forbidden City', 'Temple of Heaven', 'Tiananmen Square'],
+          averageStay: '4-5 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 39.9042, longitude: 116.4074 }
+        }
+      ]
+    },
+    // Maldives
+    {
+      id: 'mv',
+      name: 'Maldives',
+      alternateNames: ['MV', 'Republic of Maldives', 'Maldive Islands'],
+      continentId: 'asia',
+      currency: 'MVR',
+      language: ['Dhivehi', 'English'],
+      timezone: 'GMT+5',
+      description: 'Tropical paradise with crystal clear waters and luxury resorts.',
+      coordinates: { latitude: 3.2028, longitude: 73.2207 },
+      subLocations: [
+        {
+          id: 'mv-male',
+          name: 'Malé',
+          alternateNames: ['Capital', 'Male Atoll'],
+          parentId: 'mv',
+          popularActivities: ['aquatics', 'wellness', 'thrill'],
+          description: 'Capital city and gateway to resort islands.',
+          bestTimeToVisit: 'November to April',
+          knownFor: ['Overwater Bungalows', 'Coral Reefs', 'Diving', 'Luxury Resorts'],
+          averageStay: '5-7 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 4.1755, longitude: 73.5093 }
+        }
+      ]
+    },
+    // United Arab Emirates
+    {
+      id: 'ae',
+      name: 'United Arab Emirates',
+      alternateNames: ['UAE', 'Emirates'],
+      continentId: 'asia',
+      currency: 'AED',
+      language: ['Arabic', 'English'],
+      timezone: 'GMT+4',
+      description: 'Modern desert nation with futuristic cities and luxury lifestyle.',
+      coordinates: { latitude: 23.4241, longitude: 53.8478 },
+      subLocations: [
+        {
+          id: 'ae-dubai',
+          name: 'Dubai',
+          alternateNames: ['City of Gold', 'Dubai Emirate'],
+          parentId: 'ae',
+          popularActivities: ['city', 'cultural', 'stays', 'amusements'],
+          description: 'Ultra-modern city with world\'s tallest building and luxury shopping.',
+          bestTimeToVisit: 'November to March',
+          knownFor: ['Burj Khalifa', 'Dubai Mall', 'Palm Jumeirah', 'Gold Souk'],
+          averageStay: '4-5 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 25.2048, longitude: 55.2708 }
+        }
+      ]
+    },
+    // Saudi Arabia
+    {
+      id: 'sa',
+      name: 'Saudi Arabia',
+      alternateNames: ['SA', 'Kingdom of Saudi Arabia', 'KSA'],
+      continentId: 'asia',
+      currency: 'SAR',
+      language: ['Arabic'],
+      timezone: 'GMT+3',
+      description: 'Historic kingdom with ancient sites and modern vision.',
+      coordinates: { latitude: 23.8859, longitude: 45.0792 },
+      subLocations: [
+        {
+          id: 'sa-riyadh',
+          name: 'Riyadh',
+          alternateNames: ['Capital', 'Ar-Riyadh'],
+          parentId: 'sa',
+          popularActivities: ['city', 'cultural', 'heritage'],
+          description: 'Modern capital city with traditional Arabian culture.',
+          bestTimeToVisit: 'November to March',
+          knownFor: ['Kingdom Centre', 'Masmak Fortress', 'Al-Murabba Palace', 'Diriyah'],
+          averageStay: '2-3 days',
+          difficulty: 'moderate',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 24.7136, longitude: 46.6753 }
+        }
+      ]
+    },
+    // Turkey
+    {
+      id: 'tr',
+      name: 'Turkey',
+      alternateNames: ['TR', 'Türkiye', 'Republic of Turkey'],
+      continentId: 'asia',
+      currency: 'TRY',
+      language: ['Turkish'],
+      timezone: 'GMT+3',
+      description: 'Transcontinental country bridging Europe and Asia with rich history.',
+      coordinates: { latitude: 38.9637, longitude: 35.2433 },
+      subLocations: [
+        {
+          id: 'tr-istanbul',
+          name: 'Istanbul',
+          alternateNames: ['Constantinople', 'Byzantium'],
+          parentId: 'tr',
+          popularActivities: ['heritage', 'cultural', 'food', 'city'],
+          description: 'Historic city spanning two continents with Byzantine and Ottoman heritage.',
+          bestTimeToVisit: 'April to June, September to November',
+          knownFor: ['Hagia Sophia', 'Blue Mosque', 'Grand Bazaar', 'Bosphorus'],
+          averageStay: '4-5 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 41.0082, longitude: 28.9784 }
+        }
+      ]
+    }
 
   ]
 };
@@ -1991,6 +2165,296 @@ export const europeData: Continent = {
           coordinates: { latitude: 63.5311, longitude: -19.0208 }
         }
       ]
+    },
+    // Austria
+    {
+      id: 'at',
+      name: 'Austria',
+      alternateNames: ['AT', 'Republic of Austria', 'Österreich'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['German'],
+      timezone: 'GMT+1',
+      description: 'Alpine country famous for music, mountains, and imperial history.',
+      coordinates: { latitude: 47.5162, longitude: 14.5501 },
+      subLocations: [
+        {
+          id: 'at-vienna',
+          name: 'Vienna',
+          alternateNames: ['Wien', 'City of Music'],
+          parentId: 'at',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Imperial capital with stunning architecture and musical heritage.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Schönbrunn Palace', 'Vienna State Opera', 'Sachertorte', 'Coffee Houses'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 48.2082, longitude: 16.3738 }
+        }
+      ]
+    },
+    // Portugal
+    {
+      id: 'pt',
+      name: 'Portugal',
+      alternateNames: ['PT', 'Portuguese Republic'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['Portuguese'],
+      timezone: 'GMT+0',
+      description: 'Atlantic nation with stunning coastline and rich maritime history.',
+      coordinates: { latitude: 39.3999, longitude: -8.2245 },
+      subLocations: [
+        {
+          id: 'pt-lisbon',
+          name: 'Lisbon',
+          alternateNames: ['Lisboa', 'City of Seven Hills'],
+          parentId: 'pt',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Colorful capital with historic trams and Fado music.',
+          bestTimeToVisit: 'March to May, September to October',
+          knownFor: ['Tram 28', 'Belém Tower', 'Pastéis de Nata', 'Fado Music'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 38.7223, longitude: -9.1393 }
+        }
+      ]
+    },
+    // Greece
+    {
+      id: 'gr',
+      name: 'Greece',
+      alternateNames: ['GR', 'Hellenic Republic', 'Hellas'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['Greek'],
+      timezone: 'GMT+2',
+      description: 'Cradle of democracy with ancient ruins and beautiful islands.',
+      coordinates: { latitude: 39.0742, longitude: 21.8243 },
+      subLocations: [
+        {
+          id: 'gr-athens',
+          name: 'Athens',
+          alternateNames: ['Athina', 'Cradle of Democracy'],
+          parentId: 'gr',
+          popularActivities: ['heritage', 'cultural', 'city'],
+          description: 'Ancient capital with iconic Acropolis and rich history.',
+          bestTimeToVisit: 'April to June, September to October',
+          knownFor: ['Acropolis', 'Parthenon', 'Ancient Agora', 'National Archaeological Museum'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 37.9838, longitude: 23.7275 }
+        }
+      ]
+    },
+    // Poland
+    {
+      id: 'pl',
+      name: 'Poland',
+      alternateNames: ['PL', 'Republic of Poland', 'Polska'],
+      continentId: 'europe',
+      currency: 'PLN',
+      language: ['Polish'],
+      timezone: 'GMT+1',
+      description: 'Central European country with medieval towns and rich history.',
+      coordinates: { latitude: 51.9194, longitude: 19.1451 },
+      subLocations: [
+        {
+          id: 'pl-krakow',
+          name: 'Kraków',
+          alternateNames: ['Krakow', 'Cultural Capital'],
+          parentId: 'pl',
+          popularActivities: ['heritage', 'cultural', 'city'],
+          description: 'Medieval city with stunning architecture and vibrant culture.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Wawel Castle', 'Main Market Square', 'Auschwitz-Birkenau', 'Jewish Quarter'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 50.0647, longitude: 19.9450 }
+        }
+      ]
+    },
+    // Czech Republic
+    {
+      id: 'cz',
+      name: 'Czech Republic',
+      alternateNames: ['CZ', 'Czechia', 'Česká republika'],
+      continentId: 'europe',
+      currency: 'CZK',
+      language: ['Czech'],
+      timezone: 'GMT+1',
+      description: 'Heart of Europe with fairy-tale castles and medieval towns.',
+      coordinates: { latitude: 49.8175, longitude: 15.4730 },
+      subLocations: [
+        {
+          id: 'cz-prague',
+          name: 'Prague',
+          alternateNames: ['Praha', 'City of a Hundred Spires'],
+          parentId: 'cz',
+          popularActivities: ['heritage', 'cultural', 'city'],
+          description: 'Magical city with Gothic architecture and rich beer culture.',
+          bestTimeToVisit: 'April to June, September to October',
+          knownFor: ['Prague Castle', 'Charles Bridge', 'Old Town Square', 'Czech Beer'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 50.0755, longitude: 14.4378 }
+        }
+      ]
+    },
+    // Norway
+    {
+      id: 'no',
+      name: 'Norway',
+      alternateNames: ['NO', 'Kingdom of Norway', 'Norge'],
+      continentId: 'europe',
+      currency: 'NOK',
+      language: ['Norwegian'],
+      timezone: 'GMT+1',
+      description: 'Nordic country famous for fjords, northern lights, and natural beauty.',
+      coordinates: { latitude: 60.4720, longitude: 8.4689 },
+      subLocations: [
+        {
+          id: 'no-oslo',
+          name: 'Oslo',
+          alternateNames: ['Capital', 'Tiger City'],
+          parentId: 'no',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Modern capital surrounded by forests and fjords.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Viking Ship Museum', 'Opera House', 'Vigeland Sculpture Park', 'Northern Lights'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 59.9139, longitude: 10.7522 }
+        }
+      ]
+    },
+    // Sweden
+    {
+      id: 'se',
+      name: 'Sweden',
+      alternateNames: ['SE', 'Kingdom of Sweden', 'Sverige'],
+      continentId: 'europe',
+      currency: 'SEK',
+      language: ['Swedish'],
+      timezone: 'GMT+1',
+      description: 'Scandinavian country known for design, nature, and progressive culture.',
+      coordinates: { latitude: 60.1282, longitude: 18.6435 },
+      subLocations: [
+        {
+          id: 'se-stockholm',
+          name: 'Stockholm',
+          alternateNames: ['Venice of the North', 'Capital'],
+          parentId: 'se',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Beautiful capital built on 14 islands with stunning architecture.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Gamla Stan', 'Vasa Museum', 'ABBA Museum', 'Royal Palace'],
+          averageStay: '3-4 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 59.3293, longitude: 18.0686 }
+        }
+      ]
+    },
+    // Denmark
+    {
+      id: 'dk',
+      name: 'Denmark',
+      alternateNames: ['DK', 'Kingdom of Denmark', 'Danmark'],
+      continentId: 'europe',
+      currency: 'DKK',
+      language: ['Danish'],
+      timezone: 'GMT+1',
+      description: 'Happy Nordic country with fairy-tale castles and hygge culture.',
+      coordinates: { latitude: 56.2639, longitude: 9.5018 },
+      subLocations: [
+        {
+          id: 'dk-copenhagen',
+          name: 'Copenhagen',
+          alternateNames: ['København', 'City of Spires'],
+          parentId: 'dk',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Charming capital with colorful buildings and cycling culture.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Nyhavn', 'Little Mermaid', 'Tivoli Gardens', 'Christiania'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 55.6761, longitude: 12.5683 }
+        }
+      ]
+    },
+    // Finland
+    {
+      id: 'fi',
+      name: 'Finland',
+      alternateNames: ['FI', 'Republic of Finland', 'Suomi'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['Finnish', 'Swedish'],
+      timezone: 'GMT+2',
+      description: 'Land of thousand lakes with saunas, northern lights, and design.',
+      coordinates: { latitude: 61.9241, longitude: 25.7482 },
+      subLocations: [
+        {
+          id: 'fi-helsinki',
+          name: 'Helsinki',
+          alternateNames: ['Helsingfors', 'Daughter of the Baltic'],
+          parentId: 'fi',
+          popularActivities: ['cultural', 'heritage', 'city'],
+          description: 'Design capital with stunning architecture and Baltic Sea views.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Senate Square', 'Suomenlinna', 'Design District', 'Saunas'],
+          averageStay: '2-3 days',
+          difficulty: 'easy',
+          crowdLevel: 'moderate',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 60.1699, longitude: 24.9384 }
+        }
+      ]
+    },
+    // Monaco
+    {
+      id: 'mc',
+      name: 'Monaco',
+      alternateNames: ['MC', 'Principality of Monaco', 'Monte Carlo'],
+      continentId: 'europe',
+      currency: 'EUR',
+      language: ['French'],
+      timezone: 'GMT+1',
+      description: 'Glamorous microstate known for luxury, casinos, and Formula 1.',
+      coordinates: { latitude: 43.7384, longitude: 7.4246 },
+      subLocations: [
+        {
+          id: 'mc-monte-carlo',
+          name: 'Monte Carlo',
+          alternateNames: ['Casino Quarter', 'Monaco-Ville'],
+          parentId: 'mc',
+          popularActivities: ['city', 'cultural', 'amusements'],
+          description: 'Luxury district with famous casino and yacht harbor.',
+          bestTimeToVisit: 'April to October',
+          knownFor: ['Monte Carlo Casino', 'Monaco Grand Prix', 'Prince\'s Palace', 'Yacht Harbor'],
+          averageStay: '1-2 days',
+          difficulty: 'easy',
+          crowdLevel: 'high',
+          budgetLevel: 'luxury',
+          coordinates: { latitude: 43.7384, longitude: 7.4246 }
+        }
+      ]
     }
   ]
 };
@@ -2029,6 +2493,35 @@ export const northAmericaData: Continent = {
           crowdLevel: 'moderate',
           budgetLevel: 'mid-range',
           coordinates: { latitude: 43.6532, longitude: -79.3832 }
+        }
+      ]
+    },
+    // Mexico
+    {
+      id: 'mx',
+      name: 'Mexico',
+      alternateNames: ['MX', 'United Mexican States', 'México'],
+      continentId: 'north-america',
+      currency: 'MXN',
+      language: ['Spanish'],
+      timezone: 'GMT-6',
+      description: 'Vibrant country with ancient ruins, beautiful beaches, and rich culture.',
+      coordinates: { latitude: 23.6345, longitude: -102.5528 },
+      subLocations: [
+        {
+          id: 'mx-mexico-city',
+          name: 'Mexico City',
+          alternateNames: ['CDMX', 'Ciudad de México', 'DF'],
+          parentId: 'mx',
+          popularActivities: ['cultural', 'heritage', 'city', 'food'],
+          description: 'Massive capital with ancient Aztec ruins and vibrant culture.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Zócalo', 'Frida Kahlo Museum', 'Teotihuacán', 'Street Food'],
+          averageStay: '4-5 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'budget',
+          coordinates: { latitude: 19.4326, longitude: -99.1332 }
         }
       ]
     }
@@ -2071,6 +2564,35 @@ export const southAmericaData: Continent = {
           coordinates: { latitude: -34.6118, longitude: -58.3960 }
         }
       ]
+    },
+    // Peru
+    {
+      id: 'pe',
+      name: 'Peru',
+      alternateNames: ['PE', 'Republic of Peru', 'Perú'],
+      continentId: 'south-america',
+      currency: 'PEN',
+      language: ['Spanish', 'Quechua'],
+      timezone: 'GMT-5',
+      description: 'Land of the Incas with ancient ruins and diverse landscapes.',
+      coordinates: { latitude: -9.1900, longitude: -75.0152 },
+      subLocations: [
+        {
+          id: 'pe-cusco',
+          name: 'Cusco',
+          alternateNames: ['Cuzco', 'Gateway to Machu Picchu'],
+          parentId: 'pe',
+          popularActivities: ['heritage', 'cultural', 'outdoors', 'thrill'],
+          description: 'Ancient Inca capital and gateway to Machu Picchu.',
+          bestTimeToVisit: 'May to September',
+          knownFor: ['Machu Picchu', 'Sacred Valley', 'Inca Trail', 'Colonial Architecture'],
+          averageStay: '4-5 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: -13.5319, longitude: -71.9675 }
+        }
+      ]
     }
   ]
 };
@@ -2109,6 +2631,64 @@ export const africaData: Continent = {
           crowdLevel: 'high',
           budgetLevel: 'budget',
           coordinates: { latitude: 30.0444, longitude: 31.2357 }
+        }
+      ]
+    },
+    // Kenya
+    {
+      id: 'ke',
+      name: 'Kenya',
+      alternateNames: ['KE', 'Republic of Kenya'],
+      continentId: 'africa',
+      currency: 'KES',
+      language: ['Swahili', 'English'],
+      timezone: 'GMT+3',
+      description: 'East African country famous for wildlife safaris and diverse landscapes.',
+      coordinates: { latitude: -0.0236, longitude: 37.9062 },
+      subLocations: [
+        {
+          id: 'ke-nairobi',
+          name: 'Nairobi',
+          alternateNames: ['Green City in the Sun', 'Safari Capital'],
+          parentId: 'ke',
+          popularActivities: ['outdoors', 'cultural', 'city', 'thrill'],
+          description: 'Modern capital city and gateway to wildlife safaris.',
+          bestTimeToVisit: 'June to October, December to March',
+          knownFor: ['Masai Mara', 'Wildlife Safaris', 'Giraffe Centre', 'David Sheldrick Elephant Orphanage'],
+          averageStay: '3-4 days',
+          difficulty: 'moderate',
+          crowdLevel: 'moderate',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: -1.2921, longitude: 36.8219 }
+        }
+      ]
+    },
+    // Morocco
+    {
+      id: 'ma',
+      name: 'Morocco',
+      alternateNames: ['MA', 'Kingdom of Morocco', 'Al-Maghrib'],
+      continentId: 'africa',
+      currency: 'MAD',
+      language: ['Arabic', 'Berber', 'French'],
+      timezone: 'GMT+1',
+      description: 'North African kingdom with imperial cities and Sahara Desert.',
+      coordinates: { latitude: 31.7917, longitude: -7.0926 },
+      subLocations: [
+        {
+          id: 'ma-marrakech',
+          name: 'Marrakech',
+          alternateNames: ['Marrakesh', 'Red City', 'Pearl of the South'],
+          parentId: 'ma',
+          popularActivities: ['cultural', 'heritage', 'city', 'food'],
+          description: 'Imperial city with vibrant souks and stunning architecture.',
+          bestTimeToVisit: 'March to May, September to November',
+          knownFor: ['Jemaa el-Fnaa', 'Majorelle Garden', 'Koutoubia Mosque', 'Souks'],
+          averageStay: '3-4 days',
+          difficulty: 'moderate',
+          crowdLevel: 'high',
+          budgetLevel: 'mid-range',
+          coordinates: { latitude: 31.6295, longitude: -7.9811 }
         }
       ]
     }

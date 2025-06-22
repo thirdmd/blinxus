@@ -149,8 +149,8 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
         activity: activityKey,
     });
     
-      // Navigate to Home tab to show the new post, this will automatically close the Create screen
-      (navigation as any).navigate('Home');
+      // Close the modal and return to previous screen
+      navigation.goBack();
     } catch (error) {
       console.log('Error creating post:', error);
     }
@@ -409,18 +409,28 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
       {/* Activity Tags */}
       <View style={{ marginBottom: 32 }}>
         <Text style={{ fontSize: 16, fontWeight: 'normal', color: themeColors.text, marginBottom: 12 }}>Activity</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {activityTags.map((tag: ActivityTag) => (
-            <PillTag
-              key={tag.id}
-              label={tag.name}
-              color={tag.color}
-              selected={selectedActivity === tag.id}
-              onPress={() => handleActivitySelect(tag.id)}
-              size="medium"
-              isCreatePage={true}
-            />
-          ))}
+        <View 
+          style={{
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderRadius: 8,
+            padding: 16,
+            backgroundColor: themeColors.backgroundSecondary,
+          }}
+        >
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {activityTags.map((tag: ActivityTag) => (
+              <PillTag
+                key={tag.id}
+                label={tag.name}
+                color={tag.color}
+                selected={selectedActivity === tag.id}
+                onPress={() => handleActivitySelect(tag.id)}
+                size="medium"
+                isCreatePage={true}
+              />
+            ))}
+          </View>
         </View>
       </View>
     </ScrollView>

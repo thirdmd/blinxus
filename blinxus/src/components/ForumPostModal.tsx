@@ -10,32 +10,27 @@ import {
   Platform,
   FlatList,
 } from 'react-native';
-import { X, MapPin, Search } from 'lucide-react-native';
+import { X, Search, Send } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { Country, SubLocation } from '../constants/placesData';
+import { FORUM_ACTIVITY_TAGS as IMPORTED_FORUM_ACTIVITY_TAGS } from '../screens/Pods/components/Forum/forumTypes';
+import { getForumTagsByCategory, hasCustomForumTags } from '../screens/Pods/components/Forum/countryForumTags';
 
 // Forum categories
 export const FORUM_CATEGORIES = [
-  { id: 'question', label: 'Question', emoji: '🤔', color: '#8B5CF6' },
+  { id: 'question', label: 'Question', emoji: '🤔', color: '#3B82F6' },
   { id: 'tip', label: 'Tip', emoji: '💡', color: '#10B981' },
   { id: 'recommendation', label: 'Recommendation', emoji: '🏆', color: '#F59E0B' },
   { id: 'general', label: 'General', emoji: '💬', color: '#6B7280' },
+  { id: 'meetup', label: 'Meetup', emoji: '👥', color: '#8B5CF6' },
+  { id: 'alert', label: 'Alert', emoji: '⚠️', color: '#EF4444' },
 ] as const;
 
-// Activity tags (subset of main activity tags for forum context)
-export const FORUM_ACTIVITY_TAGS = [
-  { id: 'food', label: 'Food', emoji: '🍽️' },
-  { id: 'beach', label: 'Beach', emoji: '🏖️' },
-  { id: 'culture', label: 'Culture', emoji: '🏛️' },
-  { id: 'adventure', label: 'Adventure', emoji: '🏔️' },
-  { id: 'nightlife', label: 'Nightlife', emoji: '🌃' },
-  { id: 'shopping', label: 'Shopping', emoji: '🛍️' },
-  { id: 'transport', label: 'Transport', emoji: '🚗' },
-  { id: 'accommodation', label: 'Stay', emoji: '🏨' },
-] as const;
+// Use the activity tags from forum types to avoid duplicates
+const FORUM_ACTIVITY_TAGS = IMPORTED_FORUM_ACTIVITY_TAGS;
 
 export type ForumCategoryId = typeof FORUM_CATEGORIES[number]['id'];
-export type ForumActivityId = typeof FORUM_ACTIVITY_TAGS[number]['id'];
+export type ForumActivityId = typeof IMPORTED_FORUM_ACTIVITY_TAGS[number]['id'];
 
 interface ForumPostModalProps {
   visible: boolean;
@@ -65,12 +60,35 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationSearch, setShowLocationSearch] = useState(false);
 
+  // Get country-specific tags
+  const getCountryTags = (category: 'activity' | 'accommodation' | 'transport' | 'food' | 'culture') => {
+    if (hasCustomForumTags(country.id)) {
+      return getForumTagsByCategory(country.id, category);
+    }
+    // Fallback to generic tags if country not found
+    return FORUM_ACTIVITY_TAGS.filter(tag => tag.category === category);
+  };
+
   const handleSubmit = () => {
     if (!content.trim()) return;
 
-    // Find the actual location ID
-    const location = country.subLocations.find(loc => loc.name === selectedLocation);
-    const locationId = location?.id || country.subLocations[0]?.id || '';
+    // Handle location ID properly
+    let locationId: string;
+    
+    if (selectedLocation === 'General' || selectedLocation === 'All') {
+      // For "All"/"General", use 'All' as the location ID
+      locationId = 'All';
+    } else {
+      // Find the specific location and format the ID correctly
+      const location = country.subLocations.find(loc => loc.name === selectedLocation);
+      if (location) {
+        // Use the proper format: countryId-locationId
+        locationId = `${country.id}-${location.id}`;
+      } else {
+        // Fallback to 'All' if location not found
+        locationId = 'All';
+      }
+    }
 
     onSubmit({
       content: content.trim(),
@@ -165,6 +183,8 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               onPress={handleSubmit}
               disabled={!content.trim()}
               style={{
+                flexDirection: 'row',
+                alignItems: 'center',
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderRadius: 20,
@@ -180,9 +200,15 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                 fontSize: 15,
                 fontWeight: '600',
                 fontFamily: 'System',
+                marginRight: 6,
               }}>
                 Post
               </Text>
+              <Send 
+                size={14} 
+                color={content.trim() ? 'white' : themeColors.textSecondary} 
+                strokeWidth={2}
+              />
             </TouchableOpacity>
           </View>
 
@@ -217,121 +243,19 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                     : 'rgba(0, 0, 0, 0.08)',
                 }}
               >
-                <MapPin size={16} color={themeColors.textSecondary} />
+                <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 8 }}>📍</Text>
                 <Text style={{
                   fontSize: 15,
                   color: selectedLocation === 'All' ? themeColors.textSecondary : themeColors.text,
-                  marginLeft: 8,
                   flex: 1,
                   fontFamily: 'System',
                 }}>
-                  {selectedLocation === 'All' ? 'Select location...' : selectedLocation}
+                  {selectedLocation === 'All' ? `Select location in ${country.name}` : selectedLocation}
                 </Text>
                 <Search size={16} color={themeColors.textSecondary} />
               </TouchableOpacity>
 
-              {/* Location Search Modal */}
-              {showLocationSearch && (
-                <View style={{
-                  position: 'absolute',
-                  top: 70,
-                  left: 20,
-                  right: 20,
-                  backgroundColor: themeColors.background,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.08)',
-                  zIndex: 1000,
-                  maxHeight: 200,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 12,
-                  elevation: 8,
-                }}>
-                  {/* Search Input */}
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderBottomWidth: 1,
-                    borderBottomColor: themeColors.isDark 
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                  }}>
-                    <Search size={16} color={themeColors.textSecondary} />
-                    <TextInput
-                      value={locationSearch}
-                      onChangeText={setLocationSearch}
-                      placeholder="Search locations..."
-                      placeholderTextColor={themeColors.textSecondary}
-                      style={{
-                        fontSize: 15,
-                        color: themeColors.text,
-                        marginLeft: 8,
-                        flex: 1,
-                        fontFamily: 'System',
-                      }}
-                      autoFocus
-                    />
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowLocationSearch(false);
-                        setLocationSearch('');
-                      }}
-                    >
-                      <X size={16} color={themeColors.textSecondary} />
-                    </TouchableOpacity>
-                  </View>
 
-                  {/* Location Results */}
-                  <FlatList
-                    data={filteredLocations}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        onPress={() => handleLocationSelect(item.name)}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          paddingHorizontal: 16,
-                          paddingVertical: 12,
-                          backgroundColor: selectedLocation === item.name
-                            ? themeColors.isDark 
-                              ? 'rgba(139, 92, 246, 0.2)'
-                              : 'rgba(139, 92, 246, 0.1)'
-                            : 'transparent',
-                        }}
-                      >
-                        <MapPin size={14} color={themeColors.textSecondary} />
-                        <Text style={{
-                          fontSize: 15,
-                          color: themeColors.text,
-                          marginLeft: 8,
-                          fontFamily: 'System',
-                          fontWeight: selectedLocation === item.name ? '600' : '400',
-                        }}>
-                          {item.name}
-                        </Text>
-                        {item.isGeneral && (
-                          <Text style={{
-                            fontSize: 12,
-                            color: themeColors.textSecondary,
-                            marginLeft: 8,
-                            fontFamily: 'System',
-                          }}>
-                            (All locations)
-                          </Text>
-                        )}
-                      </TouchableOpacity>
-                    )}
-                    style={{ maxHeight: 120 }}
-                  />
-                </View>
-              )}
             </View>
 
             {/* Content Input */}
@@ -406,7 +330,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               </View>
             </View>
 
-            {/* Activity Tags (Optional) */}
+            {/* Activity Tags (Optional) - Organized by Categories */}
             <View style={{ paddingHorizontal: 20, marginBottom: 40 }}>
               <Text style={{
                 fontSize: 16,
@@ -420,49 +344,265 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               <Text style={{
                 fontSize: 13,
                 color: themeColors.textSecondary,
-                marginBottom: 12,
+                marginBottom: 20,
                 fontFamily: 'System',
               }}>
                 Optional - helps others find your post
               </Text>
 
-              <View style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                gap: 8,
-              }}>
-                {FORUM_ACTIVITY_TAGS.map((tag) => (
-                  <TouchableOpacity
-                    key={tag.id}
-                    onPress={() => toggleActivityTag(tag.id)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      backgroundColor: selectedActivityTags.includes(tag.id)
-                        ? '#3B82F6'
-                        : themeColors.isDark 
-                          ? 'rgba(255, 255, 255, 0.08)'
-                          : 'rgba(0, 0, 0, 0.05)',
-                    }}
-                  >
-                    <Text style={{ fontSize: 14, marginRight: 4 }}>
-                      {tag.emoji}
-                    </Text>
-                    <Text style={{
-                      fontSize: 14,
-                      fontWeight: '500',
-                      color: selectedActivityTags.includes(tag.id) 
-                        ? 'white' 
-                        : themeColors.text,
-                      fontFamily: 'System',
-                    }}>
-                      {tag.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              {/* Activities */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: themeColors.text,
+                  marginBottom: 12,
+                  fontFamily: 'System',
+                }}>
+                  🎯 Activities
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}>
+                  {getCountryTags('activity').map((tag) => (
+                    <TouchableOpacity
+                      key={tag.id}
+                      onPress={() => toggleActivityTag(tag.id)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: selectedActivityTags.includes(tag.id)
+                          ? '#3B82F6'
+                          : themeColors.isDark 
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, marginRight: 4 }}>
+                        {tag.emoji}
+                      </Text>
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '500',
+                        color: selectedActivityTags.includes(tag.id) 
+                          ? 'white' 
+                          : themeColors.text,
+                        fontFamily: 'System',
+                      }}>
+                        {tag.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Accommodation */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: themeColors.text,
+                  marginBottom: 12,
+                  fontFamily: 'System',
+                }}>
+                  🏨 Accommodation
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}>
+                  {getCountryTags('accommodation').map((tag) => (
+                    <TouchableOpacity
+                      key={tag.id}
+                      onPress={() => toggleActivityTag(tag.id)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: selectedActivityTags.includes(tag.id)
+                          ? '#3B82F6'
+                          : themeColors.isDark 
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, marginRight: 4 }}>
+                        {tag.emoji}
+                      </Text>
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '500',
+                        color: selectedActivityTags.includes(tag.id) 
+                          ? 'white' 
+                          : themeColors.text,
+                        fontFamily: 'System',
+                      }}>
+                        {tag.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Transport */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: themeColors.text,
+                  marginBottom: 12,
+                  fontFamily: 'System',
+                }}>
+                  🚗 Transport
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}>
+                  {getCountryTags('transport').map((tag) => (
+                    <TouchableOpacity
+                      key={tag.id}
+                      onPress={() => toggleActivityTag(tag.id)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: selectedActivityTags.includes(tag.id)
+                          ? '#3B82F6'
+                          : themeColors.isDark 
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, marginRight: 4 }}>
+                        {tag.emoji}
+                      </Text>
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '500',
+                        color: selectedActivityTags.includes(tag.id) 
+                          ? 'white' 
+                          : themeColors.text,
+                        fontFamily: 'System',
+                      }}>
+                        {tag.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Food */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: themeColors.text,
+                  marginBottom: 12,
+                  fontFamily: 'System',
+                }}>
+                  🍽️ Food & Drinks
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}>
+                  {getCountryTags('food').map((tag) => (
+                    <TouchableOpacity
+                      key={tag.id}
+                      onPress={() => toggleActivityTag(tag.id)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: selectedActivityTags.includes(tag.id)
+                          ? '#3B82F6'
+                          : themeColors.isDark 
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, marginRight: 4 }}>
+                        {tag.emoji}
+                      </Text>
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '500',
+                        color: selectedActivityTags.includes(tag.id) 
+                          ? 'white' 
+                          : themeColors.text,
+                        fontFamily: 'System',
+                      }}>
+                        {tag.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Culture */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: themeColors.text,
+                  marginBottom: 12,
+                  fontFamily: 'System',
+                }}>
+                  🎭 Culture
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}>
+                  {getCountryTags('culture').map((tag) => (
+                    <TouchableOpacity
+                      key={tag.id}
+                      onPress={() => toggleActivityTag(tag.id)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: selectedActivityTags.includes(tag.id)
+                          ? '#3B82F6'
+                          : themeColors.isDark 
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, marginRight: 4 }}>
+                        {tag.emoji}
+                      </Text>
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '500',
+                        color: selectedActivityTags.includes(tag.id) 
+                          ? 'white' 
+                          : themeColors.text,
+                        fontFamily: 'System',
+                      }}>
+                        {tag.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </View>
 
@@ -470,6 +610,131 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Location Search Modal - Separate to avoid VirtualizedList nesting */}
+      <Modal
+        visible={showLocationSearch}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowLocationSearch(false);
+          setLocationSearch('');
+        }}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: themeColors.background,
+        }}>
+          {/* Header */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            borderBottomWidth: 0.5,
+            borderBottomColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.1)'
+              : 'rgba(0, 0, 0, 0.1)',
+          }}>
+            <TouchableOpacity onPress={() => {
+              setShowLocationSearch(false);
+              setLocationSearch('');
+            }}>
+              <X size={24} color={themeColors.text} strokeWidth={2} />
+            </TouchableOpacity>
+
+            <Text style={{
+              fontSize: 17,
+              fontWeight: '600',
+              color: themeColors.text,
+              fontFamily: 'System',
+            }}>
+              Select Location
+            </Text>
+
+            <View style={{ width: 24 }} />
+          </View>
+
+          {/* Search Input */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.1)'
+              : 'rgba(0, 0, 0, 0.05)',
+          }}>
+            <Search size={16} color={themeColors.textSecondary} />
+            <TextInput
+              value={locationSearch}
+              onChangeText={setLocationSearch}
+              placeholder={`Search locations in ${country.name}...`}
+              placeholderTextColor={themeColors.textSecondary}
+              style={{
+                fontSize: 15,
+                color: themeColors.text,
+                marginLeft: 8,
+                flex: 1,
+                fontFamily: 'System',
+              }}
+              autoFocus
+            />
+          </View>
+
+          {/* Location Results */}
+          <ScrollView style={{ flex: 1 }}>
+            {filteredLocations.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => handleLocationSelect(item.name)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 20,
+                  paddingVertical: 16,
+                  backgroundColor: selectedLocation === item.name
+                    ? themeColors.isDark 
+                      ? 'rgba(139, 92, 246, 0.2)'
+                      : 'rgba(139, 92, 246, 0.1)'
+                    : 'transparent',
+                }}
+              >
+                <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 12 }}>📍</Text>
+                <Text style={{
+                  fontSize: 16,
+                  color: themeColors.text,
+                  fontFamily: 'System',
+                  fontWeight: selectedLocation === item.name ? '600' : '400',
+                  flex: 1,
+                }}>
+                  {item.name}
+                </Text>
+                {item.isGeneral && (
+                  <Text style={{
+                    fontSize: 14,
+                    color: themeColors.textSecondary,
+                    fontFamily: 'System',
+                  }}>
+                    (All locations)
+                  </Text>
+                )}
+                {selectedLocation === item.name && (
+                  <Text style={{
+                    fontSize: 18,
+                    color: '#3B82F6',
+                    marginLeft: 8,
+                  }}>
+                    ✓
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </Modal>
   );
 };

@@ -358,14 +358,16 @@ export default function ProfileStructure({
         borderBottomColor: `${themeColors.border}20`,
       }}>
         {/* Username - fades out when scrolling */}
-        <Text style={{ 
-          fontSize: typography.appTitle, 
-          fontWeight: '600', 
-          color: themeColors.text,
-          opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
-        }}>
-          {profileData?.username || '@username'}
-        </Text>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <Text style={{ 
+            fontSize: typography.appTitle, 
+            fontWeight: '600', 
+            color: themeColors.text,
+            opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+          }}>
+            {profileData?.username || '@username'}
+          </Text>
+        </View>
         
         {/* Action buttons - fade out when scrolling */}
         <View style={{ 

@@ -107,27 +107,7 @@ export const initialPostsData: Post[] = [
     likes: 89,
     comments: 12
   },
-  // Aquatics - Lucid Post
-  {
-    id: '5',
-    authorId: 'current_user',
-    authorName: 'Third Camacho',
-    authorNationalityFlag: '🇵🇭',
-    type: 'lucid',
-    title: 'Siargao Island',
-    content: 'Surfing paradise found! Siargao\'s world-class waves and laid-back island vibes have completely stolen my heart. From Cloud 9 breaks to hidden surf spots, this place is pure magic! 🏄‍♂️🌊',
-    images: [
-      'https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/457882/pexels-photo-457882.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    location: 'Siargao Island, Philippines',
-    activity: 'aquatics',
-    timestamp: '2025-01-07T16:45:00Z',
-    timeAgo: '2d',
-    likes: 324,
-    comments: 28
-  },
+
   // Cultural - Lucid Post
   {
     id: '6',
@@ -263,45 +243,6 @@ export const initialPostsData: Post[] = [
     likes: 178,
     comments: 25
   },
-  // Third Camacho - Outdoors Regular Post
-  {
-    id: '13',
-    authorId: 'current_user',
-    authorName: 'Third Camacho',
-    authorNationalityFlag: '🇵🇭',
-    type: 'regular',
-    content: 'Conquered Mount Apo at sunrise! Philippines\' highest peak at 2,954 meters - the journey was tough but this view is absolutely worth every step. Standing on top of the world right here in Mindanao! 🏔️🇵🇭',
-    images: [
-      'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    device: 'iPhone 16 ProMax',
-    location: 'Mount Apo, Davao',
-    activity: 'outdoors',
-    timestamp: '2025-01-03T06:00:00Z',
-    timeAgo: '6d',
-    likes: 892,
-    comments: 67
-  },
-  // Third Camacho - Food Regular Post
-  {
-    id: '15',
-    authorId: 'current_user',
-    authorName: 'Third Camacho',
-    authorNationalityFlag: '🇵🇭',
-    type: 'regular',
-    content: 'Cebu lechon experience level: LEGENDARY! 🐷🔥 This crispy skin, tender meat perfection at CNT Lechon is hands down the best I\'ve ever tasted. No wonder they call Cebu the lechon capital of the Philippines!',
-    images: [
-      'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    device: 'iPhone 16 ProMax',
-    location: 'Cebu City, Cebu',
-    activity: 'food',
-    timestamp: '2025-01-01T18:45:00Z',
-    timeAgo: '1w',
-    likes: 1247,
-    comments: 89
-  }
+
+
 ];

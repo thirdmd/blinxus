@@ -89,8 +89,8 @@ setSelectedImage(images[Math.floor(Math.random() * images.length)]);
       photo: selectedImage,
     });
     
-    // Navigate to Home tab (when Blinx posts are implemented), this will automatically close the Create screen
-    (navigation as any).navigate('Home');
+    // Close the modal and return to previous screen
+    navigation.goBack();
   };
 
   return (
@@ -183,18 +183,28 @@ setSelectedImage(images[Math.floor(Math.random() * images.length)]);
       {/* Activity Tags */}
       <View style={{ marginBottom: 32 }}>
         <Text style={{ fontSize: 16, fontWeight: '300', color: themeColors.text, marginBottom: 12 }}>Activity</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {activityTags.map((tag: ActivityTag) => (
-            <PillTag
-              key={tag.id}
-              label={tag.name}
-              color={tag.color}
-              selected={selectedActivity === tag.id}
-              onPress={() => handleActivitySelect(tag.id)}
-              size="medium"
-              isCreatePage={true}
-            />
-          ))}
+        <View 
+          style={{
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderRadius: 8,
+            padding: 16,
+            backgroundColor: themeColors.backgroundSecondary,
+          }}
+        >
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {activityTags.map((tag: ActivityTag) => (
+              <PillTag
+                key={tag.id}
+                label={tag.name}
+                color={tag.color}
+                selected={selectedActivity === tag.id}
+                onPress={() => handleActivitySelect(tag.id)}
+                size="medium"
+                isCreatePage={true}
+              />
+            ))}
+          </View>
         </View>
       </View>
     </ScrollView>

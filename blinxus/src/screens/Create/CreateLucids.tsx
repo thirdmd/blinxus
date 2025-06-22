@@ -252,8 +252,8 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
         activity: undefined,
     });
     
-    // Navigate to Home tab to show the new post, this will automatically close the Create screen
-    (navigation as any).navigate('Home');
+          // Close the modal and return to previous screen
+      navigation.goBack();
     } catch (error) {
       console.log('Error creating Lucid:', error);
     }
