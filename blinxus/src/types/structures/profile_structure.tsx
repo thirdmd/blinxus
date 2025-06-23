@@ -524,7 +524,7 @@ export default function ProfileStructure({
         style={{ flex: 1, backgroundColor: themeColors.background }}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={1}
         bounces={true}
         removeClippedSubviews={false}
         keyboardShouldPersistTaps="handled"

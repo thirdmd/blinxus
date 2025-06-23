@@ -196,7 +196,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
       <ScrollView 
         ref={scrollRef}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
+                    scrollEventThrottle={1}
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
       >

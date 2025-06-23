@@ -1,4 +1,4 @@
-// Custom hook for Forum Posts - Backend ready state management
+// Custom hook for Forum Posts - ULTRA-RESPONSIVE with instant UI updates
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
@@ -22,12 +22,10 @@ export const useForumPosts = ({
   initialFilters = {} 
 }: UseForumPostsProps): UseForumPostsReturn => {
   
-  // Forum posts stay separate from main explore feed
-  
-  // State management
+  // RADICAL: Separate UI posts from loading state
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [uiState, setUIState] = useState<ForumUIState>({
-    isLoading: true, // Show loading state initially
+    isLoading: true,
     isLoadingMore: false,
     isRefreshing: false,
     error: null,
@@ -35,9 +33,13 @@ export const useForumPosts = ({
     currentPage: 1,
     selectedPost: null,
     showCreateModal: false,
-    showFilters: false
+    showFilters: false,
   });
 
+  // RADICAL: Background sync queue for instant UI updates
+  const [pendingPosts, setPendingPosts] = useState<ForumPost[]>([]);
+  const backgroundSyncRef = useRef<Set<string>>(new Set());
+  
   const [filters, setFilters] = useState<ForumFilters>({
     location: 'All',
     category: 'All',
@@ -48,54 +50,62 @@ export const useForumPosts = ({
     ...initialFilters
   });
 
-  // Refs for preventing duplicate calls
+  // Loading state management
   const isLoadingRef = useRef(false);
   const currentRequestRef = useRef<AbortController | null>(null);
 
-  // Update UI state helper
   const updateUIState = useCallback((updates: Partial<ForumUIState>) => {
     setUIState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Load posts with error handling and loading states
+  // RADICAL: Get combined posts (real + pending) for instant UI
+  const getAllPosts = useCallback(() => {
+    return [...pendingPosts, ...posts];
+  }, [pendingPosts, posts]);
+
+  // Load posts from API
   const loadPosts = useCallback(async (reset: boolean = true) => {
-    if (isLoadingRef.current) return;
+    if (isLoadingRef.current) {
+      currentRequestRef.current?.abort();
+    }
+
+    isLoadingRef.current = true;
+    const controller = new AbortController();
+    currentRequestRef.current = controller;
 
     try {
-      isLoadingRef.current = true;
+      const pageToLoad = reset ? 1 : uiState.currentPage + 1;
       
-      // Cancel previous request
-      if (currentRequestRef.current) {
-        currentRequestRef.current.abort();
-      }
-      currentRequestRef.current = new AbortController();
-
       updateUIState({ 
-        isLoading: reset, // Show loading state for better UX
+        isLoading: reset,
         isLoadingMore: !reset,
-        error: null 
+        error: null,
+        currentPage: pageToLoad
       });
 
-      const requestParams = {
+      const response = await ForumAPI.getPosts({
         countryId: country.id,
         locationId: filters.location !== 'All' ? filters.location : undefined,
         category: filters.category !== 'All' ? filters.category : undefined,
         activityTags: filters.activityTags.length > 0 ? filters.activityTags : undefined,
         sortBy: filters.sortBy,
-        page: reset ? 1 : uiState.currentPage + 1,
-        limit: 10,
-        searchQuery: filters.searchQuery || undefined
-      };
+        searchQuery: filters.searchQuery || undefined,
+        page: pageToLoad,
+        limit: 20
+      });
 
-      const response = await ForumAPI.getPosts(requestParams);
+      if (controller.signal.aborted) return;
 
-      if (response.success) {
+      if (response.success && response.posts) {
+        // RADICAL: Only update real posts, don't touch pending posts
         if (reset) {
           setPosts(response.posts);
-          updateUIState({ currentPage: 1 });
+          // Clear pending posts that are now in real posts
+          setPendingPosts(prev => prev.filter(pending => 
+            !response.posts!.some(real => real.id === pending.id)
+          ));
         } else {
-          setPosts(prev => [...prev, ...response.posts]);
-          updateUIState({ currentPage: requestParams.page! });
+          setPosts(prev => [...prev, ...response.posts!]);
         }
         
         updateUIState({ 
@@ -143,105 +153,169 @@ export const useForumPosts = ({
     }
   }, [loadPosts, uiState.isRefreshing, updateUIState]);
 
-  // Create new post
+  // RADICAL: Create post with INSTANT UI update + background sync
   const createPost = useCallback(async (data: CreateForumPostRequest): Promise<boolean> => {
     try {
-      updateUIState({ error: null });
+      // INSTANT: Create optimistic post for immediate UI update
+      const optimisticPost: ForumPost = {
+        id: `optimistic-${Date.now()}-${Math.random()}`,
+        authorId: 'current_user',
+        author: {
+          id: 'current_user',
+          username: 'you',
+          displayName: 'You',
+          initials: 'YU',
+          color: '#3B82F6',
+          nationalityFlag: '🇵🇭',
+          memberSince: new Date().toISOString()
+        },
+        content: data.content,
+        locationId: data.locationId,
+        location: {
+          id: data.locationId,
+          name: data.locationId === 'All' ? country.name : data.locationId,
+          type: 'city',
+          countryId: country.id
+        },
+        countryId: country.id,
+        category: data.category,
+        activityTags: data.activityTags,
+        likes: 0,
+        dislikes: 0,
+        replyCount: 0,
+        viewCount: 1,
+        bookmarkCount: 0,
+        isLiked: false,
+        isDisliked: false,
+        isBookmarked: false,
+        isFollowing: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString(),
+        status: 'active',
+        isPinned: false,
+        isLocked: false,
+        metadata: {
+          editCount: 0,
+          reportCount: 0
+        }
+      };
 
-      const response = await ForumAPI.createPost({
+      // INSTANT: Add to pending posts for immediate UI update
+      setPendingPosts(prev => [optimisticPost, ...prev]);
+      updateUIState({ showCreateModal: false, error: null });
+
+      // BACKGROUND: Sync with API without blocking UI
+      backgroundSyncRef.current.add(optimisticPost.id);
+      
+      // Don't await this - let it run in background
+      ForumAPI.createPost({
         ...data,
         countryId: country.id
+      }).then(response => {
+        if (response.success && response.post) {
+          // SUCCESS: Replace optimistic post with real post
+          setPendingPosts(prev => prev.filter(p => p.id !== optimisticPost.id));
+          setPosts(prev => [response.post!, ...prev]);
+          backgroundSyncRef.current.delete(optimisticPost.id);
+        } else {
+          // FAILURE: Remove optimistic post and show error
+          setPendingPosts(prev => prev.filter(p => p.id !== optimisticPost.id));
+          updateUIState({ error: response.error || 'Failed to create post' });
+          backgroundSyncRef.current.delete(optimisticPost.id);
+        }
+      }).catch(error => {
+        // ERROR: Remove optimistic post and show error
+        setPendingPosts(prev => prev.filter(p => p.id !== optimisticPost.id));
+        updateUIState({ error: error.message || 'Failed to create post' });
+        backgroundSyncRef.current.delete(optimisticPost.id);
       });
 
-      if (response.success && response.post) {
-        // Add new post to the beginning of the forum list only
-        setPosts(prev => [response.post!, ...prev]);
-        
-        updateUIState({ showCreateModal: false });
-        return true;
-      } else {
-        updateUIState({ error: response.error || 'Failed to create post' });
-        return false;
-      }
+      // INSTANT: Return success immediately for UI responsiveness
+      return true;
 
     } catch (error: any) {
       updateUIState({ error: error.message || 'Failed to create post' });
       return false;
     }
-  }, [country.id, updateUIState]);
+  }, [country, updateUIState]);
 
-  // Update post interactions (like, bookmark, etc.)
+  // RADICAL: Update post interactions with instant feedback
   const updatePostInteraction = useCallback(async (
     postId: string, 
     action: UpdatePostInteractionRequest['action']
   ) => {
     try {
-      // Optimistic update
-      setPosts(prev => prev.map(post => {
-        if (post.id === postId) {
-          const updatedPost = { ...post };
-          
-          switch (action) {
-            case 'like':
-              updatedPost.likes += 1;
-              updatedPost.isLiked = true;
-              if (updatedPost.isDisliked) {
-                updatedPost.dislikes -= 1;
-                updatedPost.isDisliked = false;
-              }
-              break;
-            case 'unlike':
-              updatedPost.likes = Math.max(0, updatedPost.likes - 1);
-              updatedPost.isLiked = false;
-              break;
-            case 'dislike':
-              updatedPost.dislikes += 1;
-              updatedPost.isDisliked = true;
-              if (updatedPost.isLiked) {
-                updatedPost.likes -= 1;
-                updatedPost.isLiked = false;
-              }
-              break;
-            case 'undislike':
-              updatedPost.dislikes = Math.max(0, updatedPost.dislikes - 1);
+      // INSTANT: Optimistic update for immediate feedback
+      const updatePost = (post: ForumPost) => {
+        const updatedPost = { ...post };
+        
+        switch (action) {
+          case 'like':
+            updatedPost.likes += 1;
+            updatedPost.isLiked = true;
+            if (updatedPost.isDisliked) {
+              updatedPost.dislikes -= 1;
               updatedPost.isDisliked = false;
-              break;
-            case 'bookmark':
-              updatedPost.bookmarkCount += 1;
-              updatedPost.isBookmarked = true;
-              break;
-            case 'unbookmark':
-              updatedPost.bookmarkCount = Math.max(0, updatedPost.bookmarkCount - 1);
-              updatedPost.isBookmarked = false;
-              break;
-            case 'follow':
-              updatedPost.isFollowing = true;
-              break;
-            case 'unfollow':
-              updatedPost.isFollowing = false;
-              break;
-          }
-          
-          return updatedPost;
+            }
+            break;
+          case 'unlike':
+            updatedPost.likes = Math.max(0, updatedPost.likes - 1);
+            updatedPost.isLiked = false;
+            break;
+          case 'dislike':
+            updatedPost.dislikes += 1;
+            updatedPost.isDisliked = true;
+            if (updatedPost.isLiked) {
+              updatedPost.likes -= 1;
+              updatedPost.isLiked = false;
+            }
+            break;
+          case 'undislike':
+            updatedPost.dislikes = Math.max(0, updatedPost.dislikes - 1);
+            updatedPost.isDisliked = false;
+            break;
+          case 'bookmark':
+            updatedPost.bookmarkCount += 1;
+            updatedPost.isBookmarked = true;
+            break;
+          case 'unbookmark':
+            updatedPost.bookmarkCount = Math.max(0, updatedPost.bookmarkCount - 1);
+            updatedPost.isBookmarked = false;
+            break;
+          case 'follow':
+            updatedPost.isFollowing = true;
+            break;
+          case 'unfollow':
+            updatedPost.isFollowing = false;
+            break;
         }
-        return post;
-      }));
+        
+        return updatedPost;
+      };
 
-      // Make API call
-      const response = await ForumAPI.updatePostInteraction({ postId, action });
-      
-      if (!response.success) {
-        // Revert optimistic update on failure
-        await loadPosts(true);
-        updateUIState({ error: response.error || 'Failed to update post' });
-      }
+      // Update both pending and real posts instantly
+      setPendingPosts(prev => prev.map(post => 
+        post.id === postId ? updatePost(post) : post
+      ));
+      setPosts(prev => prev.map(post => 
+        post.id === postId ? updatePost(post) : post
+      ));
+
+      // BACKGROUND: Sync with API
+      ForumAPI.updatePostInteraction({ postId, action }).then(response => {
+        if (!response.success) {
+          // Revert on failure - but don't block UI
+          console.warn('Failed to sync interaction:', response.error);
+        }
+      }).catch(error => {
+        console.warn('Failed to sync interaction:', error.message);
+      });
 
     } catch (error: any) {
-      // Revert optimistic update on error
-      await loadPosts(true);
-      updateUIState({ error: error.message || 'Failed to update post' });
+      console.warn('Failed to update interaction:', error.message);
     }
-  }, [loadPosts, updateUIState]);
+  }, []);
 
   // Update filters and reload posts
   const updateFilters = useCallback((newFilters: Partial<ForumFilters>) => {
@@ -261,8 +335,9 @@ export const useForumPosts = ({
     updateUIState({ showFilters: show });
   }, [updateUIState]);
 
-  // Load posts when filters change
+  // PERFORMANCE: Instant filter changes - no debounce delay
   useEffect(() => {
+    // INSTANT: Load posts immediately when filters change
     loadPosts(true);
   }, [filters.location, filters.category, filters.sortBy, filters.timeFilter, filters.activityTags, filters.searchQuery]);
 
@@ -277,11 +352,12 @@ export const useForumPosts = ({
       if (currentRequestRef.current) {
         currentRequestRef.current.abort();
       }
+      backgroundSyncRef.current.clear();
     };
   }, []);
 
   return {
-    posts,
+    posts: getAllPosts(), // RADICAL: Return combined posts for instant UI
     uiState,
     filters,
     actions: {

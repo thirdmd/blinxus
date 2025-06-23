@@ -592,7 +592,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               bottom: 0,
               zIndex: 5,
             }}
-            activeOpacity={1}
+            activeOpacity={0.0}
           />
         )}
 
@@ -608,7 +608,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               bottom: 0,
               zIndex: 50,
             }}
-            activeOpacity={1}
+            activeOpacity={0.0}
           />
         )}
 

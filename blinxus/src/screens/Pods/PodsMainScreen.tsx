@@ -1,4 +1,4 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
 import { SafeAreaView, StatusBar, View, ScrollView } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { 
@@ -51,8 +51,8 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   // Initialize posting service
   const postingService = PodsPostingService.getInstance();
 
-  // Create theme config from current theme
-  const podTheme: PodThemeConfig = {
+  // ULTRA-RESPONSIVE: Memoized theme config
+  const podTheme: PodThemeConfig = useMemo(() => ({
     colors: {
       primary: '#0047AB',
       secondary: themeColors.backgroundSecondary,
@@ -73,10 +73,10 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
       body: { fontSize: 16, fontWeight: '400', lineHeight: 22 },
       caption: { fontSize: 12, fontWeight: '400', lineHeight: 16 },
     },
-  };
+  }), [themeColors]);
 
-  // Navigation handlers
-  const handleLocationPress = (location: SubLocation) => {
+  // ULTRA-RESPONSIVE: Memoized navigation handlers
+  const handleLocationPress = useCallback((location: SubLocation) => {
     setNavigationState(prev => ({
       ...prev,
       currentScreen: 'location-view',
@@ -85,9 +85,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
       selectedContinent: asiaData,
     }));
     setActiveTab('Forum');
-  };
+  }, []);
 
-  const handleCountryPress = (country: Country) => {
+  const handleCountryPress = useCallback((country: Country) => {
     setNavigationState(prev => ({
       ...prev,
       currentScreen: 'country-view',
@@ -95,9 +95,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
       selectedContinent: asiaData,
     }));
     setActiveTab('Forum');
-  };
+  }, []);
 
-  const handleBackToMain = () => {
+  const handleBackToMain = useCallback(() => {
     setNavigationState(prev => ({
       ...prev,
       currentScreen: 'continent-list',
@@ -109,30 +109,30 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     }));
     setActiveTab('Forum');
     // Keep continent list state - user returns to their previous continent tab position
-  };
+  }, []);
 
-  const handleBackToCountry = () => {
+  const handleBackToCountry = useCallback(() => {
     setNavigationState(prev => ({
       ...prev,
       currentScreen: 'country-view',
       selectedLocation: null,
     }));
-  };
+  }, []);
 
-  const handleTabChange = (tab: PodTabType) => {
+  const handleTabChange = useCallback((tab: PodTabType) => {
     setActiveTab(tab);
-  };
+  }, []);
 
   // Handle continent tab changes from ContinentListScreen
-  const handleContinentTabChange = (tabIndex: number) => {
+  const handleContinentTabChange = useCallback((tabIndex: number) => {
     setContinentListState(prev => ({
       ...prev,
       activeContinent: tabIndex,
     }));
-  };
+  }, []);
 
   // Handle double-tap to reset to "For You" tab - trigger full screen reset
-  const handleDoubleTabPress = () => {
+  const handleDoubleTabPress = useCallback(() => {
     // Reset continent list state completely
     setContinentListState({
       activeContinent: 0,
@@ -141,31 +141,36 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     
     // Increment reset key to trigger useEffect in ContinentListScreen
     setResetKey(prev => prev + 1);
-  };
+  }, []);
+
+  // ULTRA-RESPONSIVE: Memoized scroll functions
+  const resetToTop = useCallback(() => {
+    // First navigate back to continent list if we're in other screens
+    setNavigationState(createInitialPodsState());
+    setActiveTab('Forum');
+    
+    // Then trigger the full reset
+    handleDoubleTabPress();
+  }, [handleDoubleTabPress]);
+
+  const scrollToTop = useCallback(() => {
+    // ULTRA-RESPONSIVE: Optimized scroll behavior
+    if (navigationState.currentScreen === 'country-view' && countryScreenRef.current) {
+      countryScreenRef.current.scrollToTop();
+    } else {
+      // For other screens, still use key-based re-render as fallback
+      setScrollKey(prev => prev + 0.01);
+    }
+  }, [navigationState.currentScreen]);
 
   // Expose reset function to parent via ref
   useImperativeHandle(ref, () => ({
-    resetToTop: () => {
-      // First navigate back to continent list if we're in other screens
-      setNavigationState(createInitialPodsState());
-      setActiveTab('Forum');
-      
-      // Then trigger the full reset
-      handleDoubleTabPress();
-    },
-    scrollToTop: () => {
-      // RADICAL FIX: Now uses actual scroll animation instead of refresh!
-      if (navigationState.currentScreen === 'country-view' && countryScreenRef.current) {
-        countryScreenRef.current.scrollToTop();
-      } else {
-        // For other screens, still use key-based re-render as fallback
-        setScrollKey(prev => prev + 0.01);
-      }
-    },
-  }));
+    resetToTop,
+    scrollToTop,
+  }), [resetToTop, scrollToTop]);
 
-  // Render appropriate screen based on navigation state
-  const renderCurrentScreen = () => {
+  // ULTRA-RESPONSIVE: Memoized screen rendering
+  const renderCurrentScreen = useCallback(() => {
     return (
       <>
         {/* Always render ContinentListScreen but hide it when not active */}
@@ -211,7 +216,21 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
         )}
       </>
     );
-  };
+  }, [
+    navigationState,
+    podTheme,
+    handleCountryPress,
+    continentListState.activeContinent,
+    handleContinentTabChange,
+    handleDoubleTabPress,
+    resetKey,
+    activeTab,
+    handleTabChange,
+    handleLocationPress,
+    handleBackToMain,
+    scrollKey,
+    handleBackToCountry
+  ]);
 
   return (
     <SafeAreaView style={{ 
@@ -226,5 +245,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     </SafeAreaView>
   );
 });
+
+PodsMainScreen.displayName = 'PodsMainScreen';
 
 export default PodsMainScreen; 

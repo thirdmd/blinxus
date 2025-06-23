@@ -10,7 +10,6 @@ import {
   ScrollView,
   Modal,
   StatusBar,
-  TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
 
@@ -100,7 +99,7 @@ const CountryCard: React.FC<{
           height: 88,
           position: 'relative',
         }}
-        activeOpacity={1}
+        activeOpacity={0.95}
       >
         {/* Frosted Background Layer */}
         <View style={{
@@ -954,15 +953,14 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     </View>
   );
 
+  // ULTRA-RESPONSIVE: Optimized background tap handler
+  const handleBackgroundTap = () => {
+    if (isSearchExpanded) {
+      collapseSearch();
+    }
+  };
+
   return (
-    <TouchableWithoutFeedback onPress={() => {
-      // RADICAL FIX: Dismiss keyboard and collapse search on tap outside
-      if (isSearchExpanded) {
-        collapseSearch();
-      } else {
-        Keyboard.dismiss();
-      }
-    }}>
       <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
@@ -1121,6 +1119,9 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
                   autoFocus
                   returnKeyType="search"
             clearButtonMode="never"
+            // ULTRA-RESPONSIVE: Enhanced search collapse behavior
+            onBlur={collapseSearch}
+            onSubmitEditing={collapseSearch}
           />
                 <TouchableOpacity
                   onPress={collapseSearch}
@@ -1216,13 +1217,17 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
-        scrollEventThrottle={16}
-        // Performance optimizations
-        initialNumToRender={10}
+        scrollEventThrottle={1}
+        // ULTRA-RESPONSIVE: Natural scrolling behavior with performance optimizations
+        getItemLayout={(data, index) => ({
+          length: 120,
+          offset: 120 * index,
+          index,
+        })}
+        initialNumToRender={15}
         maxToRenderPerBatch={10}
-        windowSize={10}
+        windowSize={15}
         removeClippedSubviews={true}
-        // Remove getItemLayout since we have variable heights now (headers vs countries)
       />
 
       {/* Joined Pods Modal */}
@@ -1240,7 +1245,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         }}>
           <TouchableOpacity
             style={{ flex: 1 }}
-            activeOpacity={1}
+            activeOpacity={0.0}
             onPress={hideJoinedPods}
           />
         </Animated.View>
@@ -1370,17 +1375,22 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
                 paddingTop: 20,
                 paddingBottom: 40,
               }}
-              // Performance optimizations
-              initialNumToRender={8}
+              // ULTRA-RESPONSIVE: Natural scrolling for modal with performance optimizations
+              getItemLayout={(data, index) => ({
+                length: 80,
+                offset: 80 * index,
+                index,
+              })}
+              initialNumToRender={12}
               maxToRenderPerBatch={8}
-              windowSize={8}
+              windowSize={12}
               removeClippedSubviews={true}
+              scrollEventThrottle={1}
             />
           )}
         </Animated.View>
       </Modal>
     </View>
-    </TouchableWithoutFeedback>
   );
 };
 

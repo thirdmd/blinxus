@@ -286,7 +286,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         ref={recentScrollRef}
         showsVerticalScrollIndicator={false}
         onScroll={handleRecentScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={1}
         bounces={true}
         removeClippedSubviews={false}
         keyboardShouldPersistTaps="handled"
@@ -360,7 +360,16 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
           setActivitiesScrollPosition(event.nativeEvent.contentOffset.y);
         }}
-        scrollEventThrottle={16}
+        scrollEventThrottle={1}
+        getItemLayout={(data, index) => ({
+          length: 120,
+          offset: 120 * index,
+          index,
+        })}
+        removeClippedSubviews={true}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={12}
         renderItem={({ item: category }) => {
           const postsInCategory = getPostsForActivity(category.name);
           
