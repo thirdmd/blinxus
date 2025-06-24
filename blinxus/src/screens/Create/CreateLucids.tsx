@@ -177,18 +177,7 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
     } else {
       // Automatically add 4 photos without popup
       const timestamp = Date.now();
-      const travelImages = [
-        'https://cdn.pixabay.com/photo/2017/12/16/22/22/beach-3023488_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2019/07/25/17/09/lagoon-4360964_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2018/08/14/13/23/ocean-3605547_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2016/08/11/23/48/mountains-1587287_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2018/01/09/03/49/the-natural-scenery-3070808_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2017/02/01/13/52/monument-2031308_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2020/04/29/07/24/bamboo-5107425_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2021/01/04/10/37/temple-5887585_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2017/12/09/08/18/pizza-3007395_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2019/10/06/10/03/amusement-park-4530231_960_720.jpg'
-      ];
+      const { travelImages } = require('../../constants/mockImages');
       const mockPhotos = [
         travelImages[(dayIndex * 4) % travelImages.length],
         travelImages[(dayIndex * 4 + 1) % travelImages.length],

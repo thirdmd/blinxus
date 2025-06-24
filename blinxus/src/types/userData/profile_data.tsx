@@ -55,10 +55,10 @@ export interface Interest {
   }
   
   export const posts: PostType[] = [
-    { id: 1, image: 'https://cdn.pixabay.com/photo/2017/12/16/22/22/beach-3023488_960_720.jpg', location: 'Boracay Beach' },
-    { id: 2, image: 'https://cdn.pixabay.com/photo/2016/08/11/23/48/mountains-1587287_960_720.jpg', location: 'Manila Sunset' },
-    { id: 3, image: 'https://cdn.pixabay.com/photo/2019/07/25/17/09/lagoon-4360964_960_720.jpg', location: 'Palawan Paradise' },
-    { id: 4, image: 'https://cdn.pixabay.com/photo/2018/01/09/03/49/the-natural-scenery-3070808_960_720.jpg', location: 'Rice Terraces' },
-    { id: 5, image: 'https://cdn.pixabay.com/photo/2018/08/14/13/23/ocean-3605547_960_720.jpg', location: 'Island Hopping' },
-    { id: 6, image: 'https://cdn.pixabay.com/photo/2017/02/01/13/52/monument-2031308_960_720.jpg', location: 'Heritage Site' },
+    { id: 1, image: 'https://images.pexels.com/photos/457882/pexels-photo-457882.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Boracay Beach' },
+    { id: 2, image: 'https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Manila Sunset' },
+    { id: 3, image: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Palawan Paradise' },
+    { id: 4, image: 'https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Rice Terraces' },
+    { id: 5, image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Island Hopping' },
+    { id: 6, image: 'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Heritage Site' },
   ];

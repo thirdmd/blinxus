@@ -30,8 +30,6 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-
-
   const handleLocationPress = () => {
     Alert.prompt(
       'Location',
@@ -52,18 +50,9 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
     );
   };
 
-  const handleImagePicker = () => {
-    // For demo, add a random image
-    if (!selectedImage) {
-      const images = [
-  'https://cdn.pixabay.com/photo/2017/12/16/22/22/beach-3023488_960_720.jpg',
-  'https://cdn.pixabay.com/photo/2019/07/25/17/09/lagoon-4360964_960_720.jpg',
-  'https://cdn.pixabay.com/photo/2018/08/14/13/23/ocean-3605547_960_720.jpg',
-  'https://cdn.pixabay.com/photo/2016/08/11/23/48/mountains-1587287_960_720.jpg',
-  'https://cdn.pixabay.com/photo/2018/01/09/03/49/the-natural-scenery-3070808_960_720.jpg'
-];
-setSelectedImage(images[Math.floor(Math.random() * images.length)]);
-    }
+    const handlePhotoUpload = () => {
+    const { getRandomTravelImage } = require('../../constants/mockImages');
+    setSelectedImage(getRandomTravelImage());
   };
 
   const handleActivitySelect = (activityId: number) => {
@@ -158,7 +147,7 @@ setSelectedImage(images[Math.floor(Math.random() * images.length)]);
           </View>
         ) : (
           <TouchableOpacity
-            onPress={handleImagePicker}
+            onPress={handlePhotoUpload}
             style={{
               height: responsiveDimensions.createPost.placeholder.height,
               backgroundColor: themeColors.backgroundSecondary,
