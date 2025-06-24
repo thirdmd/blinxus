@@ -15,19 +15,19 @@ import {
   FORUM_ACTIVITY_TAGS
 } from './forumTypes';
 import { Country, placesData } from '../../../../constants/placesData';
-import { profileData } from '../../../../types/userData/profile_data';
+import { usersDatabase, getCurrentUser } from '../../../../types/userData/users_data';
 
 // Mock users database - includes current user integration
 const MOCK_USERS: ForumUser[] = [
   // Current user - Third Camacho
   {
     id: 'current_user',
-    username: profileData.username,
-    displayName: profileData.name,
-    avatarUrl: profileData.profileImage,
+    username: getCurrentUser().username,
+    displayName: getCurrentUser().displayName,
+    avatarUrl: getCurrentUser().profileImage,
     initials: 'TC',
     color: '#3B82F6',
-    nationalityFlag: profileData.nationalityFlag,
+    nationalityFlag: getCurrentUser().nationalityFlag,
     isVerified: true,
     memberSince: '2023-01-15'
   },

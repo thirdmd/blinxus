@@ -21,11 +21,18 @@ import { Post } from '../userData/posts_data';
 import { mapPostToCardProps } from './posts_structure';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
+import LucidAlbumView from '../../components/LucidAlbumView';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
+import { 
+  createAnimationValues, 
+  FEED_ANIMATIONS, 
+  runAnimation,
+  ANIMATION_DURATIONS 
+} from '../../utils/animations';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
@@ -57,6 +64,13 @@ export default function ProfileStructure({
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [showLibrary, setShowLibrary] = useState(false);
   const localScrollViewRef = useRef<ScrollView>(null);
+  
+  // NEW: State for lucid album view
+  const [showLucidAlbum, setShowLucidAlbum] = useState(false);
+  const [selectedLucidPost, setSelectedLucidPost] = useState<any>(null);
+  
+  // NEW: Animation values for Instagram-like transitions
+  const animationValues = useRef(createAnimationValues()).current;
   
   // Animation values for smooth Library transition
   const librarySlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
@@ -95,10 +109,24 @@ export default function ProfileStructure({
     });
   };
 
+  // NEW: Handle lucid press - show lucid album view within same screen context
+  const handleLucidPress = (post: any) => {
+    setSelectedLucidPost(post);
+    setShowLucidAlbum(true);
+  };
+
+  // NEW: Handle back from lucid album view - return to scroll view
+  const handleBackFromLucidAlbum = () => {
+    setShowLucidAlbum(false);
+    setSelectedLucidPost(null);
+  };
+
   // Internal reset function that handles all ProfileStructure states
   const handleResetToTop = () => {
     // Reset all internal states
     setIsFullscreen(false);
+    setShowLucidAlbum(false);
+    setSelectedLucidPost(null);
     
     // Close library with animation if open
     if (showLibrary) {
@@ -185,7 +213,7 @@ export default function ProfileStructure({
     lastScrollY.current = currentScrollY;
   };
 
-  // Handle post press with scroll position storage
+  // Handle post press with Instagram-like expand animation
   const handlePostPress = (post: any) => {
     // Store current scroll position before entering fullscreen
     const currentOffset = scrollPositionRef.current;
@@ -200,35 +228,48 @@ export default function ProfileStructure({
     // Set selected post for TravelFeedCard view
     const postIndex = filteredPosts.findIndex(p => p.id === post.id);
     setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-    setIsFullscreen(true);
+    
+    // Start expand animation and then show fullscreen
+    runAnimation(
+      FEED_ANIMATIONS.expand(animationValues),
+      () => {
+        setIsFullscreen(true);
+      }
+    );
   };
 
-  // Handle back from fullscreen with scroll restoration
+  // Handle back from fullscreen with Instagram-like collapse animation
   const handleBackFromFullscreen = () => {
-    setIsFullscreen(false);
-    
-    // Restore scroll position with improved timing and reliability
-    const restoreScrollPosition = () => {
-      if (scrollViewRef?.current) {
-        // Always restore position, even if it's 0 (top of scroll)
-        scrollViewRef.current.scrollTo({ 
-          y: scrollPosition, 
-          animated: false 
+    // Start collapse animation first
+    runAnimation(
+      FEED_ANIMATIONS.collapse(animationValues),
+      () => {
+        // INSTANT back transition after animation
+        setIsFullscreen(false);
+        
+        const restoreScrollPosition = () => {
+          if (scrollViewRef?.current) {
+            // Always restore position, even if it's 0 (top of scroll)
+            scrollViewRef.current.scrollTo({ 
+              y: scrollPosition, 
+              animated: false 
+            });
+          }
+        };
+        
+        // Use EXACT same restoration attempts as Library for maximum reliability
+        // Immediate attempt
+        setTimeout(restoreScrollPosition, 0);
+        
+        // Secondary attempt after next frame
+        requestAnimationFrame(() => {
+          setTimeout(restoreScrollPosition, 0);
         });
+        
+        // Final attempt after a short delay
+        setTimeout(restoreScrollPosition, 100);
       }
-    };
-    
-    // Use multiple restoration attempts for maximum reliability
-    // Immediate attempt
-    setTimeout(restoreScrollPosition, 0);
-    
-    // Secondary attempt after next frame
-    requestAnimationFrame(() => {
-      setTimeout(restoreScrollPosition, 0);
-    });
-    
-    // Final attempt after a short delay
-    setTimeout(restoreScrollPosition, 100);
+    );
   };
 
   // Better social media icon components
@@ -304,7 +345,23 @@ export default function ProfileStructure({
     );
   };
 
-  // If in fullscreen mode, show TravelFeedCard view
+  // NEW: If showing lucid album view, render LucidAlbumView
+  if (showLucidAlbum && selectedLucidPost) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
+        <LucidAlbumView 
+          post={selectedLucidPost}
+          onBack={handleBackFromLucidAlbum}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // If in fullscreen mode, show TravelFeedCard view with animation
   if (isFullscreen) {
     const filteredPosts = (posts || []).filter(post => {
       const isCurrentUser = post.authorName === profileData?.name;
@@ -319,65 +376,88 @@ export default function ProfileStructure({
           backgroundColor={themeColors.background} 
         />
         
-        {/* Fixed App Bar - Back button moved to far left corner */}
-        <View style={{
-          height: responsiveDimensions.appBar.height,
-          backgroundColor: themeColors.background,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingLeft: rs(8), // Minimal left padding to reach corner
-          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
-        }}>
-          {/* Back button - Far left corner */}
-          <TouchableOpacity 
-            onPress={handleBackFromFullscreen}
-            style={{ 
-              width: responsiveDimensions.button.small.width, 
-              height: responsiveDimensions.button.small.height, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: rs(16),
-              backgroundColor: 'transparent',
-            }}
-            activeOpacity={0.95}
-            delayPressIn={0}
-            delayPressOut={0}
-          >
-            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
-
-        {/* TravelFeedCard FlatList - Same as ExploreScreen */}
-        <FlatList
-          data={filteredPosts}
-          renderItem={({ item }) => {
-            const postCardProps = mapPostToCardProps(item);
-            return (
-              <TravelFeedCard 
-                {...postCardProps} 
-                onDetailsPress={() => {}}
-                isVisible={true}
-              />
-            );
+        {/* Animated Background Overlay */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: themeColors.background,
+            opacity: animationValues.backgroundOpacity,
           }}
-          keyExtractor={(item) => item.id}
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          pagingEnabled={true}
-          snapToInterval={responsiveDimensions.feedCard.height}
-          snapToAlignment="end"
-          decelerationRate="fast"
-          initialScrollIndex={selectedPostIndex}
-          getItemLayout={(data, index) => ({
-            length: responsiveDimensions.feedCard.height,
-            offset: responsiveDimensions.feedCard.height * index,
-            index,
-          })}
-          removeClippedSubviews={false}
-          initialNumToRender={1}
-          maxToRenderPerBatch={3}
-          windowSize={5}
         />
+        
+        {/* Animated Content Container */}
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ scale: animationValues.scale }],
+            opacity: animationValues.opacity,
+          }}
+        >
+          {/* Fixed App Bar - Back button moved to far left corner */}
+          <View style={{
+            height: responsiveDimensions.appBar.height,
+            backgroundColor: themeColors.background,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingLeft: rs(8), // Minimal left padding to reach corner
+            paddingRight: responsiveDimensions.appBar.paddingHorizontal,
+          }}>
+            {/* Back button - Far left corner */}
+            <TouchableOpacity 
+              onPress={handleBackFromFullscreen}
+              style={{ 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16),
+                backgroundColor: 'transparent',
+              }}
+              activeOpacity={0.95}
+              delayPressIn={0}
+              delayPressOut={0}
+            >
+              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+
+          {/* TravelFeedCard FlatList - Same as ExploreScreen with custom onLucidPress */}
+          <FlatList
+            data={filteredPosts}
+            renderItem={({ item }) => {
+              const postCardProps = mapPostToCardProps(item);
+              return (
+                <TravelFeedCard 
+                  {...postCardProps} 
+                  onDetailsPress={() => {}}
+                  onLucidPress={postCardProps.type === 'lucid' ? () => handleLucidPress(postCardProps) : undefined}
+                  isVisible={true}
+                />
+              );
+            }}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            pagingEnabled={true}
+            snapToInterval={responsiveDimensions.feedCard.height}
+            snapToAlignment="end"
+            decelerationRate="fast"
+            initialScrollIndex={selectedPostIndex}
+            getItemLayout={(data, index) => ({
+              length: responsiveDimensions.feedCard.height,
+              offset: responsiveDimensions.feedCard.height * index,
+              index,
+            })}
+            removeClippedSubviews={false}
+            initialNumToRender={1}
+            maxToRenderPerBatch={3}
+            windowSize={5}
+          />
+        </Animated.View>
       </SafeAreaView>
     );
   }

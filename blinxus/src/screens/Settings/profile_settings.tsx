@@ -21,7 +21,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { useSettings } from '../../contexts/SettingsContext';
 import SettingsToggle from '../../components/SettingsToggle';
-import { getResponsiveDimensions, rs } from '../../utils/responsive';
+import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
 
 interface Props {
   onBackPress?: () => void;
@@ -31,6 +31,7 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
   const themeColors = useThemeColors();
   const { isImmersiveFeedEnabled, setImmersiveFeedEnabled } = useSettings();
   const responsiveDimensions = getResponsiveDimensions();
+  const textStyles = getTextStyles();
   
   const handleMenuItemPress = (item: string) => {
     if (item === 'signout') {
@@ -121,8 +122,7 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
         </TouchableOpacity>
         
         <Text style={{ 
-          fontSize: 24, 
-          fontWeight: '400', 
+          ...textStyles.settingsTitle,
           color: themeColors.text, 
           marginTop: 32 
         }}>
@@ -158,13 +158,13 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   {/* Text Content */}
                   <View style={{ flex: 1 }}>
                     <Text style={{ 
-                      fontSize: 16, 
+                      ...textStyles.settingsItem,
                       color: themeColors.text 
                     }}>
                       {item.title}
                     </Text>
                     <Text style={{ 
-                      fontSize: 14, 
+                      ...textStyles.settingsSubtitle,
                       color: themeColors.textSecondary, 
                       marginTop: 2 
                     }}>
@@ -194,13 +194,13 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   {/* Text Content */}
                   <View style={{ flex: 1 }}>
                     <Text style={{ 
-                      fontSize: 16, 
+                      ...textStyles.settingsItem,
                       color: themeColors.text 
                     }}>
                       {item.title}
                     </Text>
                     <Text style={{ 
-                      fontSize: 14, 
+                      ...textStyles.settingsSubtitle,
                       color: themeColors.textSecondary, 
                       marginTop: 2 
                     }}>
@@ -209,8 +209,8 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   </View>
                   
                   {/* Immersive Feed Toggle */}
-                  <SettingsToggle
-                    enabled={isImmersiveFeedEnabled}
+                  <SettingsToggle 
+                    enabled={isImmersiveFeedEnabled} 
                     onToggle={setImmersiveFeedEnabled}
                     size="small"
                   />
@@ -224,7 +224,7 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                     alignItems: 'center', 
                     paddingVertical: responsiveDimensions.settings.itemPadding 
                   }}
-                  activeOpacity={0.3}
+                  activeOpacity={0.7}
                 >
                   {/* Icon */}
                   <View style={{ 
@@ -238,39 +238,42 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                   {/* Text Content */}
                   <View style={{ flex: 1 }}>
                     <Text style={{ 
-                      fontSize: 16, 
-                      color: themeColors.text 
+                      ...textStyles.settingsItem,
+                      color: item.id === 'signout' ? '#dc2626' : themeColors.text 
                     }}>
                       {item.title}
                     </Text>
-                    {item.id !== 'signout' && (
-                      <Text style={{ 
-                        fontSize: 14, 
-                        color: themeColors.textSecondary, 
-                        marginTop: 2 
-                      }}>
-                        {item.subtitle}
-                      </Text>
-                    )}
+                    <Text style={{ 
+                      ...textStyles.settingsSubtitle,
+                      color: themeColors.textSecondary, 
+                      marginTop: 2 
+                    }}>
+                      {item.subtitle}
+                    </Text>
                   </View>
                   
-                  {/* Arrow */}
-                  <View style={{ 
-                    width: responsiveDimensions.settings.arrowSize, 
-                    height: responsiveDimensions.settings.arrowSize, 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
-                    <View style={{ 
-                      width: rs(8), 
-                      height: rs(8), 
-                      borderTopWidth: 1, 
-                      borderRightWidth: 1, 
-                      borderColor: themeColors.textSecondary, 
-                      transform: [{ rotate: '45deg' }] 
-                    }} />
-                  </View>
+                  {/* Arrow (except for sign out) */}
+                  {item.id !== 'signout' && (
+                    <View style={{ marginLeft: rs(8) }}>
+                      <ChevronLeft 
+                        size={responsiveDimensions.settings.arrowSize} 
+                        color={themeColors.textSecondary} 
+                        style={{ transform: [{ rotate: '180deg' }] }}
+                        strokeWidth={2}
+                      />
+                    </View>
+                  )}
                 </TouchableOpacity>
+              )}
+              
+              {/* Separator line (except for last item) */}
+              {index < settingsItems.length - 1 && (
+                <View style={{ 
+                  height: 1, 
+                  backgroundColor: themeColors.border, 
+                  marginLeft: responsiveDimensions.settings.iconContainer.width + rs(16),
+                  marginVertical: rs(8)
+                }} />
               )}
             </View>
           ))}

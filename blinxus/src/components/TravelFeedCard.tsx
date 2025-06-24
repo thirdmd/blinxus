@@ -19,6 +19,7 @@ interface TravelFeedCardProps extends PostCardProps {
   onDetailsPress: () => void;
   onReset?: () => void;
   isVisible?: boolean;
+  onLucidPress?: () => void;
 }
 
 const { width: screenWidth, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -410,7 +411,8 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   type,
   timestamp,
   onReset,
-  isVisible
+  isVisible,
+  onLucidPress
 }) => {
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
@@ -716,11 +718,17 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
   const handleLucidPress = useCallback(() => {
     if (isLucid) {
-      (navigation as any).navigate('LucidFullscreen', {
-        post: postData
-      });
+      if (onLucidPress) {
+        // Use custom handler if provided (for in-screen lucid album view)
+        onLucidPress();
+      } else {
+        // Fallback to navigation (for screens that don't handle lucid album in-screen)
+        (navigation as any).navigate('LucidFullscreen', {
+          post: postData
+        });
+      }
     }
-  }, [isLucid, navigation, postData]);
+  }, [isLucid, onLucidPress, navigation, postData]);
 
   // Handle zoom toggle from carousel
   const handleZoomToggle = useCallback((toggleFn: () => void, zoomedOut: boolean) => {

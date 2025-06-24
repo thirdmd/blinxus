@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { Bell, Heart, MessageCircle, UserPlus, Camera, Settings } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { getTextStyles } from '../utils/responsive';
 
 interface Notification {
   id: string;
@@ -57,6 +58,7 @@ const mockNotifications: Notification[] = [
 
 export default function NotificationsScreen() {
   const themeColors = useThemeColors();
+  const textStyles = getTextStyles();
   const [notifications, setNotifications] = useState(mockNotifications);
 
   const getNotificationIcon = (type: string) => {
@@ -108,8 +110,7 @@ export default function NotificationsScreen() {
         borderBottomColor: themeColors.border
       }}>
         <Text style={{ 
-          fontSize: 24, 
-          fontWeight: 'normal', 
+          ...textStyles.settingsTitle,
           color: themeColors.text 
         }}>
           Notifications
@@ -127,7 +128,7 @@ export default function NotificationsScreen() {
             activeOpacity={0.7}
           >
             <Text style={{
-              fontSize: 12,
+              ...textStyles.caption,
               color: themeColors.text,
               fontWeight: '500'
             }}>
@@ -163,15 +164,14 @@ export default function NotificationsScreen() {
               <Bell size={32} color={themeColors.textSecondary} />
             </View>
             <Text style={{
-              fontSize: 18,
-              fontWeight: 'normal',
+              ...textStyles.libraryTitle,
               color: themeColors.text,
               marginBottom: 8
             }}>
               No notifications yet
             </Text>
             <Text style={{
-              fontSize: 14,
+              ...textStyles.secondary,
               color: themeColors.textSecondary,
               textAlign: 'center',
               lineHeight: 20
@@ -203,32 +203,32 @@ export default function NotificationsScreen() {
                 height: 40,
                 borderRadius: 20,
                 backgroundColor: themeColors.backgroundSecondary,
-                justifyContent: 'center',
                 alignItems: 'center',
-                marginRight: 16
+                justifyContent: 'center',
+                marginRight: 12
               }}>
                 {getNotificationIcon(notification.type)}
               </View>
 
               {/* Content */}
               <View style={{ flex: 1 }}>
-                <Text style={{
-                  fontSize: 14,
-                  color: themeColors.text,
-                  fontWeight: notification.read ? '300' : '400',
-                  lineHeight: 20
-                }}>
-                  <Text style={{ fontWeight: '500' }}>{notification.user}</Text>
-                  {' '}
-                  {notification.message}
-                </Text>
-                <Text style={{
-                  fontSize: 12,
-                  color: themeColors.textSecondary,
-                  marginTop: 4
-                }}>
-                  {notification.time}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                  <Text style={{
+                    ...textStyles.notificationTitle,
+                    color: themeColors.text,
+                    flex: 1
+                  }}>
+                    <Text style={{ fontWeight: '600' }}>{notification.user}</Text>
+                    <Text style={{ fontWeight: '400' }}> {notification.message}</Text>
+                  </Text>
+                  <Text style={{
+                    ...textStyles.notificationSubtitle,
+                    color: themeColors.textSecondary,
+                    marginLeft: 8
+                  }}>
+                    {notification.time}
+                  </Text>
+                </View>
               </View>
 
               {/* Unread indicator */}
@@ -238,7 +238,7 @@ export default function NotificationsScreen() {
                   height: 8,
                   borderRadius: 4,
                   backgroundColor: '#0047AB',
-                  marginLeft: 12
+                  marginLeft: 8
                 }} />
               )}
             </TouchableOpacity>

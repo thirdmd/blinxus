@@ -1,4 +1,8 @@
 // src/types/userData/profile_data.tsx
+// DEPRECATED: Use users_data.tsx for new implementations
+// This file is kept for backward compatibility
+
+import { getCurrentUser } from './users_data';
 
 export interface Interest {
     icon: string;
@@ -25,23 +29,26 @@ export interface Interest {
     food: FoodItem[];
   }
   
+  // Get current user data from centralized database
+  const currentUser = getCurrentUser();
+  
   export const profileData: ProfileDataType = {
-    name: 'Third Camacho',
-    age: 25,
-    nationalityFlag: '🇵🇭',      // Philippine flag
-    country: 'Philippines',
-    username: '@3rd',
-    bio: 'water boi 🏀',
-    followers: 2,
-    following: 2,
-    profileImage: 'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=400',
-    languages: ['English', 'Filipino'],
-    interests: [
+    name: currentUser.displayName,
+    age: currentUser.age || 25,
+    nationalityFlag: currentUser.nationalityFlag || '🇵🇭',
+    country: currentUser.country || 'Philippines',
+    username: currentUser.username,
+    bio: currentUser.bio || 'water boi 🏀',
+    followers: currentUser.followers || 2,
+    following: currentUser.following || 2,
+    profileImage: currentUser.profileImage || '',
+    languages: currentUser.languages || ['English', 'Filipino'],
+    interests: currentUser.interests || [
       { icon: '🏖️', label: 'Beach' },
       { icon: '🏔️', label: 'Mountains' },
       { icon: '🏀', label: 'Basketball' },
     ],
-    food: [
+    food: currentUser.food || [
       { icon: '🥩', label: 'Steak' },
       { icon: '🍔', label: 'Burger' },
       { icon: '🍦', label: 'Ice Cream' },

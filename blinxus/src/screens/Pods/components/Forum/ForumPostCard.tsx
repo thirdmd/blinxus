@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native';
 import { ForumPost, FORUM_CATEGORIES, FORUM_ACTIVITY_TAGS } from './forumTypes';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
+import { getTextStyles } from '../../../../utils/responsive';
 
 interface ForumPostCardProps {
   post: ForumPost;
@@ -50,6 +51,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
   compact = false
 }) => {
   const themeColors = useThemeColors();
+  const textStyles = getTextStyles();
 
   // ULTRA-RESPONSIVE: Memoized handlers to prevent re-renders
   const handleLike = useCallback(() => onLike(post.id), [onLike, post.id]);
@@ -67,12 +69,22 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
   const formatTimestamp = (timestamp: string): string => {
     const now = new Date();
     const postDate = new Date(timestamp);
-    const diffInHours = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60));
     
-    if (diffInHours < 1) return 'now';
+    if (diffInMinutes < 1) return 'now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d`;
-    return `${Math.floor(diffInHours / 168)}w`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) return `${diffInWeeks}w`;
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return `${diffInMonths}mo`;
   };
 
   return (
@@ -208,9 +220,8 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
             }}>
               <Text style={{ 
                 color: 'white', 
-                fontSize: compact ? 14 : 16, 
+                ...textStyles.caption,
                 fontWeight: '600',
-                fontFamily: 'System',
               }}>
                 {post.author.initials}
               </Text>
@@ -229,10 +240,8 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{
+                ...textStyles.forumAuthor,
                 color: themeColors.text,
-                fontSize: compact ? 14 : 15,
-                fontWeight: '600',
-                fontFamily: 'System',
                 marginRight: 4,
               }}>
                 {post.author.displayName}
@@ -249,10 +258,8 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
             <Text style={{ fontSize: 14, color: themeColors.textSecondary, marginRight: 4 }}>📍</Text>
             <Text style={{
+              ...textStyles.forumMeta,
               color: themeColors.textSecondary,
-              fontSize: 14,
-              fontFamily: 'System',
-              fontWeight: '500',
             }}>
               {post.location.name.split('-').pop() || post.location.name} • {formatTimestamp(post.createdAt)}
             </Text>
@@ -276,10 +283,9 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
       
       {/* Post Content */}
       <Text style={{
+        ...textStyles.forumContent,
         color: themeColors.text,
-        fontSize: compact ? 15 : 16,
         lineHeight: compact ? 20 : 22,
-        fontFamily: 'System',
         marginBottom: 12,
       }}>
         {post.content}
@@ -318,10 +324,9 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
             />
             {post.likes > 0 && (
               <Text style={{
+                ...textStyles.caption,
                 color: post.isLiked ? '#EF4444' : themeColors.textSecondary,
-                fontSize: 14,
                 marginLeft: 6,
-                fontFamily: 'System',
                 fontWeight: post.isLiked ? '600' : '500',
               }}>
                 {post.likes}
@@ -366,10 +371,9 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
             <MessageCircle size={18} color={themeColors.textSecondary} strokeWidth={2} />
             {post.replyCount > 0 && (
               <Text style={{
+                ...textStyles.caption,
                 color: themeColors.textSecondary,
-                fontSize: 14,
                 marginLeft: 6,
-                fontFamily: 'System',
                 fontWeight: '500',
               }}>
                 {post.replyCount}

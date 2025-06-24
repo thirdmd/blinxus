@@ -11,6 +11,7 @@ import {
   Image,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Animated,
 } from 'react-native';
 import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
@@ -20,9 +21,16 @@ import { useSavedPosts } from '../../store/SavedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
+import LucidAlbumView from '../../components/LucidAlbumView';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useNavigation } from '@react-navigation/native';
-import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getTextStyles } from '../../utils/responsive';
+import { 
+  createAnimationValues, 
+  FEED_ANIMATIONS, 
+  runAnimation,
+  ANIMATION_DURATIONS 
+} from '../../utils/animations';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
@@ -36,6 +44,10 @@ interface LibraryProps {
 export default function Library({ onBackPress }: LibraryProps = {}) {
   const themeColors = useThemeColors();
   const navigation = useNavigation();
+  const responsiveDimensions = getResponsiveDimensions();
+  const typography = getTypographyScale();
+  const spacing = getSpacingScale();
+  const textStyles = getTextStyles();
   
   // State for active tab
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
@@ -45,6 +57,13 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent');
   const [selectedActivityCategory, setSelectedActivityCategory] = useState<string | null>(null); // Track which tab context
+  
+  // NEW: State for lucid album view
+  const [showLucidAlbum, setShowLucidAlbum] = useState(false);
+  const [selectedLucidPost, setSelectedLucidPost] = useState<PostCardProps | null>(null);
+  
+  // NEW: Animation values for Instagram-like transitions
+  const animationValues = useRef(createAnimationValues()).current;
   
   // Scroll position tracking for Activities tab
   const [activitiesScrollPosition, setActivitiesScrollPosition] = useState(0);
@@ -125,11 +144,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     }
   };
 
-
-
-
-
-  // Handle post press - ULTRA SMOOTH like Profile
+  // Handle post press with Instagram-like expand animation
   const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities' = 'recent', categoryName?: string) => {
     // Store current scroll position - DIRECT like Profile
     if (context === 'recent') {
@@ -154,49 +169,69 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     const postIndex = postsToShow.findIndex(p => p.id === post.id);
     setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
     setFeedContext(context);
-    // INSTANT transition - exactly like Profile
-    setIsFullscreen(true);
-  };
-
-  // Handle back from fullscreen - EXACTLY like Profile for ultimate smoothness
-  const handleBackFromFullscreen = () => {
-    // INSTANT back transition - exactly like Profile
-    setIsFullscreen(false);
     
-    // EXACT same restoration approach as Profile
-    const restoreScrollPosition = () => {
-      if (feedContext === 'activities' && activitiesScrollRef.current) {
-        activitiesScrollRef.current.scrollToOffset({ 
-          offset: activitiesScrollPosition, 
-          animated: false 
-        });
-      } else if (feedContext === 'recent' && recentScrollRef.current) {
-        // Always restore position, even if it's 0 (top of scroll)
-        recentScrollRef.current.scrollTo({ 
-          y: recentScrollPosition, 
-          animated: false 
-        });
+    // Start expand animation and then show fullscreen
+    runAnimation(
+      FEED_ANIMATIONS.expand(animationValues),
+      () => {
+        setIsFullscreen(true);
       }
-    };
-    
-    // Use EXACT same restoration attempts as Profile for maximum reliability
-    // Immediate attempt
-    setTimeout(restoreScrollPosition, 0);
-    
-    // Secondary attempt after next frame
-    requestAnimationFrame(() => {
-      setTimeout(restoreScrollPosition, 0);
-    });
-    
-    // Final attempt after a short delay
-    setTimeout(restoreScrollPosition, 100);
-    
-    setSelectedActivityCategory(null); // Reset category selection
+    );
   };
 
+  // NEW: Handle lucid press - show lucid album view within same screen context
+  const handleLucidPress = (post: PostCardProps) => {
+    setSelectedLucidPost(post);
+    setShowLucidAlbum(true);
+  };
 
+  // NEW: Handle back from lucid album view - return to scroll view
+  const handleBackFromLucidAlbum = () => {
+    setShowLucidAlbum(false);
+    setSelectedLucidPost(null);
+  };
 
-
+  // Handle back from fullscreen with Instagram-like collapse animation
+  const handleBackFromFullscreen = () => {
+    // Start collapse animation first
+    runAnimation(
+      FEED_ANIMATIONS.collapse(animationValues),
+      () => {
+        // INSTANT back transition after animation
+        setIsFullscreen(false);
+        
+        // EXACT same restoration approach as Profile
+        const restoreScrollPosition = () => {
+          if (feedContext === 'activities' && activitiesScrollRef.current) {
+            activitiesScrollRef.current.scrollToOffset({ 
+              offset: activitiesScrollPosition, 
+              animated: false 
+            });
+          } else if (feedContext === 'recent' && recentScrollRef.current) {
+            // Always restore position, even if it's 0 (top of scroll)
+            recentScrollRef.current.scrollTo({ 
+              y: recentScrollPosition, 
+              animated: false 
+            });
+          }
+        };
+        
+        // Use EXACT same restoration attempts as Profile for maximum reliability
+        // Immediate attempt
+        setTimeout(restoreScrollPosition, 0);
+        
+        // Secondary attempt after next frame
+        requestAnimationFrame(() => {
+          setTimeout(restoreScrollPosition, 0);
+        });
+        
+        // Final attempt after a short delay
+        setTimeout(restoreScrollPosition, 100);
+        
+        setSelectedActivityCategory(null); // Reset category selection
+      }
+    );
+  };
 
   // Render item for Activities Tab (grid-based) - needs category context
   const renderActivityPostItem = (categoryName: string) => ({ item }: { item: PostCardProps }) => (
@@ -502,7 +537,23 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     );
   };
 
-  // If in fullscreen mode, show TravelFeedCard view
+  // NEW: If showing lucid album view, render LucidAlbumView
+  if (showLucidAlbum && selectedLucidPost) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
+        <LucidAlbumView 
+          post={selectedLucidPost}
+          onBack={handleBackFromLucidAlbum}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // If in fullscreen mode, show TravelFeedCard view with animation
   if (isFullscreen) {
     let postsToShow: PostCardProps[];
     
@@ -522,6 +573,28 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
           backgroundColor={themeColors.background} 
         />
+        
+        {/* Animated Background Overlay */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: themeColors.background,
+            opacity: animationValues.backgroundOpacity,
+          }}
+        />
+        
+        {/* Animated Content Container */}
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ scale: animationValues.scale }],
+            opacity: animationValues.opacity,
+          }}
+        >
         
         {/* Fixed App Bar - Back button moved to far left corner */}
         <View style={{
@@ -551,34 +624,36 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           </TouchableOpacity>
         </View>
 
-        {/* TravelFeedCard FlatList - Same as ExploreScreen */}
-        <FlatList
-          data={postsToShow}
-          renderItem={({ item }) => (
-            <TravelFeedCard 
-              {...item} 
-              onDetailsPress={() => {}}
-              isVisible={true}
-            />
-          )}
-          keyExtractor={(item) => item.id}
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          pagingEnabled={true}
-          snapToInterval={responsiveDimensions.feedCard.height}
-          snapToAlignment="end"
-          decelerationRate="fast"
-          initialScrollIndex={selectedPostIndex}
-          getItemLayout={(data, index) => ({
-            length: responsiveDimensions.feedCard.height,
-            offset: responsiveDimensions.feedCard.height * index,
-            index,
-          })}
-          removeClippedSubviews={false}
-          initialNumToRender={1}
-          maxToRenderPerBatch={3}
-          windowSize={5}
-        />
+          {/* TravelFeedCard FlatList - Same as ExploreScreen with custom onLucidPress */}
+          <FlatList
+            data={postsToShow}
+            renderItem={({ item }) => (
+              <TravelFeedCard 
+                {...item} 
+                onDetailsPress={() => {}}
+                onLucidPress={item.type === 'lucid' ? () => handleLucidPress(item) : undefined}
+                isVisible={true}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            pagingEnabled={true}
+            snapToInterval={responsiveDimensions.feedCard.height}
+            snapToAlignment="end"
+            decelerationRate="fast"
+            initialScrollIndex={selectedPostIndex}
+            getItemLayout={(data, index) => ({
+              length: responsiveDimensions.feedCard.height,
+              offset: responsiveDimensions.feedCard.height * index,
+              index,
+            })}
+            removeClippedSubviews={false}
+            initialNumToRender={1}
+            maxToRenderPerBatch={3}
+            windowSize={5}
+          />
+        </Animated.View>
       </SafeAreaView>
     );
   }
@@ -623,10 +698,10 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
         </TouchableOpacity>
         
-        {/* Library title - centered */}
+        {/* Library title - perfectly centered */}
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={{ 
-            fontSize: typography.appTitle, 
+            ...textStyles.libraryTitle, 
             fontWeight: '600', 
             color: themeColors.text,
             opacity: activeTab === 'recent' 
@@ -636,6 +711,12 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             Library
           </Text>
         </View>
+
+        {/* Right spacer to balance the back button */}
+        <View style={{ 
+          width: responsiveDimensions.button.small.width, 
+          height: responsiveDimensions.button.small.height,
+        }} />
       </View>
 
       {/* Tab Navigation - Clean design */}
@@ -649,8 +730,8 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             <Text
               style={{
                 textAlign: 'center',
-                fontWeight: '300',
-                fontSize: 16,
+                ...textStyles.tabLabel,
+                fontWeight: '400',
                 color: activeTab === 'recent' ? themeColors.text : themeColors.textSecondary
               }}
             >
@@ -674,8 +755,8 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             <Text
               style={{
                 textAlign: 'center',
-                fontWeight: '300',
-                fontSize: 16,
+                ...textStyles.tabLabel,
+                fontWeight: '400',
                 color: activeTab === 'activities' ? themeColors.text : themeColors.textSecondary
               }}
             >
@@ -699,8 +780,8 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             <Text
               style={{
                 textAlign: 'center',
-                fontWeight: '300',
-                fontSize: 16,
+                ...textStyles.tabLabel,
+                fontWeight: '400',
                 color: activeTab === 'map' ? themeColors.text : themeColors.textSecondary
               }}
             >

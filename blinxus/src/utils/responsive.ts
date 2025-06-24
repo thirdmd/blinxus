@@ -203,6 +203,125 @@ export const getTypographyScale = () => {
   };
 };
 
+// PERFECT TEXT STYLES SYSTEM - Based on DetailPostView standard
+export const getTextStyles = () => {
+  return {
+    // Primary text styles
+    userName: {
+      fontSize: rf(16),
+      fontWeight: '600' as const,
+      fontFamily: 'System',
+    },
+    
+    // Secondary text styles  
+    secondary: {
+      fontSize: rf(13),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Menu and navigation items
+    menuItem: {
+      fontSize: rf(15),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Tab labels
+    tabLabel: {
+      fontSize: rf(16),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Input labels and hints
+    inputLabel: {
+      fontSize: rf(16),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Notification text - FIXED: Much smaller, cleaner
+    notificationTitle: {
+      fontSize: rf(15),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    notificationSubtitle: {
+      fontSize: rf(12),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Settings text - FIXED: Smaller title
+    settingsTitle: {
+      fontSize: rf(20),
+      fontWeight: '600' as const,
+      fontFamily: 'System',
+    },
+    
+    settingsItem: {
+      fontSize: rf(16),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    settingsSubtitle: {
+      fontSize: rf(13),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Create post text
+    createLabel: {
+      fontSize: rf(16),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Library text - FIXED: Smaller title
+    libraryTitle: {
+      fontSize: rf(16),
+      fontWeight: '600' as const,
+      fontFamily: 'System',
+    },
+    
+    // Forum post text
+    forumAuthor: {
+      fontSize: rf(16),
+      fontWeight: '600' as const,
+      fontFamily: 'System',
+    },
+    
+    forumContent: {
+      fontSize: rf(16),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    forumMeta: {
+      fontSize: rf(13),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
+    // Button text
+    buttonText: {
+      fontSize: rf(16),
+      fontWeight: '600' as const,
+      fontFamily: 'System',
+    },
+    
+    // Caption text
+    caption: {
+      fontSize: rf(12),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+  };
+};
+
 // Spacing scale
 export const getSpacingScale = () => {
   return {
@@ -360,70 +479,6 @@ export const getGridColumns = () => {
     default:
       return { default: 3, media: 3 };
   }
-};
-
-// Text scaling for different content types
-export const getTextStyles = () => {
-  return {
-    // Display text (large headings)
-    display: {
-      fontSize: rf(40),
-      lineHeight: rf(48),
-      fontWeight: '700' as const,
-    },
-    
-    // Headings
-    h1: {
-      fontSize: rf(32),
-      lineHeight: rf(40),
-      fontWeight: '600' as const,
-    },
-    h2: {
-      fontSize: rf(24),
-      lineHeight: rf(32),
-      fontWeight: '600' as const,
-    },
-    h3: {
-      fontSize: rf(20),
-      lineHeight: rf(28),
-      fontWeight: '500' as const,
-    },
-    h4: {
-      fontSize: rf(18),
-      lineHeight: rf(24),
-      fontWeight: '500' as const,
-    },
-    
-    // Body text
-    body: {
-      fontSize: rf(16),
-      lineHeight: rf(24),
-      fontWeight: '400' as const,
-    },
-    bodySmall: {
-      fontSize: rf(14),
-      lineHeight: rf(20),
-      fontWeight: '400' as const,
-    },
-    
-    // UI elements
-    button: {
-      fontSize: rf(16),
-      lineHeight: rf(20),
-      fontWeight: '500' as const,
-    },
-    caption: {
-      fontSize: rf(12),
-      lineHeight: rf(16),
-      fontWeight: '400' as const,
-    },
-    overline: {
-      fontSize: rf(10),
-      lineHeight: rf(12),
-      fontWeight: '500' as const,
-      letterSpacing: 1,
-    },
-  };
 };
 
 // Responsive breakpoint utilities

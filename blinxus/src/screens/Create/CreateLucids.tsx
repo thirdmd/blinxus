@@ -13,6 +13,7 @@ import { activityTags, ActivityKey } from '../../constants/activityTags';
 import Button from '../../components/Button';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
 
 interface CreateLucidsProps {
   navigation: {
@@ -330,7 +331,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                     opacity: duration > minDuration ? 1 : 0.5,
                   }}
                 >
-                  <Text style={{ fontSize: 16, color: themeColors.text, fontWeight: 'bold' }}>-</Text>
+                  <Text style={{ 
+                    ...getTextStyles().userName,
+                    color: themeColors.text 
+                  }}>
+                    -
+                  </Text>
                 </TouchableOpacity>
                 
                 <TextInput
@@ -379,7 +385,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                     opacity: duration < maxDuration ? 1 : 0.5,
                   }}
                 >
-                  <Text style={{ fontSize: 16, color: themeColors.text, fontWeight: 'bold' }}>+</Text>
+                  <Text style={{ 
+                    ...getTextStyles().userName,
+                    color: themeColors.text 
+                  }}>
+                    +
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>

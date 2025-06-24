@@ -16,7 +16,7 @@ import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { getResponsiveDimensions, rs } from '../../utils/responsive';
+import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
 
 interface CreateRegularPostProps {
   navigation: {
@@ -29,6 +29,7 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
   const { addPost } = usePosts();
   const themeColors = useThemeColors();
   const responsiveDimensions = getResponsiveDimensions();
+  const textStyles = getTextStyles();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
   const [postText, setPostText] = useState<string>('');
@@ -168,9 +169,9 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
           <Text style={{
             marginLeft: 12,
             flex: 1,
-            fontSize: 16,
+            ...textStyles.inputLabel,
             color: selectedLocation ? themeColors.text : themeColors.textSecondary,
-            fontWeight: selectedLocation ? 'normal' : '300'
+            fontWeight: selectedLocation ? '400' : '300'
           }}>
             {selectedLocation || 'Add location'}
           </Text>
@@ -199,8 +200,8 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
                   onPress={() => removeImage(0)}
                   style={{
                     position: 'absolute',
-                    top: 12,
-                    right: 12,
+                    top: 8,
+                    right: 8,
                     width: 32,
                     height: 32,
                     borderRadius: 16,
@@ -208,217 +209,213 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
-                  activeOpacity={0.3}
+                  activeOpacity={0.8}
                 >
-                  <X size={16} color="#ffffff" strokeWidth={2} />
+                  <X size={18} color="white" />
                 </TouchableOpacity>
               </View>
-            ) : selectedImages.length === 2 ? (
-              // Two images - side by side
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {selectedImages.map((image, index) => (
-                  <View key={index} style={{ flex: 1, position: 'relative' }}>
-                    <Image
-                      source={{ uri: image }}
-                      style={{ 
-                        width: '100%', 
-                        height: responsiveDimensions.createPost.doubleImage.height, 
-                        borderRadius: rs(16) 
-                      }}
-                      resizeMode="cover"
-                    />
-                    <TouchableOpacity
-                      onPress={() => removeImage(index)}
-                      style={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        width: 24,
-                        height: 24,
-                        borderRadius: 12,
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                      activeOpacity={0.3}
-                    >
-                      <X size={12} color="#ffffff" strokeWidth={2} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
             ) : (
-              // Three or more images - grid layout
+              // Multiple images grid layout
               <View>
-                {/* First row - main image */}
-                <View style={{ position: 'relative', marginBottom: 8 }}>
-                  <Image
-                    source={{ uri: selectedImages[0] }}
-                    style={{ 
-                      width: '100%', 
-                      height: responsiveDimensions.createPost.mainImage.height, 
-                      borderRadius: rs(16) 
-                    }}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={() => removeImage(0)}
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    activeOpacity={0.3}
-                  >
-                    <X size={12} color="#ffffff" strokeWidth={2} />
-                  </TouchableOpacity>
-                </View>
-                
-                {/* Second row - remaining images */}
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {selectedImages.slice(1).map((image, index) => (
-                    <View key={index + 1} style={{ flex: 1, position: 'relative' }}>
+                {selectedImages.length === 2 ? (
+                  <View style={{ flexDirection: 'row', gap: rs(8) }}>
+                    {selectedImages.map((image, index) => (
+                      <View key={index} style={{ flex: 1, position: 'relative' }}>
+                        <Image
+                          source={{ uri: image }}
+                          style={{ 
+                            width: '100%', 
+                            height: responsiveDimensions.createPost.doubleImage.height, 
+                            borderRadius: rs(16) 
+                          }}
+                          resizeMode="cover"
+                        />
+                        <TouchableOpacity
+                          onPress={() => removeImage(index)}
+                          style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <X size={18} color="white" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  // 3+ images: main image on left, grid on right
+                  <View style={{ flexDirection: 'row', gap: rs(8) }}>
+                    {/* Main image */}
+                    <View style={{ flex: 1, position: 'relative' }}>
                       <Image
-                        source={{ uri: image }}
+                        source={{ uri: selectedImages[0] }}
                         style={{ 
                           width: '100%', 
-                          height: responsiveDimensions.createPost.secondaryImage.height, 
-                          borderRadius: rs(12) 
+                          height: responsiveDimensions.createPost.mainImage.height, 
+                          borderRadius: rs(16) 
                         }}
                         resizeMode="cover"
                       />
                       <TouchableOpacity
-                        onPress={() => removeImage(index + 1)}
+                        onPress={() => removeImage(0)}
                         style={{
                           position: 'absolute',
-                          top: 6,
-                          right: 6,
-                          width: 20,
-                          height: 20,
-                          borderRadius: 10,
+                          top: 8,
+                          right: 8,
+                          width: 32,
+                          height: 32,
+                          borderRadius: 16,
                           backgroundColor: 'rgba(0, 0, 0, 0.7)',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
-                        activeOpacity={0.3}
+                        activeOpacity={0.8}
                       >
-                        <X size={10} color="#ffffff" strokeWidth={2} />
+                        <X size={18} color="white" />
                       </TouchableOpacity>
                     </View>
-                  ))}
-                </View>
+                    
+                    {/* Secondary images grid */}
+                    <View style={{ flex: 1, gap: rs(8) }}>
+                      {selectedImages.slice(1, 3).map((image, index) => (
+                        <View key={index + 1} style={{ position: 'relative' }}>
+                          <Image
+                            source={{ uri: image }}
+                            style={{ 
+                              width: '100%', 
+                              height: responsiveDimensions.createPost.secondaryImage.height, 
+                              borderRadius: rs(12) 
+                            }}
+                            resizeMode="cover"
+                          />
+                          <TouchableOpacity
+                            onPress={() => removeImage(index + 1)}
+                            style={{
+                              position: 'absolute',
+                              top: 6,
+                              right: 6,
+                              width: 24,
+                              height: 24,
+                              borderRadius: 12,
+                              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            activeOpacity={0.8}
+                          >
+                            <X size={14} color="white" />
+                          </TouchableOpacity>
+                          
+                          {/* Show +N overlay for additional images */}
+                          {index === 1 && selectedImages.length > 3 && (
+                            <View style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                              borderRadius: rs(12),
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              <Text style={{
+                                color: 'white',
+                                ...textStyles.userName,
+                              }}>
+                                +{selectedImages.length - 3}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             )}
-            
-            {/* Image count indicator */}
-            {selectedImages.length > 1 && (
-              <View style={{
-                position: 'absolute',
-                bottom: 12,
-                left: 12,
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                borderRadius: 12
-              }}>
-                <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '500' }}>
-                  {selectedImages.length} photos
-                </Text>
-              </View>
-            )}
-            
-            {/* Clear all button */}
-            <TouchableOpacity
-              onPress={() => setSelectedImages([])}
-              style={{
-                marginTop: 12,
-                alignSelf: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                backgroundColor: themeColors.backgroundSecondary,
-                borderRadius: 20
-              }}
-              activeOpacity={0.3}
-            >
-              <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300' }}>
-                Clear all photos
-              </Text>
-            </TouchableOpacity>
           </View>
         ) : (
+          // Empty state - add photos
           <TouchableOpacity
             onPress={handleImagePicker}
             style={{
               height: responsiveDimensions.createPost.placeholder.height,
               backgroundColor: themeColors.backgroundSecondary,
               borderRadius: rs(16),
-              alignItems: 'center',
-              justifyContent: 'center',
               borderWidth: 2,
+              borderColor: themeColors.border,
               borderStyle: 'dashed',
-              borderColor: themeColors.border
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-            activeOpacity={0.3}
+            activeOpacity={0.7}
           >
-            <Camera size={24} color={themeColors.textSecondary} strokeWidth={2} />
-            <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300', marginTop: 8 }}>Add photo</Text>
+            <Camera size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
+            <Text style={{
+              marginTop: 12,
+              ...textStyles.inputLabel,
+              color: themeColors.textSecondary,
+            }}>
+              Add photos
+            </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Text Input - Now comes after photo */}
+      {/* Text Input */}
       <View style={{ marginBottom: 24 }}>
-        <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
-          <TextInput
-            value={postText}
-            onChangeText={setPostText}
-            placeholder="What's on your mind?"
-            multiline
-            numberOfLines={4}
-            style={{
-              fontSize: 16,
-              color: themeColors.text,
-              fontWeight: '300',
-              height: 100,
-              textAlignVertical: 'top',
-            }}
-            placeholderTextColor={themeColors.textSecondary}
-          />
-        </View>
+        <TextInput
+          style={{
+            backgroundColor: themeColors.backgroundSecondary,
+            borderRadius: 16,
+            padding: 16,
+            ...textStyles.inputLabel,
+            color: themeColors.text,
+            minHeight: 100,
+            textAlignVertical: 'top'
+          }}
+          placeholder="Share your experience..."
+          placeholderTextColor={themeColors.textSecondary}
+          value={postText}
+          onChangeText={setPostText}
+          multiline
+          maxLength={500}
+        />
       </View>
 
-      {/* Activity Tags */}
+      {/* Activity Selection */}
       <View style={{ marginBottom: 32 }}>
-        <Text style={{ fontSize: 16, fontWeight: 'normal', color: themeColors.text, marginBottom: 12 }}>Activity</Text>
-        <View 
-          style={{
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderRadius: 8,
-            padding: 16,
-            backgroundColor: themeColors.backgroundSecondary,
-          }}
-        >
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {activityTags.map((tag: ActivityTag) => (
-              <PillTag
-                key={tag.id}
-                label={tag.name}
-                color={tag.color}
-                selected={selectedActivity === tag.id}
-                onPress={() => handleActivitySelect(tag.id)}
-                size="medium"
-                isCreatePage={true}
-              />
-            ))}
-          </View>
-        </View>
+        <Text style={{ 
+          ...textStyles.createLabel,
+          color: themeColors.text, 
+          marginBottom: 12 
+        }}>
+          Activity
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                     <View style={{ flexDirection: 'row', gap: 8, paddingRight: 24 }}>
+             {activityTags.map((tag: ActivityTag) => (
+               <PillTag
+                 key={tag.id}
+                 label={tag.name}
+                 color={tag.color}
+                 selected={selectedActivity === tag.id}
+                 onPress={() => handleActivitySelect(tag.id)}
+                 size="medium"
+                 isCreatePage={true}
+               />
+             ))}
+           </View>
+        </ScrollView>
       </View>
     </ScrollView>
   );

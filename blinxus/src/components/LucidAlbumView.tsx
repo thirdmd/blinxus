@@ -5,7 +5,7 @@ import { PostCardProps } from '../types/structures/posts_structure';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { RESPONSIVE_SCREEN } from '../utils/responsive';
+import { RESPONSIVE_SCREEN, getTextStyles } from '../utils/responsive';
 
 const { width, height } = RESPONSIVE_SCREEN;
 
@@ -36,6 +36,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
   const { likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
   const themeColors = useThemeColors();
+  const textStyles = getTextStyles();
   
   const [showMap, setShowMap] = useState(false);
   const [appBarOpacity, setAppBarOpacity] = useState(1);
@@ -334,7 +335,13 @@ const PhotoCard: React.FC<{
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
           <Text style={{ fontSize: 16, marginRight: 2 }}>📍</Text>
-          <Text style={{ marginLeft: 2, fontSize: 14, color: themeColors.textSecondary, fontWeight: '300' }}>{location}</Text>
+                          <Text style={{ 
+                  marginLeft: 2, 
+                  ...getTextStyles().secondary,
+                  color: themeColors.textSecondary 
+                }}>
+                  {location}
+                </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -431,7 +438,13 @@ const ActionButton: React.FC<{
   return (
     <TouchableOpacity onPress={onPress} style={{ flexDirection: 'column', alignItems: 'center' }}>
       <View style={{ width: 24, height: 24 }}>{icon}</View>
-      <Text style={{ fontSize: 12, marginTop: 4, color: themeColors.text, fontWeight: '300' }}>{label}</Text>
+                    <Text style={{ 
+                ...getTextStyles().caption,
+                marginTop: 4, 
+                color: themeColors.text 
+              }}>
+                {label}
+              </Text>
     </TouchableOpacity>
   );
 };
@@ -463,7 +476,13 @@ const AlbumGridView: React.FC<{
         <TouchableOpacity onPress={onBack} style={{ padding: 8, marginLeft: -8 }}>
           <ChevronLeft size={24} color={themeColors.text} />
         </TouchableOpacity>
-        <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: '500', color: themeColors.text }}>{album.title}</Text>
+                                <Text style={{ 
+            marginLeft: 8, 
+            ...getTextStyles().userName,
+            color: themeColors.text 
+          }}>
+            {album.title}
+          </Text>
       </View>
       
       {/* Grid */}

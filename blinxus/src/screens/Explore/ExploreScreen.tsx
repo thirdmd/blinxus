@@ -1,5 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground, Animated } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ChevronLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
@@ -13,6 +13,12 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useSettings } from '../../contexts/SettingsContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
+import { 
+  createAnimationValues, 
+  FEED_ANIMATIONS, 
+  runAnimation,
+  ANIMATION_DURATIONS 
+} from '../../utils/animations';
 
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -36,6 +42,9 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const lastScrollY = useRef(0);
+  
+  // NEW: Animation values for Instagram-like transitions
+  const animationValues = useRef(createAnimationValues()).current;
   
   // New state for custom app bar behavior
   const [scrollY, setScrollY] = useState(0);
@@ -251,7 +260,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     }
   };
 
-  // MEMORY OPTIMIZATION: Memoize handlers - ULTRA SMOOTH like Profile
+  // MEMORY OPTIMIZATION: Memoize handlers - ULTRA SMOOTH like Profile with animation
   const handleMediaItemPress = useCallback((post: PostCardProps) => {
     // Store current scroll position before entering fullscreen - DIRECT like Profile
     const currentOffset = mediaScrollPositionRef.current;
@@ -261,37 +270,48 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     const postIndex = postsWithImages.findIndex(p => p.id === post.id);
     setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
     
-    // INSTANT transition - exactly like Profile
-    setIsFullscreen(true);
+    // Start expand animation and then show fullscreen
+    runAnimation(
+      FEED_ANIMATIONS.expand(animationValues),
+      () => {
+        setIsFullscreen(true);
+      }
+    );
   }, [postsWithImages]);
 
-  // Handle back from fullscreen - EXACTLY like Profile for ultimate smoothness
+  // Handle back from fullscreen with Instagram-like collapse animation
   const handleBackFromFullscreen = useCallback(() => {
-    // INSTANT back transition - exactly like Profile
-    setIsFullscreen(false);
-    
-    // EXACT same restoration approach as Profile
-    const restoreScrollPosition = () => {
-      if (mediaScrollRef.current) {
-        // Always restore position, even if it's 0 (top of scroll)
-        mediaScrollRef.current.scrollTo({ 
-          y: mediaScrollPosition, 
-          animated: false 
+    // Start collapse animation first
+    runAnimation(
+      FEED_ANIMATIONS.collapse(animationValues),
+      () => {
+        // INSTANT back transition after animation
+        setIsFullscreen(false);
+        
+        // EXACT same restoration approach as Profile
+        const restoreScrollPosition = () => {
+          if (mediaScrollRef.current) {
+            // Always restore position, even if it's 0 (top of scroll)
+            mediaScrollRef.current.scrollTo({ 
+              y: mediaScrollPosition, 
+              animated: false 
+            });
+          }
+        };
+        
+        // Use EXACT same restoration attempts as Profile for maximum reliability
+        // Immediate attempt
+        setTimeout(restoreScrollPosition, 0);
+        
+        // Secondary attempt after next frame
+        requestAnimationFrame(() => {
+          setTimeout(restoreScrollPosition, 0);
         });
+        
+        // Final attempt after a short delay
+        setTimeout(restoreScrollPosition, 100);
       }
-    };
-    
-    // Use EXACT same restoration attempts as Profile for maximum reliability
-    // Immediate attempt
-    setTimeout(restoreScrollPosition, 0);
-    
-    // Secondary attempt after next frame
-    requestAnimationFrame(() => {
-      setTimeout(restoreScrollPosition, 0);
-    });
-    
-    // Final attempt after a short delay
-    setTimeout(restoreScrollPosition, 100);
+    );
   }, [mediaScrollPosition]);
 
   // Handle travel details popup
@@ -320,7 +340,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // If in fullscreen mode, show TravelFeedCard view
+  // If in fullscreen mode, show TravelFeedCard view with animation
   if (isFullscreen) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
@@ -328,69 +348,85 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
           backgroundColor={themeColors.background} 
         />
-        <View 
-          style={{ 
-            flex: 1
+        
+        {/* Animated Background Overlay */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: themeColors.background,
+            opacity: animationValues.backgroundOpacity,
+          }}
+        />
+        
+        {/* Animated Content Container */}
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ scale: animationValues.scale }],
+            opacity: animationValues.opacity,
           }}
         >
-        
-        {/* Fixed App Bar - Back button moved to far left corner */}
-        <View style={{
-          height: responsiveDimensions.appBar.height,
-          backgroundColor: themeColors.background,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingLeft: rs(8), // Minimal left padding to reach corner
-          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
-        }}>
-          {/* Back button - Far left corner */}
-          <TouchableOpacity 
-            onPress={handleBackFromFullscreen}
-            style={{ 
-              width: responsiveDimensions.button.small.width, 
-              height: responsiveDimensions.button.small.height, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: rs(16),
-              backgroundColor: 'transparent',
-            }}
-            activeOpacity={0.95}
-            delayPressIn={0}
-            delayPressOut={0}
-          >
-            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
+          {/* Fixed App Bar - Back button moved to far left corner */}
+          <View style={{
+            height: responsiveDimensions.appBar.height,
+            backgroundColor: themeColors.background,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingLeft: rs(8), // Minimal left padding to reach corner
+            paddingRight: responsiveDimensions.appBar.paddingHorizontal,
+          }}>
+            {/* Back button - Far left corner */}
+            <TouchableOpacity 
+              onPress={handleBackFromFullscreen}
+              style={{ 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16),
+                backgroundColor: 'transparent',
+              }}
+              activeOpacity={0.95}
+              delayPressIn={0}
+              delayPressOut={0}
+            >
+              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
 
-        {/* TravelFeedCard FlatList - RADICAL APPROACH: Direct to selected post */}
-        <FlatList
-          data={postsWithImages}
-          renderItem={({ item }) => (
-            <TravelFeedCard 
-              {...item} 
-              onDetailsPress={() => {}}
-              isVisible={true}
-            />
-          )}
-          keyExtractor={(item) => item.id}
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          pagingEnabled={true}
-          snapToInterval={responsiveDimensions.feedCard.height}
-          snapToAlignment="end"
-          decelerationRate="fast"
-          initialScrollIndex={selectedPostIndex}
-          getItemLayout={(data, index) => ({
-            length: responsiveDimensions.feedCard.height,
-            offset: responsiveDimensions.feedCard.height * index,
-            index,
-          })}
-          removeClippedSubviews={false}
-          initialNumToRender={1}
-          maxToRenderPerBatch={3}
-          windowSize={5}
-        />
-        </View>
+          {/* TravelFeedCard FlatList - RADICAL APPROACH: Direct to selected post */}
+          <FlatList
+            data={postsWithImages}
+            renderItem={({ item }) => (
+              <TravelFeedCard 
+                {...item} 
+                onDetailsPress={() => {}}
+                isVisible={true}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            pagingEnabled={true}
+            snapToInterval={responsiveDimensions.feedCard.height}
+            snapToAlignment="end"
+            decelerationRate="fast"
+            initialScrollIndex={selectedPostIndex}
+            getItemLayout={(data, index) => ({
+              length: responsiveDimensions.feedCard.height,
+              offset: responsiveDimensions.feedCard.height * index,
+              index,
+            })}
+            removeClippedSubviews={false}
+            initialNumToRender={1}
+            maxToRenderPerBatch={3}
+            windowSize={5}
+          />
+        </Animated.View>
       </SafeAreaView>
     );
   }

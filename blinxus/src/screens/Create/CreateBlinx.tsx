@@ -4,17 +4,19 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Image,
   Alert,
 } from 'react-native';
-import { Navigation, Camera, X, ChevronRight } from 'lucide-react-native';
+import { Camera, Plus, X, ChevronRight, Navigation } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
-import { activityTags } from '../../constants/activityTags';
+import { activityTags, activityNames, ActivityKey } from '../../constants/activityTags';
 import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
+import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { getResponsiveDimensions, rs } from '../../utils/responsive';
+import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
 
 interface CreateBlinxProps {
   navigation: {
@@ -28,7 +30,7 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
   const responsiveDimensions = getResponsiveDimensions();
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedActivity, setSelectedActivity] = useState<number | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const handleLocationPress = () => {
     Alert.prompt(
@@ -50,9 +52,9 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
     );
   };
 
-    const handlePhotoUpload = () => {
+  const handleImagePicker = () => {
     const { getRandomTravelImage } = require('../../constants/mockImages');
-    setSelectedImage(getRandomTravelImage());
+    setSelectedImages([getRandomTravelImage()]);
   };
 
   const handleActivitySelect = (activityId: number) => {
@@ -61,15 +63,15 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
 
   useImperativeHandle(ref, () => ({
     handleSubmit: handleCreateBlinx
-  }), [selectedLocation, selectedActivity, selectedImage]);
+  }), [selectedLocation, selectedActivity, selectedImages]);
 
   useEffect(() => {
-    const isValid = selectedLocation && selectedImage;
+    const isValid = selectedLocation && selectedImages.length > 0;
     onValidationChange(!!isValid);
-  }, [selectedLocation, selectedImage]);
+  }, [selectedLocation, selectedImages]);
 
   const handleCreateBlinx = () => {
-    if (!selectedLocation || !selectedImage) {
+    if (!selectedLocation || selectedImages.length === 0) {
       return;
     }
     
@@ -116,10 +118,10 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
 
       {/* Photo */}
       <View style={{ marginBottom: 24 }}>
-        {selectedImage ? (
-          <View style={{ position: 'relative' }}>
+        {selectedImages.length > 0 ? (
+          <View>
             <Image
-              source={{ uri: selectedImage }}
+              source={{ uri: selectedImages[0] }}
               style={{ 
                 width: '100%', 
                 height: responsiveDimensions.createPost.singleImage.height, 
@@ -128,11 +130,11 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
               resizeMode="cover"
             />
             <TouchableOpacity
-              onPress={() => setSelectedImage(null)}
+              onPress={() => setSelectedImages([])}
               style={{
                 position: 'absolute',
-                top: 12,
-                right: 12,
+                top: 8,
+                right: 8,
                 width: 32,
                 height: 32,
                 borderRadius: 16,
@@ -140,45 +142,49 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
-              activeOpacity={0.3}
+              activeOpacity={0.8}
             >
-              <X size={16} color="#ffffff" strokeWidth={2} />
+              <X size={18} color="white" />
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
-            onPress={handlePhotoUpload}
+            onPress={handleImagePicker}
             style={{
               height: responsiveDimensions.createPost.placeholder.height,
               backgroundColor: themeColors.backgroundSecondary,
               borderRadius: rs(16),
-              alignItems: 'center',
-              justifyContent: 'center',
               borderWidth: 2,
+              borderColor: themeColors.border,
               borderStyle: 'dashed',
-              borderColor: themeColors.border
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-            activeOpacity={0.3}
+            activeOpacity={0.7}
           >
-            <Camera size={24} color={themeColors.textSecondary} strokeWidth={2} />
-            <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '300', marginTop: 8 }}>Add photo</Text>
+            <Camera size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
+            <Text style={{
+              marginTop: 12,
+              ...getTextStyles().inputLabel,
+              color: themeColors.textSecondary,
+            }}>
+              Add photo
+            </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Activity Tags */}
+      {/* Activity Selection */}
       <View style={{ marginBottom: 32 }}>
-        <Text style={{ fontSize: 16, fontWeight: '300', color: themeColors.text, marginBottom: 12 }}>Activity</Text>
-        <View 
-          style={{
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderRadius: 8,
-            padding: 16,
-            backgroundColor: themeColors.backgroundSecondary,
-          }}
-        >
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Text style={{ 
+          ...getTextStyles().createLabel,
+          color: themeColors.text, 
+          marginBottom: 12 
+        }}>
+          Activity
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={{ flexDirection: 'row', gap: 8, paddingRight: 24 }}>
             {activityTags.map((tag: ActivityTag) => (
               <PillTag
                 key={tag.id}
@@ -191,7 +197,7 @@ const CreateBlinx = forwardRef(({ navigation, onValidationChange }: CreateBlinxP
               />
             ))}
           </View>
-        </View>
+        </ScrollView>
       </View>
     </ScrollView>
   );

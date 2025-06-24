@@ -1,6 +1,6 @@
 import { activityColors, activityNames, ActivityKey } from '../../constants/activityTags';
 import { Post } from '../userData/posts_data';
-import { profileData } from '../userData/profile_data';
+import { getUserById } from '../userData/users_data';
 
 export interface PostCardProps {
   id: string;
@@ -28,14 +28,18 @@ export interface PostCardProps {
 }
 
 export const mapPostToCardProps = (post: Post): PostCardProps => {
-  // Dynamically assign profile image for Third Camacho
-  let authorProfileImage = post.authorProfileImage;
-  if (post.authorName === 'Third Camacho') {
-    authorProfileImage = profileData.profileImage;
-  }
+  // Get user data from centralized database - SCALE PROOF!
+  const user = getUserById(post.authorId);
+  
+  // Use centralized user data as source of truth
+  const authorProfileImage = user?.profileImage || post.authorProfileImage;
+  const authorName = user?.displayName || post.authorName;
+  const authorNationalityFlag = user?.nationalityFlag || post.authorNationalityFlag;
 
   return {
     ...post,
+    authorName,
+    authorNationalityFlag,
     authorProfileImage,
     activityName: post.activity ? activityNames[post.activity] : undefined,
     activityColor: post.activity ? activityColors[post.activity] : undefined,

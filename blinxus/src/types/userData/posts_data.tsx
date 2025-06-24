@@ -121,7 +121,7 @@ export const initialPostsData: Post[] = [
     authorProfileImage: 'https://cdn.pixabay.com/photo/2018/04/27/03/50/portrait-3353699_960_720.jpg',
     type: 'regular',
     content: 'Amazing grilled steak dinner in Boracay! This beachside restaurant serves the most perfectly cooked ribeye with local herbs and spices. The combination of great food and ocean views is unbeatable! 🥩🔥',
-    images: ['https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg?auto=compress&cs=tinysrgb&w=800'],
+    images: ['https://images.pexels.com/photos/65175/pexels-photo-65175.jpeg?auto=compress&cs=tinysrgb&w=800'],
     location: 'Boracay, Aklan',
     activity: 'food',
     timestamp: '2025-01-08T18:30:00Z',
