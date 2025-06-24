@@ -13,7 +13,7 @@ import {
   NativeScrollEvent,
   Animated,
 } from 'react-native';
-import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album } from 'lucide-react-native';
+import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album, Clock, Activity } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import { activityTags } from '../../constants/activityTags';
 import { usePosts } from '../../store/PostsContext';
@@ -281,8 +281,9 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         <View style={{ 
           flex: 1, 
           alignItems: 'center', 
-          justifyContent: 'center', 
-          paddingHorizontal: 32 
+          justifyContent: 'flex-start', 
+          paddingHorizontal: 32,
+          paddingTop: 120 // Position content lower to match other tabs
         }}>
           <View style={{ 
             width: 80, 
@@ -296,7 +297,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             <Bookmark size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
           </View>
           <Text style={{ 
-            fontSize: 20, 
+            fontSize: 18, 
             fontWeight: '400', 
             color: themeColors.text, 
             marginBottom: 12, 
@@ -351,8 +352,9 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         <View style={{ 
           flex: 1, 
           alignItems: 'center', 
-          justifyContent: 'center', 
-          paddingHorizontal: 32 
+          justifyContent: 'flex-start', 
+          paddingHorizontal: 32,
+          paddingTop: 120 // Position content lower
         }}>
           <View style={{ 
             width: 80, 
@@ -366,7 +368,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             <Grid3X3 size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
           </View>
           <Text style={{ 
-            fontSize: 20, 
+            fontSize: 18, 
             fontWeight: '400', 
             color: themeColors.text, 
             marginBottom: 12, 
@@ -463,8 +465,9 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         <View style={{ 
           flex: 1, 
           alignItems: 'center', 
-          justifyContent: 'center', 
-          paddingHorizontal: 32 
+          justifyContent: 'flex-start', 
+          paddingHorizontal: 32,
+          paddingTop: 120 // Position content lower
         }}>
           <View style={{ 
             width: 80, 
@@ -478,7 +481,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
             <Map size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
           </View>
           <Text style={{ 
-            fontSize: 20, 
+            fontSize: 18, 
             fontWeight: '400', 
             color: themeColors.text, 
             marginBottom: 12, 
@@ -502,8 +505,9 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
       <View style={{ 
         flex: 1, 
         alignItems: 'center', 
-        justifyContent: 'center', 
-        padding: 32 
+        justifyContent: 'flex-start', 
+        padding: 32,
+        paddingTop: 120 // Position content lower
       }}>
         <View style={{ 
           width: 80, 
@@ -517,7 +521,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
           <Map size={32} color={themeColors.textSecondary} strokeWidth={1.5} />
         </View>
         <Text style={{ 
-          fontSize: 20, 
+          fontSize: 18, 
           fontWeight: '400', 
           color: themeColors.text, 
           marginBottom: 12, 
@@ -719,82 +723,58 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         }} />
       </View>
 
-      {/* Tab Navigation - Clean design */}
+      {/* Tab Navigation - Modern Icon Design */}
       <View style={{ backgroundColor: themeColors.background }}>
-        <View style={{ flexDirection: 'row', paddingHorizontal: 24 }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: rs(32), paddingVertical: rs(8) }}>
           <TouchableOpacity 
-            style={{ flex: 1, paddingVertical: 16 }}
+            style={{ 
+              flex: 1, 
+              paddingVertical: rs(16),
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
             onPress={() => setActiveTab('recent')}
             activeOpacity={0.6}
           >
-            <Text
-              style={{
-                textAlign: 'center',
-                ...textStyles.tabLabel,
-                fontWeight: '400',
-                color: activeTab === 'recent' ? themeColors.text : themeColors.textSecondary
-              }}
-            >
-              Recent
-            </Text>
-            {activeTab === 'recent' && (
-              <View style={{ 
-                width: '100%', 
-                height: 2, 
-                backgroundColor: themeColors.text, 
-                marginTop: 12 
-              }} />
-            )}
+            <Clock 
+              size={ri(22)} 
+              color={activeTab === 'recent' ? themeColors.text : themeColors.textSecondary}
+              strokeWidth={activeTab === 'recent' ? 2.2 : 1.8}
+            />
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={{ flex: 1, paddingVertical: 16 }}
+            style={{ 
+              flex: 1, 
+              paddingVertical: rs(16),
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
             onPress={() => setActiveTab('activities')}
             activeOpacity={0.6}
           >
-            <Text
-              style={{
-                textAlign: 'center',
-                ...textStyles.tabLabel,
-                fontWeight: '400',
-                color: activeTab === 'activities' ? themeColors.text : themeColors.textSecondary
-              }}
-            >
-              Activities
-            </Text>
-            {activeTab === 'activities' && (
-              <View style={{ 
-                width: '100%', 
-                height: 2, 
-                backgroundColor: themeColors.text, 
-                marginTop: 12 
-              }} />
-            )}
+            <Activity 
+              size={ri(22)} 
+              color={activeTab === 'activities' ? themeColors.text : themeColors.textSecondary}
+              strokeWidth={activeTab === 'activities' ? 2.2 : 1.8}
+            />
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={{ flex: 1, paddingVertical: 16 }}
+            style={{ 
+              flex: 1, 
+              paddingVertical: rs(16),
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
             onPress={() => setActiveTab('map')}
             activeOpacity={0.6}
           >
-            <Text
-              style={{
-                textAlign: 'center',
-                ...textStyles.tabLabel,
-                fontWeight: '400',
-                color: activeTab === 'map' ? themeColors.text : themeColors.textSecondary
-              }}
-            >
-              Map
-            </Text>
-            {activeTab === 'map' && (
-              <View style={{ 
-                width: '100%', 
-                height: 2, 
-                backgroundColor: themeColors.text, 
-                marginTop: 12 
-              }} />
-            )}
+            <Map 
+              size={ri(22)} 
+              color={activeTab === 'map' ? themeColors.text : themeColors.textSecondary}
+              strokeWidth={activeTab === 'map' ? 2.2 : 1.8}
+            />
           </TouchableOpacity>
         </View>
       </View>

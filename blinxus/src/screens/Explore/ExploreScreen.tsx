@@ -487,30 +487,32 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           )}
           
           {!isMediaMode && (
-            // Grid icon - positioned on the right
-            <View style={{ flex: 1, alignItems: 'flex-end' }}>
-              <TouchableOpacity
-                onPress={enterMediaMode}
-                style={{ 
-                  width: responsiveDimensions.button.small.width, 
-                  height: responsiveDimensions.button.small.height, 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  borderRadius: rs(16),
-                  backgroundColor: scrollY > 20 
-                    ? `${themeColors.backgroundSecondary}40` 
-                    : `${themeColors.backgroundSecondary}20`,
-                  opacity: scrollY > 50 ? 0 : 1,
-                }}
-                activeOpacity={0.7}
-              >
-                <Grid3X3 
-                  size={ri(20)} 
-                  color={themeColors.text} 
-                  strokeWidth={2} 
-                />
-              </TouchableOpacity>
-            </View>
+            // Grid icon - RADICAL positioning: absolute right
+            <TouchableOpacity
+              onPress={enterMediaMode}
+              style={{ 
+                position: 'absolute',
+                right: rs(8),
+                top: '50%',
+                marginTop: rs(-28),
+                width: responsiveDimensions.button.large.width, 
+                height: responsiveDimensions.button.large.height, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16),
+                backgroundColor: scrollY > 20 
+                  ? `${themeColors.backgroundSecondary}40` 
+                  : `${themeColors.backgroundSecondary}20`,
+                opacity: scrollY > 50 ? 0 : 1,
+              }}
+              activeOpacity={0.7}
+            >
+              <Grid3X3 
+                size={ri(28)} 
+                color={themeColors.text} 
+                strokeWidth={2} 
+              />
+            </TouchableOpacity>
           )}
         </View>
 

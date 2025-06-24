@@ -26,12 +26,14 @@ import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, formatUsername } from '../../utils/responsive';
 import { 
   createAnimationValues, 
   FEED_ANIMATIONS, 
   runAnimation,
-  ANIMATION_DURATIONS 
+  ANIMATION_DURATIONS,
+  createLibrarySlideInAnimation,
+  createLibrarySlideOutAnimation
 } from '../../utils/animations';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -74,6 +76,7 @@ export default function ProfileStructure({
   
   // Animation values for smooth Library transition
   const librarySlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
+  const backgroundSlideAnim = useRef(new Animated.Value(0)).current; // For parallax effect
   // Use the scrollRef from props (for double tap functionality) or fallback to local ref
   const scrollViewRef = scrollRef || localScrollViewRef;
   
@@ -88,23 +91,15 @@ export default function ProfileStructure({
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
   
-  // Ultra-smooth Library open animation
+  // Ultra-smooth Library open animation with parallax
   const openLibrary = () => {
     setShowLibrary(true);
-    Animated.timing(librarySlideAnim, {
-      toValue: 0,
-      duration: 180, // Faster
-      useNativeDriver: true,
-    }).start();
+    createLibrarySlideInAnimation(librarySlideAnim, backgroundSlideAnim).start();
   };
 
-  // Ultra-smooth Library close animation
+  // Ultra-smooth Library close animation with parallax
   const closeLibrary = () => {
-    Animated.timing(librarySlideAnim, {
-      toValue: width,
-      duration: 150, // Faster
-      useNativeDriver: true,
-    }).start(() => {
+    createLibrarySlideOutAnimation(librarySlideAnim, backgroundSlideAnim).start(() => {
       setShowLibrary(false);
     });
   };
@@ -137,6 +132,7 @@ export default function ProfileStructure({
     
     // Reset animation state
     librarySlideAnim.setValue(width);
+    backgroundSlideAnim.setValue(0);
     
     // Reset app bar states
     setScrollY(0);
@@ -160,6 +156,7 @@ export default function ProfileStructure({
       setShowLibrary(false);
       setIsFullscreen(false);
       librarySlideAnim.setValue(width); // Reset animation
+      backgroundSlideAnim.setValue(0); // Reset background animation
     }
   }, [fromFeed]);
   
@@ -511,48 +508,50 @@ export default function ProfileStructure({
         backgroundColor: scrollY > 50 ? 'transparent' : themeColors.background,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: fromFeed ? 'flex-start' : 'space-between',
-        paddingHorizontal: fromFeed ? rs(8) : responsiveDimensions.appBar.paddingHorizontal,
+        justifyContent: 'space-between',
+        paddingLeft: fromFeed ? rs(4) : rs(8), // AGGRESSIVE left padding - push username to edge
+        paddingRight: rs(8), // AGGRESSIVE right padding - push buttons to edge
         borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
         borderBottomColor: `${themeColors.border}20`,
       }}>
-        {/* Back button - Only show when coming from feed */}
-        {fromFeed && (
-          <TouchableOpacity 
-            onPress={handleBackToPreviousScreen}
-            style={{ 
-              width: responsiveDimensions.button.small.width, 
-              height: responsiveDimensions.button.small.height, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: rs(16),
-              backgroundColor: 'transparent',
-              marginRight: rs(8),
-              opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
-            }}
-            activeOpacity={0.7}
-          >
-            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-          </TouchableOpacity>
-        )}
-        
-        {/* Username - always positioned on far left */}
+        {/* Left side - Back button + Username */}
         <View style={{ 
-          flex: 1, 
-          justifyContent: 'center',
-          alignItems: 'flex-start'
+          flexDirection: 'row', 
+          alignItems: 'center',
+          flex: 1,
         }}>
+          {/* Back button - Only show when coming from feed */}
+          {fromFeed && (
+            <TouchableOpacity 
+              onPress={handleBackToPreviousScreen}
+              style={{ 
+                width: responsiveDimensions.button.small.width, 
+                height: responsiveDimensions.button.small.height, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16),
+                backgroundColor: 'transparent',
+                marginRight: rs(4), // REDUCED spacing
+                opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+              }}
+              activeOpacity={0.7}
+            >
+              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+            </TouchableOpacity>
+          )}
+          
+          {/* Username - AGGRESSIVELY positioned at most left corner */}
           <Text style={{ 
             fontSize: typography.appTitle, 
-            fontWeight: '600', 
+            fontWeight: '700', 
             color: themeColors.text,
             opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
           }}>
-            {profileData?.username || '@username'}
+            {formatUsername(profileData?.username)}
           </Text>
         </View>
         
-        {/* Action buttons - only show when NOT coming from feed */}
+        {/* Action buttons - AGGRESSIVELY pushed to right edge with tight spacing */}
         {!fromFeed && (
           <View style={{ 
             flexDirection: 'row', 
@@ -563,27 +562,27 @@ export default function ProfileStructure({
             <TouchableOpacity
               onPress={openLibrary}
               style={{ 
-                width: responsiveDimensions.button.small.width, 
-                height: responsiveDimensions.button.small.height, 
+                width: responsiveDimensions.button.medium.width, 
+                height: responsiveDimensions.button.medium.height, 
                 alignItems: 'center', 
                 justifyContent: 'center',
                 borderRadius: rs(16),
                 backgroundColor: scrollY > 20 
                   ? `${themeColors.backgroundSecondary}40` 
                   : 'transparent',
-                marginRight: rs(8),
+                marginRight: rs(2), // CLOSER to settings button
               }}
               activeOpacity={0.7}
             >
-              <Bookmark size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
+              <Bookmark size={ri(22)} color={`${themeColors.text}CC`} strokeWidth={2} />
             </TouchableOpacity>
             
             {/* Settings Button */}
             <TouchableOpacity
               onPress={onSettingsPress}
               style={{ 
-                width: responsiveDimensions.button.small.width, 
-                height: responsiveDimensions.button.small.height, 
+                width: responsiveDimensions.button.medium.width, 
+                height: responsiveDimensions.button.medium.height, 
                 alignItems: 'center', 
                 justifyContent: 'center',
                 borderRadius: rs(16),
@@ -593,26 +592,32 @@ export default function ProfileStructure({
               }}
               activeOpacity={0.7}
             >
-              <Settings size={ri(18)} color={themeColors.text} strokeWidth={1.8} />
+              <Settings size={ri(22)} color={`${themeColors.text}CC`} strokeWidth={2} />
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      <ScrollView 
-        ref={scrollViewRef}
-        style={{ flex: 1, backgroundColor: themeColors.background }}
-        showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={1}
-        bounces={true}
-        removeClippedSubviews={false}
-        keyboardShouldPersistTaps="handled"
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 0,
-          autoscrollToTopThreshold: 0,
+      <Animated.View 
+        style={{ 
+          flex: 1,
+          transform: [{ translateX: backgroundSlideAnim }]
         }}
       >
+        <ScrollView 
+          ref={scrollViewRef}
+          style={{ flex: 1, backgroundColor: themeColors.background }}
+          showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={1}
+          bounces={true}
+          removeClippedSubviews={false}
+          keyboardShouldPersistTaps="handled"
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 0,
+          }}
+        >
 
         {/* Profile Picture - Clean square with rounded edges */}
         <View style={{ marginTop: 48, alignItems: 'center' }}>
@@ -814,6 +819,7 @@ export default function ProfileStructure({
           })()}
         </View>
       </ScrollView>
+      </Animated.View>
       
       {/* Library Overlay - Slides in from right */}
       {showLibrary && (

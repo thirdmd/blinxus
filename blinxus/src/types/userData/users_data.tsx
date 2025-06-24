@@ -21,7 +21,7 @@ export const usersDatabase: Record<string, User> = {
   // Current user
   'current_user': {
     id: 'current_user',
-    username: '@3rd',
+    username: 'thirdcamachomd',
     displayName: 'Third Camacho',
     profileImage: 'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=400',
     nationalityFlag: '🇵🇭',

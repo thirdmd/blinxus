@@ -349,4 +349,138 @@ export const SCREEN_ANIMATIONS = {
 export const BUTTON_ANIMATIONS = {
   scaleBounce: (values: ReturnType<typeof createAnimationValues>, onComplete?: () => void) =>
     createScaleBounceAnimation(values.scale, { onComplete }),
+};
+
+// Profile Settings slide animations - stable and smooth with proper easing
+export const createSettingsSlideInAnimation = (
+  translateXValue: Animated.Value,
+  backgroundTranslateXValue?: Animated.Value,
+  options?: {
+    onComplete?: () => void;
+  }
+) => {
+  const { onComplete } = options || {};
+  
+  const animations = [
+    Animated.timing(translateXValue, {
+      toValue: 0,
+      duration: 250, // Slightly longer for stability
+      easing: ANIMATION_EASINGS.easeOut, // Smooth easing for stable text
+      useNativeDriver: true,
+    })
+  ];
+
+  // Add subtle parallax effect for background screen with same easing
+  if (backgroundTranslateXValue) {
+    animations.push(
+      Animated.timing(backgroundTranslateXValue, {
+        toValue: -screenWidth * 0.2, // Reduced parallax for stability
+        duration: 250,
+        easing: ANIMATION_EASINGS.easeOut, // Consistent easing
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
+};
+
+export const createSettingsSlideOutAnimation = (
+  translateXValue: Animated.Value,
+  backgroundTranslateXValue?: Animated.Value,
+  options?: {
+    onComplete?: () => void;
+  }
+) => {
+  const { onComplete } = options || {};
+  
+  const animations = [
+    Animated.timing(translateXValue, {
+      toValue: screenWidth,
+      duration: 200, // Slightly faster exit for responsiveness
+      easing: ANIMATION_EASINGS.easeIn, // Smooth easing for stable exit
+      useNativeDriver: true,
+    })
+  ];
+
+  // Return background to original position with same easing
+  if (backgroundTranslateXValue) {
+    animations.push(
+      Animated.timing(backgroundTranslateXValue, {
+        toValue: 0,
+        duration: 200,
+        easing: ANIMATION_EASINGS.easeIn, // Consistent easing
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
+};
+
+// Profile Library slide animations - stable and smooth with proper easing
+export const createLibrarySlideInAnimation = (
+  translateXValue: Animated.Value,
+  backgroundTranslateXValue?: Animated.Value,
+  options?: {
+    onComplete?: () => void;
+  }
+) => {
+  const { onComplete } = options || {};
+  
+  const animations = [
+    Animated.timing(translateXValue, {
+      toValue: 0,
+      duration: 250, // Slightly longer for stability
+      easing: ANIMATION_EASINGS.easeOut, // Smooth easing for stable text
+      useNativeDriver: true,
+    })
+  ];
+
+  // Add subtle parallax effect for background screen with same easing
+  if (backgroundTranslateXValue) {
+    animations.push(
+      Animated.timing(backgroundTranslateXValue, {
+        toValue: -screenWidth * 0.2, // Reduced parallax for stability
+        duration: 250,
+        easing: ANIMATION_EASINGS.easeOut, // Consistent easing
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
+};
+
+export const createLibrarySlideOutAnimation = (
+  translateXValue: Animated.Value,
+  backgroundTranslateXValue?: Animated.Value,
+  options?: {
+    onComplete?: () => void;
+  }
+) => {
+  const { onComplete } = options || {};
+  
+  const animations = [
+    Animated.timing(translateXValue, {
+      toValue: screenWidth,
+      duration: 200, // Slightly faster exit for responsiveness
+      easing: ANIMATION_EASINGS.easeIn, // Smooth easing for stable exit
+      useNativeDriver: true,
+    })
+  ];
+
+  // Return background to original position with same easing
+  if (backgroundTranslateXValue) {
+    animations.push(
+      Animated.timing(backgroundTranslateXValue, {
+        toValue: 0,
+        duration: 200,
+        easing: ANIMATION_EASINGS.easeIn, // Consistent easing
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
 }; 

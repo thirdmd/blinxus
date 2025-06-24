@@ -195,7 +195,7 @@ export const getTypographyScale = () => {
     overline: rf(10),
     
     // App specific
-    appTitle: rf(18),
+    appTitle: rf(20),
     userName: rf(16),
     location: rf(13),
     timestamp: rf(12),
@@ -208,114 +208,114 @@ export const getTextStyles = () => {
   return {
     // Primary text styles
     userName: {
-      fontSize: rf(16),
+      fontSize: rf(14),
       fontWeight: '600' as const,
       fontFamily: 'System',
     },
     
     // Secondary text styles  
     secondary: {
-      fontSize: rf(13),
+      fontSize: rf(12),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     // Menu and navigation items
     menuItem: {
-      fontSize: rf(15),
+      fontSize: rf(14),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     // Tab labels
     tabLabel: {
-      fontSize: rf(16),
+      fontSize: rf(14),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     // Input labels and hints
     inputLabel: {
-      fontSize: rf(16),
+      fontSize: rf(14),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
-    // Notification text - FIXED: Much smaller, cleaner
+    // Notification text - FIXED: 1 size smaller
     notificationTitle: {
-      fontSize: rf(15),
+      fontSize: rf(13),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     notificationSubtitle: {
-      fontSize: rf(12),
+      fontSize: rf(11),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     // Settings text - FIXED: Smaller title
     settingsTitle: {
-      fontSize: rf(20),
+      fontSize: rf(16),
       fontWeight: '600' as const,
       fontFamily: 'System',
     },
     
     settingsItem: {
-      fontSize: rf(16),
+      fontSize: rf(14),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     settingsSubtitle: {
-      fontSize: rf(13),
+      fontSize: rf(12),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     // Create post text
     createLabel: {
-      fontSize: rf(16),
+      fontSize: rf(14),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
-    // Library text - FIXED: Smaller title
+    // Library text - 1 size bigger to match Settings exactly
     libraryTitle: {
-      fontSize: rf(16),
+      fontSize: rf(17),
       fontWeight: '600' as const,
       fontFamily: 'System',
     },
     
     // Forum post text
     forumAuthor: {
-      fontSize: rf(16),
+      fontSize: rf(13),
       fontWeight: '600' as const,
       fontFamily: 'System',
     },
     
     forumContent: {
-      fontSize: rf(16),
+      fontSize: rf(13),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     forumMeta: {
-      fontSize: rf(13),
+      fontSize: rf(12),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
     // Button text
     buttonText: {
-      fontSize: rf(16),
+      fontSize: rf(14),
       fontWeight: '600' as const,
       fontFamily: 'System',
     },
     
     // Caption text
     caption: {
-      fontSize: rf(12),
+      fontSize: rf(11),
       fontWeight: '400' as const,
       fontFamily: 'System',
     },
@@ -492,4 +492,15 @@ export const useResponsiveValue = <T>(values: {
 }): T => {
   const deviceType = getDeviceType();
   return values[deviceType] || values.default;
+};
+
+// CENTRALIZED USERNAME FORMATTING - Backend Ready & Scalable
+export const formatUsername = (username: string | null | undefined): string => {
+  if (!username) return '@username';
+  
+  // Remove any existing @ symbols to avoid duplicates
+  const cleanUsername = username.replace(/^@+/, '');
+  
+  // Always ensure username starts with @
+  return `@${cleanUsername}`;
 }; 

@@ -35,7 +35,7 @@ const RootStack = createStackNavigator();
 // Tab Icons - Updated for 5 tabs
 function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
   const iconSize = name === 'Create' ? ri(28) : ri(24);
-  const strokeWidth = focused ? 2 : 1.5;
+  const strokeWidth = focused ? 2.5 : 2;
   
   switch (name) {
     case 'Home':
@@ -70,7 +70,7 @@ function CreateTabButton({ onPress, accessibilityState, navigation }: any) {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        top: rs(-8), // Slightly elevated
+        top: rs(-4), // Less elevation to avoid overlap
       }}
       activeOpacity={0.8}
     >

@@ -7,6 +7,7 @@ import ProfileSettings from '../Settings/profile_settings';
 import { useScrollContext } from '../../contexts/ScrollContext';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { createSettingsSlideInAnimation, createSettingsSlideOutAnimation } from '../../utils/animations';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   
   // Animation values for smooth Settings transition
   const settingsSlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
+  const backgroundSlideAnim = useRef(new Animated.Value(0)).current; // For parallax effect
   
   // Get route params to detect navigation source
   const routeParams = route.params as { fromFeed?: boolean; previousScreen?: string } | undefined;
@@ -34,23 +36,15 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Track if this is a fresh navigation (from post click)
   const isNavigatingFromPost = useRef(false);
   
-  // Ultra-smooth Settings open animation
+  // Ultra-smooth Settings open animation with parallax
   const openSettings = () => {
     setShowSettings(true);
-    Animated.timing(settingsSlideAnim, {
-      toValue: 0,
-      duration: 180, // Faster
-      useNativeDriver: true,
-    }).start();
+    createSettingsSlideInAnimation(settingsSlideAnim, backgroundSlideAnim).start();
   };
 
-  // Ultra-smooth Settings close animation
+  // Ultra-smooth Settings close animation with parallax
   const closeSettings = () => {
-    Animated.timing(settingsSlideAnim, {
-      toValue: width,
-      duration: 150, // Faster
-      useNativeDriver: true,
-    }).start(() => {
+    createSettingsSlideOutAnimation(settingsSlideAnim, backgroundSlideAnim).start(() => {
       setShowSettings(false);
     });
   };
@@ -66,6 +60,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
     
     // Reset animation state
     settingsSlideAnim.setValue(width);
+    backgroundSlideAnim.setValue(0);
     
     // Call ProfileStructure's reset function if available
     if (profileStructureResetRef.current) {
@@ -94,6 +89,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
       } else {
         // Reset animation state when coming from feed
         settingsSlideAnim.setValue(width);
+        backgroundSlideAnim.setValue(0);
         setShowSettings(false);
       }
     }, [routeParams?.fromFeed])
@@ -119,15 +115,22 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <ProfileStructure
-        profileData={profileData}
-        posts={posts}
-        onSettingsPress={openSettings}
-        scrollRef={profileScrollRef}
-        onResetToTop={profileStructureResetRef}
-        fromFeed={routeParams?.fromFeed}
-        previousScreen={routeParams?.previousScreen}
-      />
+      <Animated.View 
+        style={{ 
+          flex: 1,
+          transform: [{ translateX: backgroundSlideAnim }]
+        }}
+      >
+        <ProfileStructure
+          profileData={profileData}
+          posts={posts}
+          onSettingsPress={openSettings}
+          scrollRef={profileScrollRef}
+          onResetToTop={profileStructureResetRef}
+          fromFeed={routeParams?.fromFeed}
+          previousScreen={routeParams?.previousScreen}
+        />
+      </Animated.View>
       
       {/* Settings Overlay - Slides in from right */}
       {showSettings && (

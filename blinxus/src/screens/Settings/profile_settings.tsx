@@ -48,14 +48,14 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
 
   const settingsItems = [
     {
+      id: 'immersive-feed',
+      title: 'Immersive Feed',
+      subtitle: 'Full-screen photo-focused experience'
+    },
+    {
       id: 'theme',
       title: 'Theme',
       subtitle: 'Switch between light and dark mode'
-    },
-    {
-      id: 'immersive-feed',
-      title: 'Immersive Feed',
-      subtitle: 'TikTok-style photo-focused experience'
     },
     {
       id: 'account',
@@ -105,14 +105,18 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
         backgroundColor={themeColors.background} 
       />
       
-      {/* Header */}
-      <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 }}>
+      {/* Header - App Bar Style - Minimalist */}
+      <View style={{ 
+        height: responsiveDimensions.appBar.height,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16
+      }}>
         <TouchableOpacity
           onPress={onBackPress}
           style={{ 
             width: 40, 
             height: 40, 
-            marginLeft: -8, 
             alignItems: 'center', 
             justifyContent: 'center' 
           }}
@@ -121,13 +125,17 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
           <ChevronLeft size={24} color={themeColors.text} strokeWidth={2} />
         </TouchableOpacity>
         
-        <Text style={{ 
-          ...textStyles.settingsTitle,
-          color: themeColors.text, 
-          marginTop: 32 
-        }}>
-          Settings
-        </Text>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Text style={{ 
+            ...textStyles.settingsTitle,
+            color: themeColors.text
+          }}>
+            Settings
+          </Text>
+        </View>
+        
+        {/* Spacer to balance the back button */}
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Settings List */}
@@ -264,16 +272,6 @@ export default function ProfileSettings({ onBackPress }: Props = {}) {
                     </View>
                   )}
                 </TouchableOpacity>
-              )}
-              
-              {/* Separator line (except for last item) */}
-              {index < settingsItems.length - 1 && (
-                <View style={{ 
-                  height: 1, 
-                  backgroundColor: themeColors.border, 
-                  marginLeft: responsiveDimensions.settings.iconContainer.width + rs(16),
-                  marginVertical: rs(8)
-                }} />
               )}
             </View>
           ))}
