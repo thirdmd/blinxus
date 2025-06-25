@@ -12,6 +12,7 @@ import {
   StatusBar,
   Keyboard,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 import { Search, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
@@ -160,11 +161,11 @@ const CountryCard: React.FC<{
                 <Text 
                   style={{ 
                   color: themeColors.text,
-                    fontSize: 20,
+                    fontSize: 19,
                     fontWeight: '700',
                   letterSpacing: -0.6,
                   fontFamily: 'System',
-                  lineHeight: 24,
+                  lineHeight: 23,
                   }}
                 numberOfLines={1}
                 >
@@ -714,7 +715,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             >
               <Text style={{
                 color: themeColors.text,
-                fontSize: 16,
+                fontSize: 17,
                 fontWeight: '700',
                 fontFamily: 'System',
                 letterSpacing: -0.3,
@@ -768,7 +769,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
             <Text style={{
               color: themeColors.textSecondary,
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: '500',
               fontFamily: 'System',
             }}>
@@ -784,7 +785,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             }} />
             <Text style={{
               color: themeColors.textSecondary,
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: '500',
               fontFamily: 'System',
             }}>
@@ -794,7 +795,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           
           <Text style={{
             color: themeColors.textSecondary,
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: '400',
             fontFamily: 'System',
             opacity: 0.7,
@@ -960,7 +961,27 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     }
   };
 
+  // Swipe gesture handler
+  const onSwipeGesture = (event: any) => {
+    const { translationX, velocityX, state, x } = event.nativeEvent;
+    
+    // Only handle swipes on the left part of the screen (first 1/3)
+    if (x > screenWidth / 3) return;
+    
+    if (state === State.END) {
+      // Left to right swipe (open MyPods)
+      if (translationX > 50 && velocityX > 0 && !isJoinedPodsVisible) {
+        showJoinedPods();
+      }
+      // Right to left swipe (close MyPods)
+      else if (translationX < -50 && velocityX < 0 && isJoinedPodsVisible) {
+        hideJoinedPods();
+      }
+    }
+  };
+
   return (
+    <PanGestureHandler onGestureEvent={onSwipeGesture} onHandlerStateChange={onSwipeGesture}>
       <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
@@ -996,11 +1017,11 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           <Text 
             style={{ 
                     color: themeColors.text,
-                    fontSize: 36,
+                    fontSize: 24,
                     fontWeight: '800',
-                    letterSpacing: -1.5,
+                    letterSpacing: -0.8,
                     fontFamily: 'System',
-                    lineHeight: 40,
+                    lineHeight: 28,
             }}
           >
             Pods
@@ -1033,11 +1054,11 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
           <Text 
             style={{ 
                 color: themeColors.textSecondary,
-                fontSize: 15,
+                fontSize: 13,
                 fontWeight: '400',
                 letterSpacing: -0.2,
                 fontFamily: 'System',
-                lineHeight: 20,
+                lineHeight: 18,
             }}
           >
               Communities by Destination
@@ -1281,17 +1302,18 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             <View style={{ flex: 1 }}>
               <Text style={{
                 color: themeColors.text,
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: '800',
                 fontFamily: 'System',
                 letterSpacing: -0.8,
+                lineHeight: 50,
                 marginBottom: 2,
               }}>
                 My Pods
               </Text>
               <Text style={{
                 color: themeColors.textSecondary,
-                fontSize: 13,
+                fontSize: 15,
                 fontWeight: '400',
                 fontFamily: 'System',
                 letterSpacing: -0.1,
@@ -1391,6 +1413,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         </Animated.View>
       </Modal>
     </View>
+    </PanGestureHandler>
   );
 };
 

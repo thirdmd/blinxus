@@ -329,9 +329,9 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
         >
           <Text style={{
             color: themeColors.text,
-            fontSize: 32,
+            fontSize: 24,
             fontWeight: '800',
-            letterSpacing: -1,
+            letterSpacing: -0.8,
             fontFamily: 'System',
             marginBottom: 8,
           }}>
