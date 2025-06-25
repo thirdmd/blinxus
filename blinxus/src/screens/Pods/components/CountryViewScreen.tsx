@@ -6,8 +6,9 @@
 // ✅ Instant location filter scrolling
 // ✅ Improved touch targets with hitSlop
 // ✅ Removed unnecessary background tap handlers
+// ✅ Added smooth tab transitions
 
-import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -31,6 +32,7 @@ import { LocationFilter } from './Forum/forumTypes';
 import { ForumAPI } from './Forum/forumAPI';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { useJoinedPods } from '../../../store/JoinedPodsContext';
+import { ANIMATION_DURATIONS, ANIMATION_EASINGS } from '../../../utils/animations';
 
 interface CountryViewScreenProps {
   country: Country;
@@ -69,6 +71,12 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   const searchAnimation = useRef(new Animated.Value(0)).current;
   const searchInputRef = useRef<TextInput>(null);
   
+  // TAB TRANSITIONS: Animation values for smooth tab switching
+  const tabs: PodTabType[] = ['Forum', 'Explore', 'Activities'];
+  const initialTabIndex = tabs.indexOf(activeTab);
+  const tabContainerTranslateX = useRef(new Animated.Value(-initialTabIndex * width)).current;
+  const currentTabIndex = useRef(initialTabIndex);
+  
   // Join/Leave functionality using global context
   const { 
     joinPod, 
@@ -80,6 +88,34 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   
   const isJoined = isPodJoined(country.id);
   const hasNotifications = isPodNotificationsEnabled(country.id);
+  
+  // TAB TRANSITIONS: INSTANT response with smooth animation
+  const animateToTab = useCallback((targetTab: PodTabType) => {
+    const targetIndex = tabs.indexOf(targetTab);
+    
+    // Check if already at target tab to prevent unnecessary animations
+    if (currentTabIndex.current === targetIndex) return;
+    
+    const targetTranslateX = -targetIndex * width;
+    
+    // Stop any existing animation for instant response
+    tabContainerTranslateX.stopAnimation();
+    
+    currentTabIndex.current = targetIndex;
+    
+    // INSTANT: Feels instant but with smooth animation
+    Animated.timing(tabContainerTranslateX, {
+      toValue: targetTranslateX,
+      duration: ANIMATION_DURATIONS.instant, // 80ms for instant feel
+      easing: ANIMATION_EASINGS.easeOut, // Smooth easing for 60fps
+      useNativeDriver: true,
+    }).start();
+  }, [tabContainerTranslateX, width, tabs]);
+  
+  // Handle tab changes with direct animation
+  useEffect(() => {
+    animateToTab(activeTab);
+  }, [activeTab, animateToTab]);
   
   // OPTIMIZED: Memoized handlers to prevent unnecessary re-renders
   const handleJoinLeave = useCallback(() => {
@@ -172,23 +208,20 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
     }
   }, [isSearchExpanded, collapseSearch]);
 
-  // PERFORMANCE: Ultra-fast tab switching with batched updates
+  // PERFORMANCE: INSTANT tab switching - no delays
   const handleTabChange = useCallback((tab: PodTabType) => {
     // Skip if already on the same tab
     if (activeTab === tab) return;
     
-    // INSTANT: Batch state updates using InteractionManager
-    InteractionManager.runAfterInteractions(() => {
-      // Collapse search instantly without animation if expanded
-      if (isSearchExpanded) {
-        setSearchQuery('');
-        setIsSearchExpanded(false);
-        Keyboard.dismiss();
-        searchAnimation.setValue(0); // Instant reset
-      }
-    });
+    // INSTANT: Collapse search immediately without any delays
+    if (isSearchExpanded) {
+      setSearchQuery('');
+      setIsSearchExpanded(false);
+      Keyboard.dismiss();
+      searchAnimation.setValue(0); // Instant reset
+    }
     
-    // INSTANT: Change tab immediately
+    // INSTANT: Change tab immediately - no InteractionManager delays
     onTabChange(tab);
   }, [activeTab, isSearchExpanded, onTabChange, searchAnimation]);
 
@@ -575,51 +608,60 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
         }} />
       </View>
 
-      {/* PERFORMANCE: Content Area - No ghost touch wrapper */}
-      <View style={{ flex: 1 }}>
-        {/* Content Area - OPTIMIZED for performance */}
-        {activeTab === 'Forum' && (
-          <ForumPostsList
-            ref={forumScrollRef}
-            country={country}
-            selectedLocationFilter={selectedLocationFilter}
-            onLocationFilterChange={handleLocationFilterChange}
-          />
-        )}
-
-        {activeTab === 'Explore' && (
-          <View style={{ 
-            flex: 1,
-            alignItems: 'center', 
-            paddingVertical: 40,
-            marginHorizontal: 20,
-          }}>
-            <Text style={{
-              color: themeColors.textSecondary,
-              fontSize: 16,
-              fontFamily: 'System',
-            }}>
-              Explore content coming soon
-            </Text>
+      {/* PERFORMANCE: Content Area with smooth tab transitions */}
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <Animated.View style={{ 
+          flexDirection: 'row',
+          width: width * 3, // Triple width to fit all three tabs
+          height: '100%',
+          transform: [{ translateX: tabContainerTranslateX }],
+        }}>
+          {/* Forum Tab Content */}
+          <View style={{ width: width, height: '100%' }}>
+            <ForumPostsList
+              ref={forumScrollRef}
+              country={country}
+              selectedLocationFilter={selectedLocationFilter}
+              onLocationFilterChange={handleLocationFilterChange}
+            />
           </View>
-        )}
 
-        {activeTab === 'Activities' && (
-          <View style={{ 
-            flex: 1,
-            alignItems: 'center', 
-            paddingVertical: 40,
-            marginHorizontal: 20,
-          }}>
-            <Text style={{
-              color: themeColors.textSecondary,
-              fontSize: 16,
-              fontFamily: 'System',
+          {/* Explore Tab Content */}
+          <View style={{ width: width, height: '100%' }}>
+            <View style={{ 
+              flex: 1,
+              alignItems: 'center', 
+              paddingVertical: 40,
+              marginHorizontal: 20,
             }}>
-              Activities content coming soon
-            </Text>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 16,
+                fontFamily: 'System',
+              }}>
+                Explore content coming soon
+              </Text>
+            </View>
           </View>
-        )}
+
+          {/* Activities Tab Content */}
+          <View style={{ width: width, height: '100%' }}>
+            <View style={{ 
+              flex: 1,
+              alignItems: 'center', 
+              paddingVertical: 40,
+              marginHorizontal: 20,
+            }}>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 16,
+                fontFamily: 'System',
+              }}>
+                Activities content coming soon
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
       </View>
     </View>
   );

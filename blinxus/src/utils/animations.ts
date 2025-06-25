@@ -8,6 +8,8 @@ export const ANIMATION_DURATIONS = {
   medium: 300,
   slow: 500,
   ultraFast: 150,
+  lightning: 120, // Ultra-smooth 60fps page transitions
+  instant: 80, // Instant feel with smooth animation for tabs
 } as const;
 
 export const ANIMATION_EASINGS = {
@@ -484,3 +486,154 @@ export const createLibrarySlideOutAnimation = (
 
   return Animated.parallel(animations);
 }; 
+
+// Page Navigation Animations - for screen transitions
+export const createPageSlideInAnimation = (
+  translateXValue: Animated.Value,
+  opacityValue?: Animated.Value,
+  options?: {
+    duration?: number;
+    easing?: any;
+    onComplete?: () => void;
+  }
+) => {
+  const { duration = ANIMATION_DURATIONS.medium, easing = ANIMATION_EASINGS.easeOut, onComplete } = options || {};
+  
+  const animations = [
+    Animated.timing(translateXValue, {
+      toValue: 0,
+      duration,
+      easing,
+      useNativeDriver: true,
+    })
+  ];
+
+  if (opacityValue) {
+    animations.push(
+      Animated.timing(opacityValue, {
+        toValue: 1,
+        duration: duration * 0.8,
+        easing,
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
+};
+
+export const createPageSlideOutAnimation = (
+  translateXValue: Animated.Value,
+  opacityValue?: Animated.Value,
+  options?: {
+    duration?: number;
+    easing?: any;
+    direction?: 'left' | 'right';
+    onComplete?: () => void;
+  }
+) => {
+  const { 
+    duration = ANIMATION_DURATIONS.medium, 
+    easing = ANIMATION_EASINGS.easeIn, 
+    direction = 'left',
+    onComplete 
+  } = options || {};
+  
+  const targetValue = direction === 'left' ? -screenWidth : screenWidth;
+  
+  const animations = [
+    Animated.timing(translateXValue, {
+      toValue: targetValue,
+      duration,
+      easing,
+      useNativeDriver: true,
+    })
+  ];
+
+  if (opacityValue) {
+    animations.push(
+      Animated.timing(opacityValue, {
+        toValue: 0,
+        duration: duration * 0.6,
+        easing,
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
+};
+
+// Combined page transition animation (for seamless navigation)
+export const createPageTransitionAnimation = (
+  outgoingTranslateX: Animated.Value,
+  incomingTranslateX: Animated.Value,
+  outgoingOpacity?: Animated.Value,
+  incomingOpacity?: Animated.Value,
+  options?: {
+    duration?: number;
+    easing?: any;
+    direction?: 'forward' | 'backward';
+    onComplete?: () => void;
+  }
+) => {
+  const { 
+    duration = ANIMATION_DURATIONS.medium, 
+    easing = ANIMATION_EASINGS.easeInOut, 
+    direction = 'forward',
+    onComplete 
+  } = options || {};
+  
+  // Forward: current screen slides left, new screen slides in from right
+  // Backward: current screen slides right, previous screen slides in from left
+  const outgoingTarget = direction === 'forward' ? -screenWidth : screenWidth;
+  const incomingStart = direction === 'forward' ? screenWidth : -screenWidth;
+  
+  // Set initial position for incoming screen
+  incomingTranslateX.setValue(incomingStart);
+  if (incomingOpacity) {
+    incomingOpacity.setValue(0);
+  }
+  
+  const animations = [
+    // Outgoing screen animation
+    Animated.timing(outgoingTranslateX, {
+      toValue: outgoingTarget,
+      duration,
+      easing,
+      useNativeDriver: true,
+    }),
+    // Incoming screen animation
+    Animated.timing(incomingTranslateX, {
+      toValue: 0,
+      duration,
+      easing,
+      useNativeDriver: true,
+    })
+  ];
+
+  // Add opacity animations if provided
+  if (outgoingOpacity) {
+    animations.push(
+      Animated.timing(outgoingOpacity, {
+        toValue: 0,
+        duration: duration * 0.6,
+        easing,
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  if (incomingOpacity) {
+    animations.push(
+      Animated.timing(incomingOpacity, {
+        toValue: 1,
+        duration: duration * 0.8,
+        easing,
+        useNativeDriver: true,
+      })
+    );
+  }
+
+  return Animated.parallel(animations);
+};

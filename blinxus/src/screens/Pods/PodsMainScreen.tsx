@@ -1,5 +1,7 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
-import { SafeAreaView, StatusBar, View, ScrollView } from 'react-native';
+import { SafeAreaView, StatusBar, View, ScrollView, Animated, Dimensions } from 'react-native';
+
+const { width: screenWidth } = Dimensions.get('window');
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { 
   PodsNavigationState,
@@ -10,6 +12,7 @@ import {
   PodThemeConfig
 } from '../../types/structures/podsUIStructure';
 import { PodsPostingService } from '../../utils/podsPostingLogic';
+import { ANIMATION_DURATIONS } from '../../utils/animations';
 import { 
   philippinesData, 
   asiaData,
@@ -47,6 +50,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   
   // Ref for CountryViewScreen to enable scroll to top
   const countryScreenRef = useRef<CountryViewScreenRef>(null);
+  
+  // RADICAL APPROACH: Single animation container with translateX only
+  const containerTranslateX = useRef(new Animated.Value(0)).current;
   
   // Initialize posting service
   const postingService = PodsPostingService.getInstance();
@@ -88,6 +94,13 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   }, []);
 
   const handleCountryPress = useCallback((country: Country) => {
+    // INSTANT: Lightning-fast page transition - entire page moves as one unit
+    Animated.timing(containerTranslateX, {
+      toValue: -screenWidth,
+      duration: ANIMATION_DURATIONS.lightning, // 120ms for instant feel
+      useNativeDriver: true,
+    }).start();
+    
     setNavigationState(prev => ({
       ...prev,
       currentScreen: 'country-view',
@@ -95,9 +108,16 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
       selectedContinent: asiaData,
     }));
     setActiveTab('Forum');
-  }, []);
+  }, [containerTranslateX]);
 
   const handleBackToMain = useCallback(() => {
+    // INSTANT: Lightning-fast page transition back
+    Animated.timing(containerTranslateX, {
+      toValue: 0,
+      duration: ANIMATION_DURATIONS.lightning, // 120ms for instant feel
+      useNativeDriver: true,
+    }).start();
+    
     setNavigationState(prev => ({
       ...prev,
       currentScreen: 'continent-list',
@@ -109,7 +129,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     }));
     setActiveTab('Forum');
     // Keep continent list state - user returns to their previous continent tab position
-  }, []);
+  }, [containerTranslateX]);
 
   const handleBackToCountry = useCallback(() => {
     setNavigationState(prev => ({
@@ -149,9 +169,12 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     setNavigationState(createInitialPodsState());
     setActiveTab('Forum');
     
+    // Reset animation to initial position
+    containerTranslateX.setValue(0);
+    
     // Then trigger the full reset
     handleDoubleTabPress();
-  }, [handleDoubleTabPress]);
+  }, [handleDoubleTabPress, containerTranslateX]);
 
   const scrollToTop = useCallback(() => {
     // ULTRA-RESPONSIVE: Optimized scroll behavior
@@ -169,52 +192,69 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     scrollToTop,
   }), [resetToTop, scrollToTop]);
 
-  // ULTRA-RESPONSIVE: Memoized screen rendering
+  // RADICAL APPROACH: Single container with side-by-side screens
   const renderCurrentScreen = useCallback(() => {
     return (
-      <>
-        {/* Always render ContinentListScreen but hide it when not active */}
-        <View style={{ 
-          flex: 1, 
-          display: navigationState.currentScreen === 'continent-list' ? 'flex' : 'none' 
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <Animated.View style={{ 
+          flexDirection: 'row',
+          width: screenWidth * 2, // Double width to fit both screens
+          height: '100%',
+          transform: [{ translateX: containerTranslateX }],
         }}>
-          <ContinentListScreen
-            key="continent-list-persistent"
-            theme={podTheme}
-            onCountryPress={handleCountryPress}
-            initialActiveContinent={continentListState.activeContinent}
-            onTabChange={handleContinentTabChange}
-            onDoubleTabPress={handleDoubleTabPress}
-            resetKey={resetKey}
-          />
-        </View>
+          {/* ContinentListScreen - always rendered at position 0 */}
+          <View style={{ width: screenWidth, height: '100%' }}>
+            <ContinentListScreen
+              key="continent-list-persistent"
+              theme={podTheme}
+              onCountryPress={handleCountryPress}
+              initialActiveContinent={continentListState.activeContinent}
+              onTabChange={handleContinentTabChange}
+              onDoubleTabPress={handleDoubleTabPress}
+              resetKey={resetKey}
+            />
+          </View>
 
-        {/* Render country view when active */}
-        {navigationState.currentScreen === 'country-view' && navigationState.selectedCountry && (
-          <CountryViewScreen
-            ref={countryScreenRef}
-            country={navigationState.selectedCountry}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onLocationPress={handleLocationPress}
-            onBack={handleBackToMain}
-            theme={podTheme}
-          />
-        )}
+          {/* CountryViewScreen - always rendered at position screenWidth */}
+          <View style={{ width: screenWidth, height: '100%' }}>
+            {navigationState.selectedCountry ? (
+              <CountryViewScreen
+                ref={countryScreenRef}
+                country={navigationState.selectedCountry}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                onLocationPress={handleLocationPress}
+                onBack={handleBackToMain}
+                theme={podTheme}
+              />
+            ) : (
+              <View style={{ flex: 1, backgroundColor: themeColors.background }} />
+            )}
+          </View>
+        </Animated.View>
 
-        {/* Render location view when active */}
+        {/* Render location view as overlay when active */}
         {navigationState.currentScreen === 'location-view' && navigationState.selectedLocation && navigationState.selectedCountry && (
-          <LocationViewScreen
-            key={`location-${scrollKey}`}
-            location={navigationState.selectedLocation}
-            country={navigationState.selectedCountry}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onBack={handleBackToCountry}
-            theme={podTheme}
-          />
+          <View style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: themeColors.background,
+          }}>
+            <LocationViewScreen
+              key={`location-${scrollKey}`}
+              location={navigationState.selectedLocation}
+              country={navigationState.selectedCountry}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              onBack={handleBackToCountry}
+              theme={podTheme}
+            />
+          </View>
         )}
-      </>
+      </View>
     );
   }, [
     navigationState,
@@ -229,7 +269,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     handleLocationPress,
     handleBackToMain,
     scrollKey,
-    handleBackToCountry
+    handleBackToCountry,
+    containerTranslateX,
+    themeColors.background
   ]);
 
   return (
