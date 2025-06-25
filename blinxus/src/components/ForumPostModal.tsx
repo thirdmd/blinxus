@@ -79,6 +79,11 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 
   const handleSubmit = () => {
     if (!content.trim()) return;
+    
+    // VALIDATION: When in "All" tab, require specific location selection
+    if (defaultLocation === 'All' && selectedLocation === 'All') {
+      return; // Prevent submission when location is required but not selected
+    }
 
     // FIXED: Handle location ID properly with better format consistency
     let locationId: string;
@@ -206,14 +211,14 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 
             <TouchableOpacity
               onPress={handleSubmit}
-              disabled={!content.trim()}
+              disabled={!content.trim() || (defaultLocation === 'All' && selectedLocation === 'All')}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderRadius: 20,
-                backgroundColor: content.trim() 
+                backgroundColor: (content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All'))
                   ? selectedCategoryData?.color || '#3B82F6'
                   : themeColors.isDark 
                     ? 'rgba(255, 255, 255, 0.1)'
@@ -221,7 +226,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               }}
             >
               <Text style={{
-                color: content.trim() ? 'white' : themeColors.textSecondary,
+                color: (content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All')) ? 'white' : themeColors.textSecondary,
                 fontSize: 15,
                 fontWeight: '600',
                 fontFamily: 'System',
@@ -231,7 +236,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               </Text>
               <Send 
                 size={14} 
-                color={content.trim() ? 'white' : themeColors.textSecondary} 
+                color={(content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All')) ? 'white' : themeColors.textSecondary} 
                 strokeWidth={2}
               />
             </TouchableOpacity>

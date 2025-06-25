@@ -965,16 +965,16 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
   const onSwipeGesture = (event: any) => {
     const { translationX, velocityX, state, x } = event.nativeEvent;
     
-    // Only handle swipes on the left part of the screen (first 1/3)
-    if (x > screenWidth / 3) return;
+    // Only handle swipes on the left part of the screen (first 1/2 for more sensitivity)
+    if (x > screenWidth / 2) return;
     
     if (state === State.END) {
-      // Left to right swipe (open MyPods)
-      if (translationX > 50 && velocityX > 0 && !isJoinedPodsVisible) {
+      // Left to right swipe (open MyPods) - Much more sensitive
+      if (translationX > 20 && velocityX > -100 && !isJoinedPodsVisible) {
         showJoinedPods();
       }
-      // Right to left swipe (close MyPods)
-      else if (translationX < -50 && velocityX < 0 && isJoinedPodsVisible) {
+      // Right to left swipe (close MyPods) - Much more sensitive
+      else if (translationX < -20 && velocityX < 100 && isJoinedPodsVisible) {
         hideJoinedPods();
       }
     }
