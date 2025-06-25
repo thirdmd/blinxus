@@ -1,5 +1,5 @@
 import './global.css';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -19,6 +19,7 @@ import PodsMainScreen, { PodsMainScreenRef } from './blinxus/src/screens/Pods/Po
 import CreatePost from './blinxus/src/screens/Create/CreatePost';
 import NotificationsScreen from './blinxus/src/screens/NotificationsScreen';
 import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
+import SplashScreen from './blinxus/src/screens/SplashScreen';
 
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
@@ -332,6 +333,20 @@ function RootNavigator() {
 
 // Main App Component
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return (
+      <ThemeProvider>
+        <SplashScreen onFinish={handleSplashFinish} />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider>
       <SettingsProvider>

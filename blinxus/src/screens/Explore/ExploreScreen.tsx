@@ -1,5 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground, Animated } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground, Animated, Image } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ChevronLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
@@ -451,7 +451,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             : themeColors.background,
           flexDirection: 'row',
           alignItems: 'center',
-          paddingLeft: rs(8), // Minimal left padding to reach corner
+          paddingLeft: rs(0), // Increased padding for logo
           paddingRight: responsiveDimensions.appBar.paddingHorizontal,
           borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
           borderBottomColor: `${themeColors.border}20`,
@@ -474,16 +474,20 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
           ) : (
-            // Blinxus title - fades out when scrolling (EXACT same font as TravelFeedCard name)
-            <Text style={{ 
-              fontSize: typography.userName, 
-              fontWeight: '600', 
-              fontFamily: 'System',
-              color: themeColors.text,
-              opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
-            }}>
-              blinxus
-            </Text>
+            // Blinxus logo - fades out when scrolling
+            <Image 
+              source={require('../../../../assets/blinxus-logo.png')} 
+              style={{ 
+                position: 'absolute',
+                left: rs(-1), // Move more to the left
+                top: rs(-65), // Move up
+                width: ri(120), // Keep same size
+                height: ri(180), // Keep same size
+                opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+                zIndex: 10, // Make sure it's visible on top
+              }}
+              resizeMode="contain" // Maintains aspect ratio
+            />
           )}
           
           {!isMediaMode && (
