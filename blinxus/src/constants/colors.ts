@@ -19,21 +19,21 @@ export const colors = {
     subtle: '#F3F4F6',
   },
   
-  // Dark Theme - Dark Night Blue like in the image
+  // Dark Theme - Black theme
   dark: {
-    // Backgrounds - Dark night blue gradient
-    background: '#0B1426',        // Very dark navy blue (main background)
-    backgroundSecondary: '#1A2332',      // Slightly lighter navy blue (cards, sections)
-    backgroundTertiary: '#243040',       // Medium navy blue (elevated elements)
+    // Backgrounds - Black gradient
+    background: '#000000',        // Pure black (main background)
+    backgroundSecondary: '#1A1A1A',      // Dark gray (cards, sections)
+    backgroundTertiary: '#2A2A2A',       // Medium gray (elevated elements)
     
     // Text Colors
     text: '#FFFFFF',        // White text
-    textSecondary: '#B8C5D1',      // Light blue-gray text
-    textTertiary: '#8A9BA8',       // Muted blue-gray text
+    textSecondary: '#B8B8B8',      // Light gray text
+    textTertiary: '#8A8A8A',       // Muted gray text
     
     // Borders & Lines
-    border: '#2A3441',         // Dark blue-gray borders
-    subtle: '#1F2937',         // Subtle dark blue
+    border: '#333333',         // Dark gray borders
+    subtle: '#1F1F1F',         // Subtle dark gray
   },
   
   // Legacy colors (for backward compatibility)
