@@ -113,7 +113,7 @@ const EmptyComponent = () => null;
 // Tab Navigator
 function TabNavigator() {
   const themeColors = useThemeColors();
-  const { isFullscreen } = useFullscreen();
+  const { isFullscreen, isExploreScrollMode, setIsFullscreen } = useFullscreen();
   const responsiveDimensions = getResponsiveDimensions();
   const typography = getTypographyScale();
   const exploreScrollRef = useRef<FlatList>(null);
@@ -243,8 +243,13 @@ function TabNavigator() {
     <ScrollContext.Provider value={{ exploreScrollRef, podsScrollRef, profileScrollRef }}>
       <Tab.Navigator
         screenOptions={({ route, navigation }) => {
-          // Use dark theme for tab bar when in fullscreen mode
-          const tabBarColors = isFullscreen ? {
+          // Use dark theme for tab bar when in fullscreen mode OR when Home tab is active AND in scroll mode
+          const navigationState = navigation.getState();
+          const activeTabIndex = navigationState?.index;
+          const activeTabName = navigationState?.routes[activeTabIndex]?.name;
+          const isHomeTabActive = activeTabName === 'Home';
+          const shouldUseDarkTabBar = isFullscreen || (isHomeTabActive && isExploreScrollMode);
+          const tabBarColors = shouldUseDarkTabBar ? {
             background: '#000000',
             backgroundSecondary: '#1A1A1A',
             backgroundTertiary: '#2A2A2A',
@@ -301,6 +306,11 @@ function TabNavigator() {
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
             handleTabPress(route.name, navigation, isFocused);
+            
+            // Reset fullscreen state when navigating to non-Home tabs
+            if (route.name !== 'Home' && !isFocused) {
+              setIsFullscreen(false);
+            }
           },
         })}
       >

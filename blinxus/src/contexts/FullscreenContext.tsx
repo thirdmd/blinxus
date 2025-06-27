@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 interface FullscreenContextType {
   isFullscreen: boolean;
   setIsFullscreen: (fullscreen: boolean) => void;
+  isExploreScrollMode: boolean;
+  setIsExploreScrollMode: (scrollMode: boolean) => void;
 }
 
 const FullscreenContext = createContext<FullscreenContextType | undefined>(undefined);
@@ -21,10 +23,13 @@ interface FullscreenProviderProps {
 
 export const FullscreenProvider: React.FC<FullscreenProviderProps> = ({ children }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isExploreScrollMode, setIsExploreScrollMode] = useState(true); // Default to scroll mode
 
   const value: FullscreenContextType = {
     isFullscreen,
     setIsFullscreen,
+    isExploreScrollMode,
+    setIsExploreScrollMode,
   };
 
   return (

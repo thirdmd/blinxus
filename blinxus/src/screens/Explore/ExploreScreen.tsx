@@ -4,7 +4,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ChevronLeft, Grid3X3 } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { usePosts } from '../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import MediaGridItem from '../../components/MediaGridItem';
@@ -34,15 +34,29 @@ export interface ExploreScreenRef {
 
 const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
   const { isImmersiveFeedEnabled } = useSettings();
   const [headerVisible, setHeaderVisible] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<ActivityKey | 'all'>('all');
   const [isMediaMode, setIsMediaMode] = useState(false);
-  const { isFullscreen, setIsFullscreen } = useFullscreen();
+  const { isFullscreen, setIsFullscreen, setIsExploreScrollMode } = useFullscreen();
   const themeColors = useThemeColors();
   const fullscreenTheme = useFullscreenTheme(true);
+  
+  // Force dark theme colors for status bar, app bar, and menu bar in scroll view
+  const exploreThemeColors = {
+    ...themeColors,
+    // Force dark theme for app bar and menu areas only
+    background: '#000000',
+    backgroundSecondary: '#1A1A1A',
+    text: '#FFFFFF',
+    textSecondary: '#B8B8B8',
+    border: '#333333',
+    isDark: true
+  };
+  
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const lastScrollY = useRef(0);
   
@@ -89,6 +103,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
       // Exit media mode and reset to normal view
       setIsMediaMode(false);
       setSelectedFilter('all');
+      setIsExploreScrollMode(true); // Reset to scroll mode
       
       // Reset app bar states
       setScrollY(0);
@@ -124,6 +139,37 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const postsWithImages = useMemo(() => 
     filteredPosts.filter(post => post.images && post.images.length > 0),
     [filteredPosts]
+  );
+
+  // Handle fullscreen restoration from navigation params
+  useFocusEffect(
+    React.useCallback(() => {
+      const params = route.params as { 
+        restoreFullscreen?: boolean; 
+        postData?: any; 
+        isFromGrid?: boolean; 
+      } | undefined;
+      
+      if (params?.restoreFullscreen && params?.postData) {
+        // Restore fullscreen state for TravelFeedCard
+        setIsMediaMode(params.isFromGrid || false);
+        setIsExploreScrollMode(!params.isFromGrid);
+        
+        // Find the post and set it for fullscreen
+        const postIndex = postsWithImages.findIndex(p => p.id === params.postData.id);
+        if (postIndex >= 0) {
+          setSelectedPostIndex(postIndex);
+          setIsFullscreen(true);
+        }
+        
+        // Clear navigation params after restoration
+        (navigation as any).setParams({
+          restoreFullscreen: undefined,
+          postData: undefined,
+          isFromGrid: undefined
+        });
+      }
+    }, [route.params, postsWithImages, navigation, setIsFullscreen, setIsExploreScrollMode])
   );
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -234,13 +280,15 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     setSelectedFilter('all'); // Always go to "All" in media mode
     setMediaScrollPosition(0); // Reset media scroll position
     setIsMediaMode(true);
-  }, [selectedFilter]);
+    setIsExploreScrollMode(false); // Set to grid mode
+  }, [selectedFilter, setIsExploreScrollMode]);
 
   // Handle exiting media mode
   const exitMediaMode = useCallback(() => {
     setIsMediaMode(false);
     setSelectedFilter(previousFilterRef.current); // Restore previous filter
     setMediaScrollPosition(0); // Reset media scroll position
+    setIsExploreScrollMode(true); // Set back to scroll mode
     
     // Restore scroll position for the previous filter after a short delay
     setTimeout(() => {
@@ -250,7 +298,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
       }
       // Header state is inherited from media mode - no change based on position
     }, 100);
-  }, []);
+  }, [setIsExploreScrollMode]);
 
   // Handle swipe gesture
   const onGestureEvent = (event: any) => {
@@ -440,10 +488,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   
   return (
     <PanGestureHandler onGestureEvent={onGestureEvent}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: !isMediaMode ? exploreThemeColors.background : themeColors.background }}>
         <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={themeColors.background} 
+          barStyle={!isMediaMode ? "light-content" : (themeColors.isDark ? "light-content" : "dark-content")}
+          backgroundColor={!isMediaMode ? exploreThemeColors.background : themeColors.background} 
         />
         
         {/* Fixed Minimal App Bar - Back button moved to far left corner */}
@@ -451,13 +499,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           height: responsiveDimensions.appBar.height,
           backgroundColor: scrollY > 50 
             ? 'transparent' 
-            : themeColors.background,
+            : (!isMediaMode ? exploreThemeColors.background : themeColors.background),
           flexDirection: 'row',
           alignItems: 'center',
           paddingLeft: rs(0), // Increased padding for logo
           paddingRight: responsiveDimensions.appBar.paddingHorizontal,
           borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
-          borderBottomColor: `${themeColors.border}20`,
+          borderBottomColor: `${!isMediaMode ? exploreThemeColors.border : themeColors.border}20`,
         }}>
           {isMediaMode ? (
             // Back button - Far left corner
@@ -505,15 +553,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                 alignItems: 'center', 
                 justifyContent: 'center',
                 borderRadius: rs(16),
-                backgroundColor: scrollY > 20 
-                  ? `${themeColors.backgroundSecondary}40` 
-                  : `${themeColors.backgroundSecondary}20`,
+                backgroundColor: 'transparent',
               }}
               activeOpacity={0.7}
             >
               <Grid3X3 
                 size={ri(28)} 
-                color={themeColors.text} 
+                color={!isMediaMode ? exploreThemeColors.text : themeColors.text} 
                 strokeWidth={2} 
               />
             </TouchableOpacity>
@@ -522,14 +568,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
         {/* Pills Layer - HIDDEN FOR NOW (keeping logic intact for future use) */}
         {false && (
-          <View style={{ backgroundColor: themeColors.background, paddingBottom: 16 }}>
+          <View style={{ backgroundColor: !isMediaMode ? exploreThemeColors.background : themeColors.background, paddingBottom: 16 }}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
               <View style={{ flexDirection: 'row' }}>
                 {/* All Filter Pill */}
                 <View style={{ marginRight: 6 }}>
                   <PillTag
                     label="All"
-                    color={themeColors.isDark ? themeColors.backgroundSecondary : "#E5E7EB"} // Adapt to theme
+                    color={(!isMediaMode ? exploreThemeColors.isDark : themeColors.isDark) ? (!isMediaMode ? exploreThemeColors.backgroundSecondary : themeColors.backgroundSecondary) : "#E5E7EB"} // Adapt to theme
                     selected={selectedFilter === 'all'}
                     onPress={() => handleFilterSelect('all')}
                     alwaysFullColor={true}

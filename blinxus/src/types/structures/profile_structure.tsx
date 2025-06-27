@@ -22,7 +22,7 @@ import { mapPostToCardProps } from './posts_structure';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 import LucidAlbumView from '../../components/LucidAlbumView';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -63,6 +63,7 @@ export default function ProfileStructure({
   previousScreen,
 }: Props) {
   const navigation = useNavigation();
+  const route = useRoute();
   const { isFullscreen, setIsFullscreen } = useFullscreen();
   const themeColors = useFullscreenTheme(isFullscreen);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
@@ -161,6 +162,28 @@ export default function ProfileStructure({
       backgroundSlideAnim.setValue(0); // Reset background animation
     }
   }, [fromFeed]);
+
+  // Handle navigation away from Profile (for tab navigation cancellation)
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      // When navigating away from Profile via tabs, check if we need to cancel fullscreen
+      const routeParams = route.params as { 
+        fromFeed?: boolean; 
+        previousScreen?: string;
+        fullscreenContext?: {
+          postData: any;
+          isFromGrid: boolean;
+        }
+      } | undefined;
+      
+      if (routeParams?.fullscreenContext && routeParams?.previousScreen === 'TravelFeedCard') {
+        // Cancel fullscreen and preserve grid position by not passing restoration params
+        setIsFullscreen(false);
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route.params]);
   
   // Expose the reset function to parent component
   React.useEffect(() => {
@@ -463,14 +486,42 @@ export default function ProfileStructure({
 
   // Handle back navigation to specific previous screen
   const handleBackToPreviousScreen = () => {
+    // Get route params to check for fullscreen context
+    const routeParams = route.params as { 
+      fromFeed?: boolean; 
+      previousScreen?: string;
+      fullscreenContext?: {
+        postData: any;
+        isFromGrid: boolean;
+      }
+    } | undefined;
+    
     // Clear route params first to reset state
     (navigation as any).setParams({ 
       fromFeed: false, 
-      previousScreen: undefined 
+      previousScreen: undefined,
+      fullscreenContext: undefined
     });
     
     // Navigate to specific screen based on previous screen context
     switch (previousScreen) {
+      case 'TravelFeedCard':
+        // Special case: Return to TravelFeedCard fullscreen mode
+        if (routeParams?.fullscreenContext) {
+          // Go back to Explore and restore fullscreen state
+          (navigation as any).navigate('MainTabs', { 
+            screen: 'Home',
+            params: {
+              restoreFullscreen: true,
+              postData: routeParams.fullscreenContext.postData,
+              isFromGrid: routeParams.fullscreenContext.isFromGrid
+            }
+          });
+        } else {
+          // Fallback to generic navigation
+          (navigation as any).navigate('MainTabs', { screen: 'Home' });
+        }
+        break;
       case 'Explore':
         (navigation as any).navigate('MainTabs', { screen: 'Home' });
         break;
@@ -534,7 +585,7 @@ export default function ProfileStructure({
                 borderRadius: rs(16),
                 backgroundColor: 'transparent',
                 marginRight: rs(4), // REDUCED spacing
-                opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+                opacity: 1.0, // Always visible - no collapsing
               }}
               activeOpacity={0.7}
             >
@@ -547,7 +598,7 @@ export default function ProfileStructure({
             fontSize: typography.appTitle, 
             fontWeight: '700', 
             color: themeColors.text,
-            opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+            opacity: 1.0, // Always visible - no collapsing
           }}>
             {formatUsername(profileData?.username)}
           </Text>

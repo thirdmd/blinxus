@@ -53,7 +53,22 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   onSave,
   onLike 
 }) => {
-  const themeColors = useThemeColors();
+  // Force dark theme for detail view - no light mode version should exist
+  const themeColors = {
+    background: '#000000',
+    backgroundSecondary: '#1A1A1A',
+    backgroundTertiary: '#2A2A2A',
+    text: '#FFFFFF',
+    textSecondary: '#B8B8B8',
+    textTertiary: '#8A8A8A',
+    border: '#333333',
+    subtle: '#1F1F1F',
+    cobalt: '#0047AB',
+    cobaltLight: '#3B82F6',
+    cobaltBg: 'rgba(0, 71, 171, 0.1)',
+    activities: {},
+    isDark: true,
+  };
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost } = useSavedPosts();
   const { likePost: userLikePost, unlikePost: userUnlikePost, isPostLiked } = useLikedPosts();

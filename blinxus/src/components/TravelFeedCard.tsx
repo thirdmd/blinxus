@@ -554,10 +554,14 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   // MEMORY OPTIMIZATION: Memoize all handlers to prevent recreation
   const handleProfilePress = useCallback(() => {
     if (authorName === 'Third Camacho') {
-      // Navigate to current user's profile
+      // Navigate to current user's profile with fullscreen context
       (navigation as any).navigate('Profile', { 
         fromFeed: true,
-        previousScreen: 'Explore' 
+        previousScreen: 'TravelFeedCard',
+        fullscreenContext: {
+          postData: postData,
+          isFromGrid: true // Indicates this came from grid view fullscreen
+        }
       });
     } else {
       // Navigate to other user's profile (future implementation)
@@ -565,10 +569,14 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       // (navigation as any).navigate('UserProfile', { 
       //   userId: authorId,
       //   fromFeed: true,
-      //   previousScreen: 'Explore' 
+      //   previousScreen: 'TravelFeedCard',
+      //   fullscreenContext: {
+      //     postData: postData,
+      //     isFromGrid: true
+      //   }
       // });
     }
-  }, [authorName, navigation]);
+  }, [authorName, navigation, postData]);
 
   // Add ref for debouncing likes
   const lastLikeTime = useRef(0);
