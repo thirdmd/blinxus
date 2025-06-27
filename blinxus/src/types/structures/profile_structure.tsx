@@ -26,6 +26,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { useFullscreenTheme } from '../../hooks/useFullscreenTheme';
+import { useFullscreen } from '../../contexts/FullscreenContext';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, formatUsername } from '../../utils/responsive';
 import { 
   createAnimationValues, 
@@ -61,8 +63,8 @@ export default function ProfileStructure({
   previousScreen,
 }: Props) {
   const navigation = useNavigation();
-  const themeColors = useThemeColors();
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const { isFullscreen, setIsFullscreen } = useFullscreen();
+  const themeColors = useFullscreenTheme(isFullscreen);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [showLibrary, setShowLibrary] = useState(false);
   const localScrollViewRef = useRef<ScrollView>(null);

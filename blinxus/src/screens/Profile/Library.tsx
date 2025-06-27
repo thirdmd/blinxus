@@ -23,6 +23,8 @@ import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 import LucidAlbumView from '../../components/LucidAlbumView';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { useFullscreenTheme } from '../../hooks/useFullscreenTheme';
+import { useFullscreen } from '../../contexts/FullscreenContext';
 import { useNavigation } from '@react-navigation/native';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getTextStyles } from '../../utils/responsive';
 import { 
@@ -42,7 +44,6 @@ interface LibraryProps {
 }
 
 export default function Library({ onBackPress }: LibraryProps = {}) {
-  const themeColors = useThemeColors();
   const navigation = useNavigation();
   const responsiveDimensions = getResponsiveDimensions();
   const typography = getTypographyScale();
@@ -53,7 +54,8 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
   
   // State for TravelFeedCard fullscreen view
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const { isFullscreen, setIsFullscreen } = useFullscreen();
+  const themeColors = useFullscreenTheme(isFullscreen);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent');
   const [selectedActivityCategory, setSelectedActivityCategory] = useState<string | null>(null); // Track which tab context

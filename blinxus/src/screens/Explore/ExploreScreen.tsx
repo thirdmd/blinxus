@@ -10,7 +10,9 @@ import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_
 import MediaGridItem from '../../components/MediaGridItem';
 import { useScrollContext } from '../../contexts/ScrollContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { useFullscreenTheme } from '../../hooks/useFullscreenTheme';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useFullscreen } from '../../contexts/FullscreenContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 import { 
@@ -32,14 +34,15 @@ export interface ExploreScreenRef {
 
 const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const navigation = useNavigation();
-  const themeColors = useThemeColors();
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
   const { isImmersiveFeedEnabled } = useSettings();
   const [headerVisible, setHeaderVisible] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<ActivityKey | 'all'>('all');
   const [isMediaMode, setIsMediaMode] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const { isFullscreen, setIsFullscreen } = useFullscreen();
+  const themeColors = useThemeColors();
+  const fullscreenTheme = useFullscreenTheme(true);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const lastScrollY = useRef(0);
   
@@ -343,10 +346,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // If in fullscreen mode, show TravelFeedCard view with animation
   if (isFullscreen) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: fullscreenTheme.background }}>
         <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={themeColors.background} 
+          barStyle="light-content"
+          backgroundColor={fullscreenTheme.background} 
         />
         
         {/* Animated Background Overlay */}
@@ -357,7 +360,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: themeColors.background,
+            backgroundColor: fullscreenTheme.background,
             opacity: animationValues.backgroundOpacity,
           }}
         />
@@ -373,7 +376,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           {/* Fixed App Bar - Back button moved to far left corner */}
           <View style={{
             height: responsiveDimensions.appBar.height,
-            backgroundColor: themeColors.background,
+            backgroundColor: fullscreenTheme.background,
             flexDirection: 'row',
             alignItems: 'center',
             paddingLeft: rs(8), // Minimal left padding to reach corner
@@ -394,7 +397,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               delayPressIn={0}
               delayPressOut={0}
             >
-              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+              <ChevronLeft size={ri(18)} color={fullscreenTheme.text} strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
@@ -467,14 +470,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                 justifyContent: 'center',
                 borderRadius: rs(16),
                 backgroundColor: scrollY > 20 ? `${themeColors.backgroundSecondary}40` : 'transparent',
-                opacity: scrollY > 50 ? 0 : 1,
               }}
               activeOpacity={0.7}
             >
               <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
             </TouchableOpacity>
           ) : (
-            // Blinxus logo - fades out when scrolling
+            // Blinxus logo - stays visible
             <Image 
               source={require('../../../../assets/blinxus-logo.png')} 
               style={{ 
@@ -483,7 +485,6 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                 top: rs(-65), // Move up
                 width: ri(120), // Keep same size
                 height: ri(180), // Keep same size
-                opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
                 zIndex: 10, // Make sure it's visible on top
               }}
               resizeMode="contain" // Maintains aspect ratio
@@ -507,7 +508,6 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                 backgroundColor: scrollY > 20 
                   ? `${themeColors.backgroundSecondary}40` 
                   : `${themeColors.backgroundSecondary}20`,
-                opacity: scrollY > 50 ? 0 : 1,
               }}
               activeOpacity={0.7}
             >

@@ -28,6 +28,7 @@ import { LikedPostsProvider } from './blinxus/src/store/LikedPostsContext';
 import { JoinedPodsProvider } from './blinxus/src/store/JoinedPodsContext';
 import { ThemeProvider } from './blinxus/src/contexts/ThemeContext';
 import { SettingsProvider } from './blinxus/src/contexts/SettingsContext';
+import { FullscreenProvider, useFullscreen } from './blinxus/src/contexts/FullscreenContext';
 
 // Create navigators
 const Tab = createBottomTabNavigator();
@@ -112,6 +113,7 @@ const EmptyComponent = () => null;
 // Tab Navigator
 function TabNavigator() {
   const themeColors = useThemeColors();
+  const { isFullscreen } = useFullscreen();
   const responsiveDimensions = getResponsiveDimensions();
   const typography = getTypographyScale();
   const exploreScrollRef = useRef<FlatList>(null);
@@ -240,46 +242,61 @@ function TabNavigator() {
   return (
     <ScrollContext.Provider value={{ exploreScrollRef, podsScrollRef, profileScrollRef }}>
       <Tab.Navigator
-        screenOptions={({ route, navigation }) => ({
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => {
-            if (route.name === 'Create') {
-              return null; // Custom button handles this
-            }
-            return <TabIcon name={route.name} color={color} focused={focused} />;
-          },
-          tabBarButton: route.name === 'Create' ? (props: any) => <CreateTabButton {...props} navigation={navigation} /> : undefined,
-          tabBarStyle: {
-            backgroundColor: themeColors.background,
-            borderTopColor: themeColors.border,
-            borderTopWidth: rs(1),
-            height: responsiveDimensions.tabBar.height,
-            paddingBottom: responsiveDimensions.tabBar.paddingBottom,
-            paddingTop: responsiveDimensions.tabBar.paddingTop,
-          },
-          tabBarLabelStyle: {
-            fontSize: rf(11),
-            fontWeight: '500',
-            marginTop: route.name === 'Create' ? rs(4) : rs(2),
-          },
-          tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : themeColors.text,
-          tabBarInactiveTintColor: themeColors.textSecondary,
-          tabBarLabel: ({ focused }) => {
-            if (route.name === 'Create') {
-              return (
-                <Text style={{
-                  fontSize: rf(11),
-                  fontWeight: '500',
-                  color: '#0047AB',
-                  marginTop: rs(4)
-                }}>
-                  Create
-                </Text>
-              );
-            }
-            return !focused ? '' : undefined;
-          },
-        })}
+        screenOptions={({ route, navigation }) => {
+          // Use dark theme for tab bar when in fullscreen mode
+          const tabBarColors = isFullscreen ? {
+            background: '#000000',
+            backgroundSecondary: '#1A1A1A',
+            backgroundTertiary: '#2A2A2A',
+            text: '#FFFFFF',
+            textSecondary: '#A0A0A0',
+            textTertiary: '#808080',
+            border: '#333333',
+            subtle: '#404040',
+            isDark: true,
+          } : themeColors;
+          
+          return {
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => {
+              if (route.name === 'Create') {
+                return null; // Custom button handles this
+              }
+              return <TabIcon name={route.name} color={color} focused={focused} />;
+            },
+            tabBarButton: route.name === 'Create' ? (props: any) => <CreateTabButton {...props} navigation={navigation} /> : undefined,
+            tabBarStyle: {
+              backgroundColor: tabBarColors.background,
+              borderTopColor: tabBarColors.border,
+              borderTopWidth: rs(1),
+              height: responsiveDimensions.tabBar.height,
+              paddingBottom: responsiveDimensions.tabBar.paddingBottom,
+              paddingTop: responsiveDimensions.tabBar.paddingTop,
+            },
+            tabBarLabelStyle: {
+              fontSize: rf(11),
+              fontWeight: '500',
+              marginTop: route.name === 'Create' ? rs(4) : rs(2),
+            },
+            tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : tabBarColors.text,
+            tabBarInactiveTintColor: tabBarColors.textSecondary,
+            tabBarLabel: ({ focused }) => {
+              if (route.name === 'Create') {
+                return (
+                  <Text style={{
+                    fontSize: rf(11),
+                    fontWeight: '500',
+                    color: '#0047AB',
+                    marginTop: rs(4)
+                  }}>
+                    Create
+                  </Text>
+                );
+              }
+              return !focused ? '' : undefined;
+            },
+          };
+        }}
         screenListeners={({ route, navigation }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
@@ -350,19 +367,21 @@ export default function App() {
   return (
     <ThemeProvider>
       <SettingsProvider>
-        <PostsProvider>
-          <SavedPostsProvider>
-            <LikedPostsProvider>
-              <JoinedPodsProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <NavigationContainer>
-                    <RootNavigator />
-                  </NavigationContainer>
-                </GestureHandlerRootView>
-              </JoinedPodsProvider>
-            </LikedPostsProvider>
-          </SavedPostsProvider>
-        </PostsProvider>
+        <FullscreenProvider>
+          <PostsProvider>
+            <SavedPostsProvider>
+              <LikedPostsProvider>
+                <JoinedPodsProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <NavigationContainer>
+                      <RootNavigator />
+                    </NavigationContainer>
+                  </GestureHandlerRootView>
+                </JoinedPodsProvider>
+              </LikedPostsProvider>
+            </SavedPostsProvider>
+          </PostsProvider>
+        </FullscreenProvider>
       </SettingsProvider>
     </ThemeProvider>
   );
