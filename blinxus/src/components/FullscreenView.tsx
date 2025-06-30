@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { 
   View, 
   SafeAreaView, 
@@ -36,6 +36,29 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
   onLucidPress
 }) => {
   const themeColors = useThemeColors();
+  const flatListRef = useRef<FlatList>(null);
+
+  // RADICAL FIX: Force correct scroll position after mount
+  useEffect(() => {
+    if (visible && selectedPostIndex > 0 && flatListRef.current) {
+      // Multiple attempts to ensure proper positioning
+      const scrollToIndex = () => {
+        flatListRef.current?.scrollToIndex({
+          index: selectedPostIndex,
+          animated: false,
+          viewPosition: 0 // Ensure item is at the top
+        });
+      };
+
+      // Immediate attempt
+      scrollToIndex();
+      
+      // Backup attempts with delays to handle React Native timing issues
+      setTimeout(scrollToIndex, 10);
+      setTimeout(scrollToIndex, 50);
+      setTimeout(scrollToIndex, 100);
+    }
+  }, [visible, selectedPostIndex]);
 
   if (!visible) return null;
 
@@ -97,6 +120,7 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
 
         {/* TravelFeedCard FlatList */}
         <FlatList
+          ref={flatListRef}
           data={posts}
           renderItem={({ item }) => (
             <TravelFeedCard 
@@ -111,7 +135,7 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
           showsVerticalScrollIndicator={false}
           pagingEnabled={true}
           snapToInterval={responsiveDimensions.feedCard.height}
-          snapToAlignment="end"
+          snapToAlignment="start"
           decelerationRate="fast"
           initialScrollIndex={selectedPostIndex}
           getItemLayout={(data, index) => ({
@@ -123,6 +147,17 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
           initialNumToRender={1}
           maxToRenderPerBatch={3}
           windowSize={5}
+          onScrollToIndexFailed={(info) => {
+            // RADICAL FALLBACK: Handle scroll failures
+            const wait = new Promise<void>(resolve => setTimeout(() => resolve(), 500));
+            wait.then(() => {
+              flatListRef.current?.scrollToIndex({
+                index: info.index,
+                animated: false,
+                viewPosition: 0
+              });
+            });
+          }}
         />
       </Animated.View>
     </SafeAreaView>

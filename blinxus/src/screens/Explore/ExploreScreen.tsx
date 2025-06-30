@@ -30,6 +30,11 @@ const spacing = getSpacingScale();
 
 export interface ExploreScreenRef {
   resetToAll: () => void;
+  scrollToTopInMediaMode: () => void;
+  isInMediaMode: () => boolean;
+  isInFullscreenMode: () => boolean;
+  exitFullscreenOnly: () => void;
+  directResetFromFullscreen: () => void; // NEW: Direct transition without grid flicker
 }
 
 const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
@@ -81,8 +86,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Expose reset function for double-tap
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
-      // Exit fullscreen mode if active
-      // Note: We don't reset fullscreen here since it's managed centrally
+      // RADICAL FIX: Exit fullscreen mode if active - using phase check
+      if (fullscreenManager.phase === 'active') {
+        fullscreenManager.exitFullscreen();
+      }
       
       // Exit media mode and reset to normal view
       setIsMediaMode(false);
@@ -101,6 +108,68 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           exploreScrollRef.current.scrollToOffset({ offset: 0, animated: true });
         }
       }, 100);
+    },
+    scrollToTopInMediaMode: () => {
+      // Only scroll to top if currently in media mode, don't exit media mode
+      if (isMediaMode && mediaScrollRef?.current) {
+        mediaScrollRef.current.scrollTo({ y: 0, animated: true });
+        
+        // Reset media scroll position tracking
+        setMediaScrollPosition(0);
+        mediaScrollPositionRef.current = 0;
+        mediaScrollPositions.current[selectedFilter] = 0;
+        
+        // Show header when going to top
+        setHeaderVisible(true);
+        setGlobalHeaderHidden(false);
+        setScrollY(0);
+        setAppBarOpacity(1);
+        setAppBarBlur(false);
+      }
+    },
+    isInMediaMode: () => {
+      return isMediaMode;
+    },
+    isInFullscreenMode: () => {
+      return fullscreenManager.phase === 'active';
+    },
+    exitFullscreenOnly: () => {
+      // RADICAL FIX: Only exit fullscreen mode using phase check
+      if (fullscreenManager.phase === 'active') {
+        fullscreenManager.exitFullscreen();
+      }
+    },
+    directResetFromFullscreen: () => {
+      // 🚀 RADICAL DIRECT TRANSITION: Skip grid view completely
+      // This is specifically for double-tap from fullscreen mode
+      
+      // Step 1: Immediately prepare the normal view state (NO GRID FLICKER)
+      setIsMediaMode(false);
+      setSelectedFilter('all');
+      
+      // Step 2: Reset all app bar states instantly
+      setScrollY(0);
+      setAppBarOpacity(1);
+      setAppBarBlur(false);
+      setHeaderVisible(true);
+      setGlobalHeaderHidden(false);
+      
+      // Step 3: Reset scroll positions
+      scrollPositions.current = {};
+      mediaScrollPositions.current = {};
+      
+      // Step 4: INSTANT EXIT - No animation, direct transition
+      if (fullscreenManager.phase === 'active') {
+        // Use instant exit instead of animated exit for buttery smooth transition
+        fullscreenManager.instantExit();
+      }
+      
+      // Step 5: Ensure scroll position is at top immediately
+      setTimeout(() => {
+        if (exploreScrollRef?.current) {
+          exploreScrollRef.current.scrollToOffset({ offset: 0, animated: false });
+        }
+      }, 10); // Ultra-minimal delay for instant feel
     },
   }));
 
@@ -303,8 +372,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // If in fullscreen mode, show centralized FullscreenView
-  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
+  // RADICAL FIX: Only show fullscreen when phase is 'active' - prevents render conflicts
+  if (fullscreenManager.phase === 'active' && fullscreenManager.currentConfig) {
     return (
       <FullscreenView
         visible={fullscreenManager.isFullscreen}
@@ -313,6 +382,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         animationValues={fullscreenManager.animationValues}
         config={fullscreenManager.currentConfig}
         onBack={fullscreenManager.exitFullscreen}
+        onLucidPress={fullscreenManager.handleLucidPress}
       />
     );
   }

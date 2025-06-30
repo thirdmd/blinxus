@@ -274,104 +274,18 @@ export default function ProfileStructure({
     );
   };
 
-  // If in fullscreen mode, show TravelFeedCard view with animation
-  if (fullscreenManager.isFullscreen) {
-    const filteredPosts = (posts || []).filter(post => {
-      const isCurrentUser = post.authorName === profileData?.name;
-      if (!isCurrentUser) return false;
-      return post.images && post.images.length > 0;
-    });
-
+  // RADICAL FIX: Only show fullscreen when phase is 'active' - prevents render conflicts
+  if (fullscreenManager.phase === 'active' && fullscreenManager.currentConfig) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-        <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={themeColors.background} 
-        />
-        
-        {/* Animated Background Overlay */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: themeColors.background,
-            opacity: fullscreenManager.animationValues.backgroundOpacity,
-          }}
-        />
-        
-        {/* Animated Content Container */}
-        <Animated.View
-          style={{
-            flex: 1,
-            transform: [{ scale: fullscreenManager.animationValues.scale }],
-            opacity: fullscreenManager.animationValues.opacity,
-          }}
-        >
-          {/* Fixed App Bar - Back button moved to far left corner */}
-          <View style={{
-            height: responsiveDimensions.appBar.height,
-            backgroundColor: themeColors.background,
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingLeft: rs(8), // Minimal left padding to reach corner
-            paddingRight: responsiveDimensions.appBar.paddingHorizontal,
-          }}>
-            {/* Back button - Far left corner */}
-                          <TouchableOpacity 
-                onPress={fullscreenManager.exitFullscreen}
-                style={{ 
-                  width: responsiveDimensions.button.small.width, 
-                  height: responsiveDimensions.button.small.height, 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  borderRadius: rs(16),
-                  backgroundColor: 'transparent',
-                }}
-                activeOpacity={0.95}
-                delayPressIn={0}
-                delayPressOut={0}
-              >
-                <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-              </TouchableOpacity>
-          </View>
-
-          {/* TravelFeedCard FlatList - Same as ExploreScreen with custom onLucidPress */}
-          <FlatList
-            data={filteredPosts}
-            renderItem={({ item }) => {
-              const postCardProps = mapPostToCardProps(item);
-              return (
-                <TravelFeedCard 
-                  {...postCardProps} 
-                  onDetailsPress={() => {}}
-                                      onLucidPress={postCardProps.type === 'lucid' ? () => fullscreenManager.handleLucidPress(postCardProps) : undefined}
-                  isVisible={true}
-                />
-              );
-            }}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            showsVerticalScrollIndicator={false}
-            pagingEnabled={true}
-            snapToInterval={responsiveDimensions.feedCard.height}
-            snapToAlignment="end"
-            decelerationRate="fast"
-            initialScrollIndex={fullscreenManager.selectedPostIndex}
-            getItemLayout={(data, index) => ({
-              length: responsiveDimensions.feedCard.height,
-              offset: responsiveDimensions.feedCard.height * index,
-              index,
-            })}
-            removeClippedSubviews={false}
-            initialNumToRender={1}
-            maxToRenderPerBatch={3}
-            windowSize={5}
-          />
-        </Animated.View>
-      </SafeAreaView>
+      <FullscreenView
+        visible={fullscreenManager.isFullscreen}
+        posts={userMediaPosts}
+        selectedPostIndex={fullscreenManager.selectedPostIndex}
+        animationValues={fullscreenManager.animationValues}
+        config={fullscreenManager.currentConfig}
+        onBack={fullscreenManager.exitFullscreen}
+        onLucidPress={fullscreenManager.handleLucidPress}
+      />
     );
   }
 

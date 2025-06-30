@@ -91,7 +91,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
       // 1. Coming from feed (preserve feed navigation behavior)
       // 2. Fullscreen manager is active (preserve fullscreen state)
       // 3. Coming back from LucidFullscreen (preserve the current state)
-      if (!routeParams?.fromFeed && !fullscreenManager.isFullscreen) {
+      if (!routeParams?.fromFeed && fullscreenManager.phase === 'idle') {
         resetToTop();
       } else {
         // Reset animation state when coming from feed or when fullscreen is active
@@ -99,7 +99,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
         backgroundSlideAnim.setValue(0);
         setShowSettings(false);
       }
-    }, [routeParams?.fromFeed, fullscreenManager.isFullscreen])
+    }, [routeParams?.fromFeed, fullscreenManager.phase])
   );
 
   // Clear feed params when navigating away from Profile

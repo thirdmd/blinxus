@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { PostCardProps } from '../types/structures/posts_structure';
@@ -33,78 +33,124 @@ export interface FullscreenState {
   animationValues: ReturnType<typeof createAnimationValues>;
 }
 
+// RADICAL APPROACH: State Machine for Fullscreen Management  
+type FullscreenPhase = 'idle' | 'entering' | 'active' | 'exiting';
+
 export const useFullscreenManager = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [currentConfig, setCurrentConfig] = useState<FullscreenConfig | null>(null);
+  const [phase, setPhase] = useState<FullscreenPhase>('idle');
   
   // Animation values for consistent transitions
   const animationValues = useRef(createAnimationValues()).current;
   
   const navigation = useNavigation();
+  
+  // RADICAL FIX: Async state scheduler to avoid React's restricted phases
+  const scheduleStateUpdate = useCallback((updateFn: () => void) => {
+    // Schedule state updates outside React's render/effect phases
+    requestAnimationFrame(() => {
+      setTimeout(updateFn, 0);
+    });
+  }, []);
 
-  // Enter fullscreen with consistent animation
-  const enterFullscreen = useCallback((config: FullscreenConfig) => {
-    setCurrentConfig(config);
-    setSelectedPostIndex(config.selectedPostIndex);
-    
-    // Start expand animation and then show fullscreen
-    runAnimation(
-      FEED_ANIMATIONS.expand(animationValues),
-      () => {
+  // RADICAL FIX: State machine effect for safe transitions
+  useEffect(() => {
+    if (phase === 'entering') {
+      // Safe state update after animation completes
+      scheduleStateUpdate(() => {
         setIsFullscreen(true);
-      }
-    );
-  }, [animationValues]);
-
-  // Exit fullscreen with consistent animation and scroll restoration
-  const exitFullscreen = useCallback(() => {
-    if (!currentConfig) return;
-
-    // Start collapse animation first
-    runAnimation(
-      FEED_ANIMATIONS.collapse(animationValues),
-      () => {
-        // INSTANT back transition after animation
+        setPhase('active');
+      });
+    } else if (phase === 'exiting') {
+      // Safe cleanup after exit animation
+      scheduleStateUpdate(() => {
         setIsFullscreen(false);
+        setPhase('idle');
         
-        // Consistent scroll position restoration
-        const restoreScrollPosition = () => {
-          if (currentConfig.scrollRef.current) {
-            // Handle different scroll ref types
-            if (currentConfig.scrollRef.current.scrollTo) {
-              // ScrollView
+        // Scroll position restoration
+        if (currentConfig?.scrollRef.current) {
+          const restoreScroll = () => {
+            if (currentConfig.scrollRef.current?.scrollTo) {
               currentConfig.scrollRef.current.scrollTo({ 
                 y: currentConfig.scrollPosition, 
                 animated: false 
               });
-            } else if (currentConfig.scrollRef.current.scrollToOffset) {
-              // FlatList
+            } else if (currentConfig.scrollRef.current?.scrollToOffset) {
               currentConfig.scrollRef.current.scrollToOffset({ 
                 offset: currentConfig.scrollPosition, 
                 animated: false 
               });
             }
-          }
-        };
+          };
+          
+          // Multiple restoration attempts for reliability
+          restoreScroll();
+          setTimeout(restoreScroll, 50);
+          setTimeout(restoreScroll, 100);
+        }
         
-        // Multiple restoration attempts for reliability
-        setTimeout(restoreScrollPosition, 0);
-        requestAnimationFrame(() => {
-          setTimeout(restoreScrollPosition, 0);
-        });
-        setTimeout(restoreScrollPosition, 100);
-        
-        // Call custom back handler if provided
-        if (currentConfig.onBackCustom) {
+        // Custom back handler
+        if (currentConfig?.onBackCustom) {
           currentConfig.onBackCustom();
         }
         
         // Reset config
         setCurrentConfig(null);
-      }
+      });
+    }
+  }, [phase, currentConfig, scheduleStateUpdate]);
+
+  // Enter fullscreen with state machine approach
+  const enterFullscreen = useCallback((config: FullscreenConfig) => {
+    if (phase !== 'idle') return; // Prevent multiple entries
+    
+    setCurrentConfig(config);
+    setSelectedPostIndex(config.selectedPostIndex);
+    setPhase('entering');
+    
+    // Start expand animation - state updates happen in useEffect
+    runAnimation(
+      FEED_ANIMATIONS.expand(animationValues)
+      // No callback needed - state machine handles it
     );
-  }, [currentConfig, animationValues]);
+  }, [animationValues, phase]);
+
+  // Exit fullscreen with state machine approach
+  const exitFullscreen = useCallback(() => {
+    if (phase !== 'active' || !currentConfig) return; // Prevent multiple exits
+    
+    setPhase('exiting');
+    
+    // Start collapse animation - state updates happen in useEffect  
+    runAnimation(
+      FEED_ANIMATIONS.collapse(animationValues)
+      // No callback needed - state machine handles it
+    );
+  }, [currentConfig, animationValues, phase]);
+
+  // 🚀 INSTANT EXIT: For direct transitions without animation
+  const instantExit = useCallback(() => {
+    if (phase !== 'active' || !currentConfig) return;
+    
+    // Skip animation, go directly to cleanup
+    scheduleStateUpdate(() => {
+      setIsFullscreen(false);
+      setPhase('idle');
+      
+      // Skip scroll restoration for direct transitions
+      // The calling component will handle scroll positioning
+      
+      // Custom back handler
+      if (currentConfig?.onBackCustom) {
+        currentConfig.onBackCustom();
+      }
+      
+      // Reset config
+      setCurrentConfig(null);
+    });
+  }, [currentConfig, phase, scheduleStateUpdate]);
 
   // Handle post press with context awareness
   const handlePostPress = useCallback((
@@ -144,10 +190,12 @@ export const useFullscreenManager = () => {
     selectedPostIndex,
     animationValues,
     currentConfig,
+    phase, // Expose phase for debugging
     
     // Actions
     enterFullscreen,
     exitFullscreen,
+    instantExit, // NEW: Instant exit for direct transitions
     handlePostPress,
     handleLucidPress,
     

@@ -136,14 +136,36 @@ function TabNavigator() {
       // SAME SCREEN: Single press = reset, Double press = refresh
       switch (routeName) {
         case 'Home':
-          // Single tap: Reset to "All" tab and scroll to top
-          if (exploreScreenRef.current) {
-            exploreScreenRef.current.resetToAll();
-          }
-          
-          // Double tap: Additional refresh
           if (isDoubleTap) {
-            // Additional refresh logic can go here if needed
+            // 🚀 RADICAL FIX: Double tap with direct transition (no grid flicker)
+            if (exploreScreenRef.current) {
+              const inFullscreenMode = exploreScreenRef.current.isInFullscreenMode();
+              
+              if (inFullscreenMode) {
+                // FROM FULLSCREEN: Use direct reset (bypasses grid view completely)
+                exploreScreenRef.current.directResetFromFullscreen();
+              } else {
+                // FROM GRID/NORMAL: Use regular reset
+                exploreScreenRef.current.resetToAll();
+              }
+            }
+          } else {
+            // Single tap: Check current mode priority - fullscreen > grid > normal
+            if (exploreScreenRef.current) {
+              const inFullscreenMode = exploreScreenRef.current.isInFullscreenMode();
+              const inMediaMode = exploreScreenRef.current.isInMediaMode();
+              
+              if (inFullscreenMode) {
+                // In fullscreen mode: just exit fullscreen, return to grid mode with same scroll position
+                exploreScreenRef.current.exitFullscreenOnly();
+              } else if (inMediaMode) {
+                // In grid mode: just scroll to top, don't exit grid mode
+                exploreScreenRef.current.scrollToTopInMediaMode();
+              } else {
+                // In normal mode: reset to all (existing behavior)
+                exploreScreenRef.current.resetToAll();
+              }
+            }
           }
           break;
           
@@ -197,7 +219,15 @@ function TabNavigator() {
             navigation.navigate('Home');
             setTimeout(() => {
               if (exploreScreenRef.current) {
-                exploreScreenRef.current.resetToAll();
+                const inFullscreenMode = exploreScreenRef.current.isInFullscreenMode();
+                
+                if (inFullscreenMode) {
+                  // FROM FULLSCREEN: Use direct reset (bypasses grid view completely)
+                  exploreScreenRef.current.directResetFromFullscreen();
+                } else {
+                  // FROM GRID/NORMAL: Use regular reset
+                  exploreScreenRef.current.resetToAll();
+                }
               }
             }, 50);
             break;
