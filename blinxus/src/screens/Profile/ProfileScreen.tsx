@@ -8,6 +8,7 @@ import { useScrollContext } from '../../contexts/ScrollContext';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { createSettingsSlideInAnimation, createSettingsSlideOutAnimation } from '../../utils/animations';
+import useFullscreenManager from '../../hooks/useFullscreenManager';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +23,9 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   const navigation = useNavigation();
   const route = useRoute();
   const themeColors = useThemeColors();
+  
+  // Get fullscreen manager to check if we're in fullscreen mode
+  const fullscreenManager = useFullscreenManager();
   
   // Animation values for smooth Settings transition
   const settingsSlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
@@ -83,16 +87,19 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Auto-reset to top when navigating to Profile from post
   useFocusEffect(
     React.useCallback(() => {
-      // Only reset to top if NOT coming from feed (preserve feed navigation behavior)
-      if (!routeParams?.fromFeed) {
+      // Don't reset if:
+      // 1. Coming from feed (preserve feed navigation behavior)
+      // 2. Fullscreen manager is active (preserve fullscreen state)
+      // 3. Coming back from LucidFullscreen (preserve the current state)
+      if (!routeParams?.fromFeed && !fullscreenManager.isFullscreen) {
         resetToTop();
       } else {
-        // Reset animation state when coming from feed
+        // Reset animation state when coming from feed or when fullscreen is active
         settingsSlideAnim.setValue(width);
         backgroundSlideAnim.setValue(0);
         setShowSettings(false);
       }
-    }, [routeParams?.fromFeed])
+    }, [routeParams?.fromFeed, fullscreenManager.isFullscreen])
   );
 
   // Clear feed params when navigating away from Profile

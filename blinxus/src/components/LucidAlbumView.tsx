@@ -169,7 +169,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
         }}
       >
         <View style={{
-          backgroundColor: themeColors.isDark ? 'rgba(11, 20, 38, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+          backgroundColor: `${themeColors.background}CC`, // Use theme background with opacity
           paddingHorizontal: 16,
           paddingVertical: 12,
           flexDirection: 'row',
@@ -261,7 +261,7 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
         flex: 1, 
         alignItems: 'center', 
         justifyContent: 'center', 
-        backgroundColor: themeColors.backgroundSecondary, 
+        backgroundColor: themeColors.background, 
         height: height - 200 
       }}>
         <Text style={{ fontSize: 18, color: themeColors.textSecondary }}>SpaceView Coming Soon</Text>

@@ -12,6 +12,7 @@ import { useScrollContext } from '../../contexts/ScrollContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useSettings } from '../../contexts/SettingsContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
+import FullscreenView from '../../components/FullscreenView';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 import { 
   createAnimationValues, 
@@ -19,6 +20,7 @@ import {
   runAnimation,
   ANIMATION_DURATIONS 
 } from '../../utils/animations';
+import useFullscreenManager from '../../hooks/useFullscreenManager';
 
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -39,12 +41,11 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<ActivityKey | 'all'>('all');
   const [isMediaMode, setIsMediaMode] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedPostIndex, setSelectedPostIndex] = useState(0);
-  const lastScrollY = useRef(0);
   
-  // NEW: Animation values for Instagram-like transitions
-  const animationValues = useRef(createAnimationValues()).current;
+  // Centralized fullscreen management
+  const fullscreenManager = useFullscreenManager();
+  
+  const lastScrollY = useRef(0);
   
   // New state for custom app bar behavior
   const [scrollY, setScrollY] = useState(0);
@@ -81,7 +82,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
       // Exit fullscreen mode if active
-      setIsFullscreen(false);
+      // Note: We don't reset fullscreen here since it's managed centrally
       
       // Exit media mode and reset to normal view
       setIsMediaMode(false);
@@ -266,53 +267,15 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     const currentOffset = mediaScrollPositionRef.current;
     setMediaScrollPosition(currentOffset);
     
-    // Find post index and set immediately
-    const postIndex = postsWithImages.findIndex(p => p.id === post.id);
-    setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-    
-    // Start expand animation and then show fullscreen
-    runAnimation(
-      FEED_ANIMATIONS.expand(animationValues),
-      () => {
-        setIsFullscreen(true);
-      }
-    );
-  }, [postsWithImages]);
-
-  // Handle back from fullscreen with Instagram-like collapse animation
-  const handleBackFromFullscreen = useCallback(() => {
-    // Start collapse animation first
-    runAnimation(
-      FEED_ANIMATIONS.collapse(animationValues),
-      () => {
-        // INSTANT back transition after animation
-        setIsFullscreen(false);
-        
-        // EXACT same restoration approach as Profile
-        const restoreScrollPosition = () => {
-          if (mediaScrollRef.current) {
-            // Always restore position, even if it's 0 (top of scroll)
-            mediaScrollRef.current.scrollTo({ 
-              y: mediaScrollPosition, 
-              animated: false 
-            });
-          }
-        };
-        
-        // Use EXACT same restoration attempts as Profile for maximum reliability
-        // Immediate attempt
-        setTimeout(restoreScrollPosition, 0);
-        
-        // Secondary attempt after next frame
-        requestAnimationFrame(() => {
-          setTimeout(restoreScrollPosition, 0);
-        });
-        
-        // Final attempt after a short delay
-        setTimeout(restoreScrollPosition, 100);
-      }
-    );
-  }, [mediaScrollPosition]);
+    // Use centralized fullscreen manager
+    fullscreenManager.handlePostPress(post, postsWithImages, {
+      screenName: 'Explore',
+      feedContext: 'explore',
+      scrollPosition: currentOffset,
+      setScrollPosition: setMediaScrollPosition,
+      scrollRef: mediaScrollRef
+    });
+  }, [postsWithImages, fullscreenManager]);
 
   // Handle travel details popup
   const handleShowTravelDetails = useCallback((post: PostCardProps) => {
@@ -340,98 +303,19 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // If in fullscreen mode, show TravelFeedCard view with animation
-  if (isFullscreen) {
+  // If in fullscreen mode, show centralized FullscreenView
+  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-        <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={themeColors.background} 
-        />
-        
-        {/* Animated Background Overlay */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: themeColors.background,
-            opacity: animationValues.backgroundOpacity,
-          }}
-        />
-        
-        {/* Animated Content Container */}
-        <Animated.View
-          style={{
-            flex: 1,
-            transform: [{ scale: animationValues.scale }],
-            opacity: animationValues.opacity,
-          }}
-        >
-          {/* Fixed App Bar - Back button moved to far left corner */}
-          <View style={{
-            height: responsiveDimensions.appBar.height,
-            backgroundColor: themeColors.background,
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingLeft: rs(8), // Minimal left padding to reach corner
-            paddingRight: responsiveDimensions.appBar.paddingHorizontal,
-          }}>
-            {/* Back button - Far left corner */}
-            <TouchableOpacity 
-              onPress={handleBackFromFullscreen}
-              style={{ 
-                width: responsiveDimensions.button.small.width, 
-                height: responsiveDimensions.button.small.height, 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: rs(16),
-                backgroundColor: 'transparent',
-              }}
-              activeOpacity={0.95}
-              delayPressIn={0}
-              delayPressOut={0}
-            >
-              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-
-          {/* TravelFeedCard FlatList - RADICAL APPROACH: Direct to selected post */}
-          <FlatList
-            data={postsWithImages}
-            renderItem={({ item }) => (
-              <TravelFeedCard 
-                {...item} 
-                onDetailsPress={() => {}}
-                isVisible={true}
-              />
-            )}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            showsVerticalScrollIndicator={false}
-            pagingEnabled={true}
-            snapToInterval={responsiveDimensions.feedCard.height}
-            snapToAlignment="end"
-            decelerationRate="fast"
-            initialScrollIndex={selectedPostIndex}
-            getItemLayout={(data, index) => ({
-              length: responsiveDimensions.feedCard.height,
-              offset: responsiveDimensions.feedCard.height * index,
-              index,
-            })}
-            removeClippedSubviews={false}
-            initialNumToRender={1}
-            maxToRenderPerBatch={3}
-            windowSize={5}
-          />
-        </Animated.View>
-      </SafeAreaView>
+      <FullscreenView
+        visible={fullscreenManager.isFullscreen}
+        posts={fullscreenManager.currentConfig.posts}
+        selectedPostIndex={fullscreenManager.selectedPostIndex}
+        animationValues={fullscreenManager.animationValues}
+        config={fullscreenManager.currentConfig}
+        onBack={fullscreenManager.exitFullscreen}
+      />
     );
   }
-
-
 
   // Clean Grid Icon using Lucide
   

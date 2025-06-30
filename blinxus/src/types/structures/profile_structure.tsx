@@ -18,10 +18,11 @@ import {
 
 import { ProfileDataType } from '../userData/profile_data';
 import { Post } from '../userData/posts_data';
-import { mapPostToCardProps } from './posts_structure';
+import { mapPostToCardProps, PostCardProps } from './posts_structure';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
-import LucidAlbumView from '../../components/LucidAlbumView';
+
+import FullscreenView from '../../components/FullscreenView';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
@@ -35,6 +36,8 @@ import {
   createLibrarySlideInAnimation,
   createLibrarySlideOutAnimation
 } from '../../utils/animations';
+import useFullscreenManager from '../../hooks/useFullscreenManager';
+import { NavigationManager } from '../../utils/navigationManager';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
@@ -60,36 +63,26 @@ export default function ProfileStructure({
   fromFeed,
   previousScreen,
 }: Props) {
-  const navigation = useNavigation();
   const themeColors = useThemeColors();
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedPostIndex, setSelectedPostIndex] = useState(0);
+  const navigation = useNavigation();
+  
+  // Library slide animation
   const [showLibrary, setShowLibrary] = useState(false);
-  const localScrollViewRef = useRef<ScrollView>(null);
+  const librarySlideAnim = useRef(new Animated.Value(width)).current;
+  const backgroundSlideAnim = useRef(new Animated.Value(0)).current;
   
-  // NEW: State for lucid album view
-  const [showLucidAlbum, setShowLucidAlbum] = useState(false);
-  const [selectedLucidPost, setSelectedLucidPost] = useState<any>(null);
-  
-  // NEW: Animation values for Instagram-like transitions
-  const animationValues = useRef(createAnimationValues()).current;
-  
-  // Animation values for smooth Library transition
-  const librarySlideAnim = useRef(new Animated.Value(width)).current; // Start off-screen right
-  const backgroundSlideAnim = useRef(new Animated.Value(0)).current; // For parallax effect
-  // Use the scrollRef from props (for double tap functionality) or fallback to local ref
-  const scrollViewRef = scrollRef || localScrollViewRef;
-  
-  // Enhanced scroll position tracking like ExploreScreen
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const scrollPositionRef = useRef(0); // Use ref for immediate access
-  
-  // App bar state management
+  // Scroll and app bar state
   const [scrollY, setScrollY] = useState(0);
   const [appBarOpacity, setAppBarOpacity] = useState(1);
   const [appBarBlur, setAppBarBlur] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const scrollPositionRef = useRef(0);
   const lastScrollY = useRef(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  // Centralized fullscreen management
+  const fullscreenManager = useFullscreenManager();
   
   // Ultra-smooth Library open animation with parallax
   const openLibrary = () => {
@@ -104,25 +97,8 @@ export default function ProfileStructure({
     });
   };
 
-  // NEW: Handle lucid press - show lucid album view within same screen context
-  const handleLucidPress = (post: any) => {
-    setSelectedLucidPost(post);
-    setShowLucidAlbum(true);
-  };
-
-  // NEW: Handle back from lucid album view - return to scroll view
-  const handleBackFromLucidAlbum = () => {
-    setShowLucidAlbum(false);
-    setSelectedLucidPost(null);
-  };
-
   // Internal reset function that handles all ProfileStructure states
   const handleResetToTop = () => {
-    // Reset all internal states
-    setIsFullscreen(false);
-    setShowLucidAlbum(false);
-    setSelectedLucidPost(null);
-    
     // Close library with animation if open
     if (showLibrary) {
       closeLibrary();
@@ -154,7 +130,6 @@ export default function ProfileStructure({
   React.useEffect(() => {
     if (fromFeed) {
       setShowLibrary(false);
-      setIsFullscreen(false);
       librarySlideAnim.setValue(width); // Reset animation
       backgroundSlideAnim.setValue(0); // Reset background animation
     }
@@ -176,7 +151,7 @@ export default function ProfileStructure({
     post.authorName === profileData?.name && 
     post.images && 
     post.images.length > 0
-  );
+  ).map(post => mapPostToCardProps(post));
 
   // Enhanced scroll handler - Same as ExploreScreen
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -210,63 +185,20 @@ export default function ProfileStructure({
     lastScrollY.current = currentScrollY;
   };
 
-  // Handle post press with Instagram-like expand animation
-  const handlePostPress = (post: any) => {
+  // Handle post press with centralized fullscreen manager
+  const handlePostPress = (post: PostCardProps) => {
     // Store current scroll position before entering fullscreen
     const currentOffset = scrollPositionRef.current;
     setScrollPosition(currentOffset);
     
-    const filteredPosts = (posts || []).filter(p => {
-      const isCurrentUser = p.authorName === profileData?.name;
-      if (!isCurrentUser) return false;
-      return p.images && p.images.length > 0;
+    // Use centralized fullscreen manager
+    fullscreenManager.handlePostPress(post, userMediaPosts, {
+      screenName: 'Profile',
+      feedContext: 'profile',
+      scrollPosition: currentOffset,
+      setScrollPosition: setScrollPosition,
+      scrollRef: scrollViewRef
     });
-    
-    // Set selected post for TravelFeedCard view
-    const postIndex = filteredPosts.findIndex(p => p.id === post.id);
-    setSelectedPostIndex(postIndex >= 0 ? postIndex : 0);
-    
-    // Start expand animation and then show fullscreen
-    runAnimation(
-      FEED_ANIMATIONS.expand(animationValues),
-      () => {
-        setIsFullscreen(true);
-      }
-    );
-  };
-
-  // Handle back from fullscreen with Instagram-like collapse animation
-  const handleBackFromFullscreen = () => {
-    // Start collapse animation first
-    runAnimation(
-      FEED_ANIMATIONS.collapse(animationValues),
-      () => {
-        // INSTANT back transition after animation
-        setIsFullscreen(false);
-        
-        const restoreScrollPosition = () => {
-          if (scrollViewRef?.current) {
-            // Always restore position, even if it's 0 (top of scroll)
-            scrollViewRef.current.scrollTo({ 
-              y: scrollPosition, 
-              animated: false 
-            });
-          }
-        };
-        
-        // Use EXACT same restoration attempts as Library for maximum reliability
-        // Immediate attempt
-        setTimeout(restoreScrollPosition, 0);
-        
-        // Secondary attempt after next frame
-        requestAnimationFrame(() => {
-          setTimeout(restoreScrollPosition, 0);
-        });
-        
-        // Final attempt after a short delay
-        setTimeout(restoreScrollPosition, 100);
-      }
-    );
   };
 
   // Better social media icon components
@@ -342,24 +274,8 @@ export default function ProfileStructure({
     );
   };
 
-  // NEW: If showing lucid album view, render LucidAlbumView
-  if (showLucidAlbum && selectedLucidPost) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-        <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={themeColors.background} 
-        />
-        <LucidAlbumView 
-          post={selectedLucidPost}
-          onBack={handleBackFromLucidAlbum}
-        />
-      </SafeAreaView>
-    );
-  }
-
   // If in fullscreen mode, show TravelFeedCard view with animation
-  if (isFullscreen) {
+  if (fullscreenManager.isFullscreen) {
     const filteredPosts = (posts || []).filter(post => {
       const isCurrentUser = post.authorName === profileData?.name;
       if (!isCurrentUser) return false;
@@ -382,7 +298,7 @@ export default function ProfileStructure({
             right: 0,
             bottom: 0,
             backgroundColor: themeColors.background,
-            opacity: animationValues.backgroundOpacity,
+            opacity: fullscreenManager.animationValues.backgroundOpacity,
           }}
         />
         
@@ -390,8 +306,8 @@ export default function ProfileStructure({
         <Animated.View
           style={{
             flex: 1,
-            transform: [{ scale: animationValues.scale }],
-            opacity: animationValues.opacity,
+            transform: [{ scale: fullscreenManager.animationValues.scale }],
+            opacity: fullscreenManager.animationValues.opacity,
           }}
         >
           {/* Fixed App Bar - Back button moved to far left corner */}
@@ -404,22 +320,22 @@ export default function ProfileStructure({
             paddingRight: responsiveDimensions.appBar.paddingHorizontal,
           }}>
             {/* Back button - Far left corner */}
-            <TouchableOpacity 
-              onPress={handleBackFromFullscreen}
-              style={{ 
-                width: responsiveDimensions.button.small.width, 
-                height: responsiveDimensions.button.small.height, 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: rs(16),
-                backgroundColor: 'transparent',
-              }}
-              activeOpacity={0.95}
-              delayPressIn={0}
-              delayPressOut={0}
-            >
-              <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-            </TouchableOpacity>
+                          <TouchableOpacity 
+                onPress={fullscreenManager.exitFullscreen}
+                style={{ 
+                  width: responsiveDimensions.button.small.width, 
+                  height: responsiveDimensions.button.small.height, 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  borderRadius: rs(16),
+                  backgroundColor: 'transparent',
+                }}
+                activeOpacity={0.95}
+                delayPressIn={0}
+                delayPressOut={0}
+              >
+                <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
+              </TouchableOpacity>
           </View>
 
           {/* TravelFeedCard FlatList - Same as ExploreScreen with custom onLucidPress */}
@@ -431,7 +347,7 @@ export default function ProfileStructure({
                 <TravelFeedCard 
                   {...postCardProps} 
                   onDetailsPress={() => {}}
-                  onLucidPress={postCardProps.type === 'lucid' ? () => handleLucidPress(postCardProps) : undefined}
+                                      onLucidPress={postCardProps.type === 'lucid' ? () => fullscreenManager.handleLucidPress(postCardProps) : undefined}
                   isVisible={true}
                 />
               );
@@ -443,7 +359,7 @@ export default function ProfileStructure({
             snapToInterval={responsiveDimensions.feedCard.height}
             snapToAlignment="end"
             decelerationRate="fast"
-            initialScrollIndex={selectedPostIndex}
+            initialScrollIndex={fullscreenManager.selectedPostIndex}
             getItemLayout={(data, index) => ({
               length: responsiveDimensions.feedCard.height,
               offset: responsiveDimensions.feedCard.height * index,
@@ -461,39 +377,13 @@ export default function ProfileStructure({
 
   // Handle back navigation to specific previous screen
   const handleBackToPreviousScreen = () => {
-    // Clear route params first to reset state
-    (navigation as any).setParams({ 
-      fromFeed: false, 
-      previousScreen: undefined 
+    // Use centralized navigation manager
+    NavigationManager.goBack({
+      navigation: navigation as any,
+      previousScreen,
+      scrollPosition: scrollPosition,
+      scrollRef: scrollViewRef
     });
-    
-    // Navigate to specific screen based on previous screen context
-    switch (previousScreen) {
-      case 'Explore':
-        (navigation as any).navigate('MainTabs', { screen: 'Home' });
-        break;
-      case 'Forum':
-        (navigation as any).navigate('MainTabs', { screen: 'Pods' });
-        break;
-      case 'Library':
-        // For Library, just goBack since it's within the Profile screen
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-        break;
-      case 'PostDetail':
-        // For post detail, use generic goBack since it's a modal/overlay
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-        break;
-      default:
-        // Fallback to generic goBack
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-        break;
-    }
   };
 
   return (
