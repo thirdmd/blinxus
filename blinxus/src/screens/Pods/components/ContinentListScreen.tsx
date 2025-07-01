@@ -349,7 +349,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
 
   // Memoize tabs to prevent re-rendering
   const allTabs = useMemo(() => [
-    { id: 'feed', name: 'Feed' },
+    { id: 'feed', name: 'Global Feed' },
     { id: 'hot', name: 'Hot' },
     ...placesData
   ], []);

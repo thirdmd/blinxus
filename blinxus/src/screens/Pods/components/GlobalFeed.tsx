@@ -1,6 +1,6 @@
 // Global Feed Component - Shows all posts from all countries (centralized feed)
 
-import React, { useState, forwardRef, useImperativeHandle, useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput,
-  Animated,
 } from 'react-native';
-import { MessageCircle, Search, X, TrendingUp, Globe } from 'lucide-react-native';
+import { MessageCircle, Globe } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ForumPostCard } from './Forum/ForumPostCard';
 import ForumPostModal from '../../../components/ForumPostModal';
@@ -48,10 +46,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   
-  // Search functionality
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const searchAnimation = useRef(new Animated.Value(0)).current;
+
   
   // Create post modal
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -69,7 +64,6 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       const response = await ForumAPI.getGlobalFeedPosts({
         page,
         limit: 15,
-        searchQuery: searchQuery.trim() || undefined,
         sortBy: 'recent'
       });
 
@@ -91,23 +85,12 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       setIsLoadingMore(false);
       setIsRefreshing(false);
     }
-  }, [searchQuery]);
+  }, []);
 
   // Initial load
   useEffect(() => {
     loadPosts(1);
   }, [loadPosts]);
-
-  // Search with debounce
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchQuery !== '') {
-        loadPosts(1);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, loadPosts]);
 
   // Scroll to top function
   const scrollToTop = useCallback(() => {
@@ -137,25 +120,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
     }
   }, [onCreatePost]);
 
-  // Search functionality
-  const expandSearch = useCallback(() => {
-    setIsSearchExpanded(true);
-    Animated.timing(searchAnimation, {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [searchAnimation]);
 
-  const collapseSearch = useCallback(() => {
-    setSearchQuery('');
-    setIsSearchExpanded(false);
-    Animated.timing(searchAnimation, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [searchAnimation]);
 
 
 
@@ -245,19 +210,11 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
   }, [navigation, posts]);
 
   const handleTagPress = useCallback((tagId: string) => {
-    // For global feed, search by tag name
-    const tagData = require('./Forum/forumTypes').FORUM_ACTIVITY_TAGS.find((tag: any) => tag.id === tagId);
-    if (tagData) {
-      setSearchQuery(tagData.label);
-    }
+    // TODO: Implement tag filtering
   }, []);
 
   const handleCategoryPress = useCallback((categoryId: string) => {
-    // For global feed, search by category name
-    const categoryData = require('./Forum/forumTypes').FORUM_CATEGORIES.find((cat: any) => cat.id === categoryId);
-    if (categoryData) {
-      setSearchQuery(categoryData.label);
-    }
+    // TODO: Implement category filtering
   }, []);
 
   const handleCreatePostSubmit = useCallback(async (postData: {
@@ -305,103 +262,6 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
 
   const renderHeader = useCallback(() => (
     <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
-      {/* Header */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        marginBottom: 16,
-      }}>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-            <Globe size={20} color={theme.colors.primary} strokeWidth={2} />
-            <Text style={{
-              color: themeColors.text,
-              fontSize: 20,
-              fontWeight: '800',
-              fontFamily: 'System',
-              letterSpacing: -0.6,
-              marginLeft: 8,
-            }}>
-              Global Feed
-            </Text>
-          </View>
-          <Text style={{
-            color: themeColors.textSecondary,
-            fontSize: 13,
-            fontWeight: '400',
-            fontFamily: 'System',
-            letterSpacing: -0.1,
-          }}>
-            Posts from all destinations worldwide
-          </Text>
-        </View>
-
-        {/* Search */}
-        <Animated.View style={{
-          width: searchAnimation.interpolate({
-            inputRange: [0, 1],
-            outputRange: [40, 180],
-          }),
-          height: 40,
-        }}>
-          {!isSearchExpanded ? (
-            <TouchableOpacity
-              onPress={expandSearch}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: themeColors.isDark 
-                  ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(0, 0, 0, 0.05)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              activeOpacity={0.7}
-            >
-              <Search size={18} color={themeColors.textSecondary} strokeWidth={2} />
-            </TouchableOpacity>
-          ) : (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 12,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: themeColors.isDark 
-                ? 'rgba(255, 255, 255, 0.08)'
-                : 'rgba(0, 0, 0, 0.05)',
-            }}>
-              <Search size={16} color={themeColors.textSecondary} strokeWidth={2} />
-              <TextInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="Search global feed..."
-                placeholderTextColor={themeColors.textSecondary}
-                style={{
-                  flex: 1,
-                  marginLeft: 8,
-                  marginRight: 8,
-                  fontSize: 14,
-                  color: themeColors.text,
-                  fontFamily: 'System',
-                }}
-                autoFocus
-                returnKeyType="search"
-              />
-              <TouchableOpacity
-                onPress={collapseSearch}
-                style={{ padding: 4 }}
-                activeOpacity={0.7}
-              >
-                <X size={14} color={themeColors.textSecondary} strokeWidth={2} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </Animated.View>
-      </View>
-
       {/* Create Post Button */}
       <TouchableOpacity
         onPress={handleCreatePost}
@@ -431,7 +291,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         </Text>
       </TouchableOpacity>
     </View>
-  ), [theme.colors.primary, themeColors, searchAnimation, isSearchExpanded, searchQuery, expandSearch, collapseSearch, handleCreatePost]);
+  ), [themeColors, handleCreatePost]);
 
   const renderFooter = useCallback(() => {
     if (!isLoadingMore) return null;
