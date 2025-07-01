@@ -318,7 +318,7 @@ const generateMockPosts = (country: Country, count: number = 15): ForumPost[] =>
     const selectedLocation = locations[template.locationIndex % locations.length];
 
     posts.push({
-      id: `stable-post-${country.id}-${i + 1}`,
+      id: `stable-post-${country.id}-${i + 1}-${postIdCounter++}`,
       authorId: selectedUser.id,
       author: selectedUser,
       content: template.content.replace('{location}', selectedLocation.name),
@@ -437,6 +437,16 @@ export class ForumAPI {
       for (const [countryId, userPosts] of this.userPosts.entries()) {
         allPosts.unshift(...userPosts); // User posts always at top
       }
+
+      // Remove any potential duplicates by ID (safety check)
+      const seenIds = new Set<string>();
+      allPosts = allPosts.filter(post => {
+        if (seenIds.has(post.id)) {
+          return false; // Skip duplicate
+        }
+        seenIds.add(post.id);
+        return true;
+      });
 
       // Apply search filter
       if (params.searchQuery) {
@@ -708,8 +718,11 @@ export class ForumAPI {
       userPosts.unshift(newPost);
       this.userPosts.set(cacheKey, userPosts);
 
-      // NEW: Also add to global feed for centralized access
-      this.globalFeed.unshift(newPost);
+      // NEW: Also add to global feed for centralized access (check for duplicates)
+      const existingIndex = this.globalFeed.findIndex(post => post.id === newPost.id);
+      if (existingIndex === -1) {
+        this.globalFeed.unshift(newPost);
+      }
 
       return {
         success: true,
@@ -787,6 +800,12 @@ export class ForumAPI {
           userPosts[postIndex] = post;
           this.userPosts.set(countryId, userPosts);
 
+          // Also update in global feed if it exists there
+          const globalPostIndex = this.globalFeed.findIndex(p => p.id === data.postId);
+          if (globalPostIndex !== -1) {
+            this.globalFeed[globalPostIndex] = post;
+          }
+
           return {
             success: true,
             post: {
@@ -852,6 +871,12 @@ export class ForumAPI {
 
           posts[postIndex] = post;
           this.posts.set(countryId, posts);
+
+          // Also update in global feed if it exists there
+          const globalPostIndex = this.globalFeed.findIndex(p => p.id === data.postId);
+          if (globalPostIndex !== -1) {
+            this.globalFeed[globalPostIndex] = post;
+          }
 
           return {
             success: true,
