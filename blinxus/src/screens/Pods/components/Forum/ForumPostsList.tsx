@@ -19,6 +19,7 @@ import { ForumAPI } from './forumAPI';
 import { LocationFilter, FORUM_CATEGORIES } from './forumTypes';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { Country } from '../../../../constants/placesData';
+import UserProfileNavigation from '../../../../utils/userProfileNavigation';
 
 interface ForumPostsListProps {
   country: Country;
@@ -195,13 +196,16 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   }, []);
 
   const handleAuthorPress = useCallback((authorId: string) => {
-    if (authorId === 'current_user') {
-      (navigation as any).navigate('Profile', { 
-        fromFeed: true,
-        previousScreen: 'Forum' 
+    // Get the post to extract author info
+    const post = posts.find(p => p.authorId === authorId);
+    if (post) {
+      const { handleForumPostProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'Forum');
+      handleForumPostProfile({
+        authorId: post.authorId,
+        author: post.author
       });
     }
-  }, [navigation]);
+  }, [navigation, posts]);
 
   const handleTagPress = useCallback((tagId: string) => {
     const currentTags = filters.activityTags;

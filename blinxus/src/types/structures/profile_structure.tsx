@@ -38,6 +38,7 @@ import {
 } from '../../utils/animations';
 import useFullscreenManager from '../../hooks/useFullscreenManager';
 import { NavigationManager } from '../../utils/navigationManager';
+import UserProfileNavigation from '../../utils/userProfileNavigation';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
@@ -50,6 +51,7 @@ interface Props {
   onSettingsPress: () => void;
   scrollRef?: React.RefObject<ScrollView | null>;
   onResetToTop?: React.MutableRefObject<(() => void) | null>;
+  onScrollToTop?: React.MutableRefObject<(() => void) | null>; // New prop for actual scroll reset
   fromFeed?: boolean;
   previousScreen?: string;
 }
@@ -60,6 +62,7 @@ export default function ProfileStructure({
   onSettingsPress,
   scrollRef,
   onResetToTop,
+  onScrollToTop,
   fromFeed,
   previousScreen,
 }: Props) {
@@ -97,7 +100,7 @@ export default function ProfileStructure({
     });
   };
 
-  // Internal reset function that handles all ProfileStructure states
+  // RADICAL FIX: Modified to preserve scroll position - only close library, never reset scroll
   const handleResetToTop = () => {
     // Close library with animation if open
     if (showLibrary) {
@@ -106,7 +109,24 @@ export default function ProfileStructure({
       setShowLibrary(false);
     }
     
-    // Reset animation state
+    // Reset animation state for library
+    librarySlideAnim.setValue(width);
+    backgroundSlideAnim.setValue(0);
+    
+    // REMOVED: All scroll position resets to preserve user's scroll position
+    // The app bar states and scroll position are preserved
+  };
+
+  // NEW: Function that actually scrolls to top (for profile icon tap when already on profile)
+  const handleScrollToTop = () => {
+    // Close library with animation if open
+    if (showLibrary) {
+      closeLibrary();
+    } else {
+      setShowLibrary(false);
+    }
+    
+    // Reset animation state for library
     librarySlideAnim.setValue(width);
     backgroundSlideAnim.setValue(0);
     
@@ -118,7 +138,8 @@ export default function ProfileStructure({
     setScrollPosition(0);
     scrollPositionRef.current = 0;
     lastScrollY.current = 0;
-    // Scroll to top after states are reset
+    
+    // Actually scroll to top
     setTimeout(() => {
       if (scrollViewRef?.current) {
         scrollViewRef.current.scrollTo({ y: 0, animated: true });
@@ -142,6 +163,14 @@ export default function ProfileStructure({
       onResetToTop.current = handleResetToTop;
     }
   }, [onResetToTop]);
+
+  // Expose the scroll to top function to parent component
+  React.useEffect(() => {
+    if (onScrollToTop) {
+      // Replace the parent's scroll to top function with our internal one
+      onScrollToTop.current = handleScrollToTop;
+    }
+  }, [onScrollToTop]);
   
   // Debug logging
   // Profile structure initialized
@@ -324,7 +353,7 @@ export default function ProfileStructure({
           alignItems: 'center',
           flex: 1,
         }}>
-          {/* Back button - Only show when coming from feed */}
+          {/* Back button - Only show when coming from feed - ALWAYS VISIBLE */}
           {fromFeed && (
             <TouchableOpacity 
               onPress={handleBackToPreviousScreen}
@@ -336,7 +365,7 @@ export default function ProfileStructure({
                 borderRadius: rs(16),
                 backgroundColor: 'transparent',
                 marginRight: rs(4), // REDUCED spacing
-                opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+                opacity: 1.0, // ALWAYS VISIBLE - no fade on scroll
               }}
               activeOpacity={0.7}
             >
@@ -344,12 +373,12 @@ export default function ProfileStructure({
             </TouchableOpacity>
           )}
           
-          {/* Username - AGGRESSIVELY positioned at most left corner */}
+          {/* Username - ALWAYS VISIBLE on scroll */}
           <Text style={{ 
             fontSize: typography.appTitle, 
             fontWeight: '700', 
             color: themeColors.text,
-            opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
+            opacity: 1.0, // ALWAYS VISIBLE - no fade on scroll
           }}>
             {formatUsername(profileData?.username)}
           </Text>
@@ -417,10 +446,6 @@ export default function ProfileStructure({
           bounces={true}
           removeClippedSubviews={false}
           keyboardShouldPersistTaps="handled"
-          maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-            autoscrollToTopThreshold: 0,
-          }}
         >
 
         {/* Profile Picture - Clean square with rounded edges */}

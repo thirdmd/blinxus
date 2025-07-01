@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -19,8 +19,13 @@ import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, Country, Continent } from '../../../constants/placesData';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { useJoinedPods } from '../../../store/JoinedPodsContext';
+import { ANIMATION_DURATIONS, ANIMATION_EASINGS } from '../../../utils/animations';
 
 const { width: screenWidth } = Dimensions.get('window');
+
+export interface ContinentListScreenRef {
+  scrollToTop: () => void;
+}
 
 interface ContinentListScreenProps {
   theme: PodThemeConfig;
@@ -310,14 +315,14 @@ const CountryCard: React.FC<{
   );
 };
 
-const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
+const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentListScreenProps>(({
   theme,
   onCountryPress,
   initialActiveContinent = 0,
   onTabChange,
   onDoubleTabPress,
   resetKey = 0,
-}) => {
+}, ref) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeContinent, setActiveContinent] = useState(initialActiveContinent);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -387,6 +392,21 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     // This allows joined countries to move to top when switching tabs
     setRecentlyJoinedPods(new Set());
   }, [activeContinent]);
+
+  // NEW: Scroll to top function for current continent section (using centralized animations)
+  const scrollToTop = React.useCallback(() => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ 
+        offset: 0, 
+        animated: true 
+      });
+    }
+  }, []);
+
+  // Expose scroll to top function to parent via ref
+  useImperativeHandle(ref, () => ({
+    scrollToTop,
+  }), [scrollToTop]);
 
   // Enhanced tab change handler with state persistence
   const handleContinentChange = React.useCallback((index: number) => {
@@ -904,12 +924,12 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     );
   }, [activeContinent, theme.colors.primary, theme.colors.textSecondary, themeColors.isDark, handleContinentChange, handleDoubleTabPress]);
 
-  // Header animations
-  const headerTranslate = scrollY.interpolate({
-    inputRange: [0, 150],
-    outputRange: [0, -40],
-    extrapolate: 'clamp',
-  });
+  // REMOVED: Header animations to keep header fixed
+  // const headerTranslate = scrollY.interpolate({
+  //   inputRange: [0, 150],
+  //   outputRange: [0, -40],
+  //   extrapolate: 'clamp',
+  // });
 
   const ListEmptyComponent = () => (
     <View style={{ 
@@ -987,12 +1007,11 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
         barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background}
       />
-      {/* Fixed Header Section */}
-    <Animated.View style={{ 
+      {/* Fixed Header Section - No animation to keep it fixed */}
+    <View style={{ 
         paddingHorizontal: 20,
         paddingTop: 20,
         paddingBottom: 4,
-        transform: [{ translateY: headerTranslate }],
     }}>
         {/* Header with Title and Search */}
         <View style={{ 
@@ -1166,7 +1185,7 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
             )}
           </Animated.View>
         </View>
-      </Animated.View>
+      </View>
 
       {/* Fixed Continent Tabs - Replace ScrollView with horizontal FlatList */}
       <View style={{ marginBottom: 12 }}>
@@ -1415,6 +1434,6 @@ const ContinentListScreen: React.FC<ContinentListScreenProps> = ({
     </View>
     </PanGestureHandler>
   );
-};
+});
 
 export default ContinentListScreen;

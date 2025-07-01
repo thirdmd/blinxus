@@ -11,6 +11,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useNavigation } from '@react-navigation/native';
 import { activityTags, ActivityKey, type ActivityTag, activityColors } from '../constants/activityTags';
 import PillTag from './PillTag';
+import UserProfileNavigation from '../utils/userProfileNavigation';
 
 interface DetailPostViewProps {
   visible: boolean;
@@ -101,21 +102,11 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   const saveButtonScale = useRef(new Animated.Value(1)).current;
 
   const handleProfilePress = () => {
-    if (currentPost.authorName === 'Third Camacho') {
-      // Navigate to current user's profile from Post Detail
-      (navigation as any).navigate('Profile', { 
-        fromFeed: true,
-        previousScreen: 'PostDetail' 
-      });
-    } else {
-      // Navigate to other user's profile (future implementation)
-      // For now, could navigate to a generic UserProfile screen
-      // (navigation as any).navigate('UserProfile', { 
-      //   userId: currentPost.authorId,
-      //   fromFeed: true,
-      //   previousScreen: 'PostDetail' 
-      // });
-    }
+    const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'PostDetail');
+    handleTravelFeedProfile({
+      authorId: currentPost.authorId,
+      authorName: currentPost.authorName
+    });
   };
 
   const handleDelete = () => {

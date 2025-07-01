@@ -21,7 +21,7 @@ import {
 } from '../../constants/placesData';
 
 // Import screen components
-import ContinentListScreen from '../../screens/Pods/components/ContinentListScreen';
+import ContinentListScreen, { ContinentListScreenRef } from '../../screens/Pods/components/ContinentListScreen';
 import CountryViewScreen, { CountryViewScreenRef } from '../../screens/Pods/components/CountryViewScreen';
 import LocationViewScreen from '../../screens/Pods/components/LocationViewScreen';
 
@@ -50,6 +50,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   
   // Ref for CountryViewScreen to enable scroll to top
   const countryScreenRef = useRef<CountryViewScreenRef>(null);
+  
+  // Ref for ContinentListScreen to enable scroll to top
+  const continentScreenRef = useRef<ContinentListScreenRef>(null);
   
   // RADICAL APPROACH: Single animation container with translateX only
   const containerTranslateX = useRef(new Animated.Value(0)).current;
@@ -180,6 +183,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     // ULTRA-RESPONSIVE: Optimized scroll behavior
     if (navigationState.currentScreen === 'country-view' && countryScreenRef.current) {
       countryScreenRef.current.scrollToTop();
+    } else if (navigationState.currentScreen === 'continent-list' && continentScreenRef.current) {
+      // NEW: Scroll to top of current continent section
+      continentScreenRef.current.scrollToTop();
     } else {
       // For other screens, still use key-based re-render as fallback
       setScrollKey(prev => prev + 0.01);
@@ -205,6 +211,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
           {/* ContinentListScreen - always rendered at position 0 */}
           <View style={{ width: screenWidth, height: '100%' }}>
             <ContinentListScreen
+              ref={continentScreenRef}
               key="continent-list-persistent"
               theme={podTheme}
               onCountryPress={handleCountryPress}

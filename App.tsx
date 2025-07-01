@@ -194,20 +194,17 @@ function TabNavigator() {
           break;
           
         case 'Profile':
-          // Single tap: Navigate back to main Profile page (reset Library state)
+          // When already on Profile screen (isFocused = true):
+          // Single tap: Scroll to top (NEW FUNCTIONALITY)
+          // Double tap: Scroll to top (same as single tap)
           if (profileScreenRef.current) {
-            profileScreenRef.current.resetToTop();
+            profileScreenRef.current.scrollToTop(); // Use new scrollToTop function
           }
           // Clear any feed navigation params and navigate to Profile tab
           navigation.navigate('Profile', { 
             fromFeed: false, 
             previousScreen: undefined 
           });
-          
-          // Double tap: Additional refresh
-          if (isDoubleTap) {
-            // Additional refresh logic can go here if needed
-          }
           break;
       }
     } else {
@@ -248,13 +245,17 @@ function TabNavigator() {
           case 'Profile':
             navigation.navigate('Profile', { 
               fromFeed: false, 
-              previousScreen: undefined 
+              previousScreen: undefined
             });
-            setTimeout(() => {
-              if (profileScreenRef.current) {
-                profileScreenRef.current.resetToTop();
-              }
-            }, 50);
+            // Only reset on double tap when coming from other screens
+            if (isDoubleTap) {
+              setTimeout(() => {
+                if (profileScreenRef.current) {
+                  profileScreenRef.current.resetToTop();
+                }
+              }, 50);
+            }
+            // Single tap: Just navigate, preserve scroll position (no reset)
             break;
         }
       }

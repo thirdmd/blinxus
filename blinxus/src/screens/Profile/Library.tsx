@@ -29,6 +29,7 @@ import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, r
 import useFullscreenManager from '../../hooks/useFullscreenManager';
 import NavigationManager from '../../utils/navigationManager';
 import FilterPills from '../../components/FilterPills';
+import UserProfileNavigation from '../../utils/userProfileNavigation';
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
@@ -115,22 +116,12 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   }, []);
 
   // Handle profile navigation using centralized navigation
-  const handleProfilePress = (authorName: string) => {
-    if (authorName === 'Third Camacho') {
-      // Navigate to current user's profile from Library
-      (navigation as any).navigate('Profile', { 
-        fromFeed: true,
-        previousScreen: 'Library' 
-      });
-    } else {
-      // Navigate to other user's profile (future implementation)
-      // For now, could navigate to a generic UserProfile screen
-      // (navigation as any).navigate('UserProfile', { 
-      //   userId: authorId,
-      //   fromFeed: true,
-      //   previousScreen: 'Library' 
-      // });
-    }
+  const handleProfilePress = (authorName: string, authorId?: string) => {
+    const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'Library');
+    handleTravelFeedProfile({
+      authorId,
+      authorName
+    });
   };
 
   // Handle post press with centralized fullscreen manager

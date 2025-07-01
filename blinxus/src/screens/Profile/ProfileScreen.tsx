@@ -14,6 +14,7 @@ const { width } = Dimensions.get('window');
 
 export interface ProfileScreenRef {
   resetToTop: () => void;
+  scrollToTop: () => void; // New function for actual scroll reset
 }
 
 const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
@@ -37,6 +38,9 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   // Create a ref to hold the reset function from ProfileStructure
   const profileStructureResetRef = useRef<(() => void) | null>(null);
   
+  // Create a ref to hold the scroll to top function from ProfileStructure
+  const profileStructureScrollToTopRef = useRef<(() => void) | null>(null);
+  
   // Track if this is a fresh navigation (from post click)
   const isNavigatingFromPost = useRef(false);
   
@@ -53,9 +57,30 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
     });
   };
   
-  // Create a reset function that can be called externally
+  // RADICAL FIX: Modified to preserve scroll position - only close settings, never reset scroll
   const resetToTop = () => {
     // Close settings with animation if open
+    if (showSettings) {
+      closeSettings();
+    } else {
+      setShowSettings(false);
+    }
+    
+    // Reset animation state for settings
+    settingsSlideAnim.setValue(width);
+    backgroundSlideAnim.setValue(0);
+    
+    // Call ProfileStructure's reset function (which now preserves scroll position)
+    if (profileStructureResetRef.current) {
+      profileStructureResetRef.current();
+    }
+    
+    // REMOVED: All scroll position resets to preserve user's scroll position
+  };
+
+  // NEW: Function that actually scrolls to top (for profile icon tap when already on profile)
+  const scrollToTop = () => {
+    // Close settings if open
     if (showSettings) {
       closeSettings();
     } else {
@@ -66,40 +91,32 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
     settingsSlideAnim.setValue(width);
     backgroundSlideAnim.setValue(0);
     
-    // Call ProfileStructure's reset function if available
-    if (profileStructureResetRef.current) {
-      profileStructureResetRef.current();
+    // Call ProfileStructure's scroll to top function if available
+    if (profileStructureScrollToTopRef.current) {
+      profileStructureScrollToTopRef.current();
     } else {
-      // Fallback: reset scroll manually
-      setTimeout(() => {
-        if (profileScrollRef?.current) {
-          profileScrollRef.current.scrollTo({ y: 0, animated: true });
-        }
-      }, 100);
+      // Fallback: scroll manually
+      if (profileScrollRef?.current) {
+        profileScrollRef.current.scrollTo({ y: 0, animated: true });
+      }
     }
   };
 
-  // Expose reset function to parent via ref
+  // Expose both functions to parent via ref
   useImperativeHandle(ref, () => ({
-    resetToTop
+    resetToTop,
+    scrollToTop
   }));
 
-  // Auto-reset to top when navigating to Profile from post
+  // RADICAL FIX: Completely disable auto-reset to always preserve scroll position
   useFocusEffect(
     React.useCallback(() => {
-      // Don't reset if:
-      // 1. Coming from feed (preserve feed navigation behavior)
-      // 2. Fullscreen manager is active (preserve fullscreen state)
-      // 3. Coming back from LucidFullscreen (preserve the current state)
-      if (!routeParams?.fromFeed && fullscreenManager.phase === 'idle') {
-        resetToTop();
-      } else {
-        // Reset animation state when coming from feed or when fullscreen is active
-        settingsSlideAnim.setValue(width);
-        backgroundSlideAnim.setValue(0);
-        setShowSettings(false);
-      }
-    }, [routeParams?.fromFeed, fullscreenManager.phase])
+      // NEVER auto-reset scroll position - always preserve it
+      // Only reset animation state for settings
+      settingsSlideAnim.setValue(width);
+      backgroundSlideAnim.setValue(0);
+      setShowSettings(false);
+    }, [])
   );
 
   // Clear feed params when navigating away from Profile
@@ -109,7 +126,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
       if (routeParams?.fromFeed) {
         (navigation as any).setParams({ 
           fromFeed: false, 
-          previousScreen: undefined 
+          previousScreen: undefined
         });
       }
     });
@@ -134,6 +151,7 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
           onSettingsPress={openSettings}
           scrollRef={profileScrollRef}
           onResetToTop={profileStructureResetRef}
+          onScrollToTop={profileStructureScrollToTopRef}
           fromFeed={routeParams?.fromFeed}
           previousScreen={routeParams?.previousScreen}
         />

@@ -637,3 +637,4 @@ export const createPageTransitionAnimation = (
 
   return Animated.parallel(animations);
 };
+

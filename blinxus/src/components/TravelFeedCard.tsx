@@ -14,6 +14,7 @@ import PillTag from './PillTag';
 import DetailPostView from './DetailPostView';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../utils/responsive';
 import { useOrientation, Orientation } from '../hooks/useOrientation';
+import UserProfileNavigation from '../utils/userProfileNavigation';
 
 interface TravelFeedCardProps extends PostCardProps {
   onDetailsPress: () => void;
@@ -312,23 +313,47 @@ const ImmersiveImageCarousel: React.FC<{
                     }}
                   />
                 </ReanimatedAnimated.View>
-                {/* ULTRA SENSITIVE: Full-area touchable overlay for instant gesture handling */}
-                <TouchableOpacity
-                  onPress={handleImagePress}
-                  activeOpacity={1} // INSTANT: No opacity change
+                {/* Full-area touchable overlay with profile area exclusion */}
+                <View
                   style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'transparent'
                   }}
-                  delayPressIn={0}
-                  delayPressOut={0}
-                  delayLongPress={600} // INSTANT: Faster long press detection
-                  hitSlop={{ top: 0, bottom: 0, left: 0, right: 0 }} // INSTANT: No extra hit area needed
-                />
+                  pointerEvents="box-none" // Allow touches to pass through to children
+                >
+                  {/* Profile exclusion zone - no touch handling */}
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '70%', // Cover profile area width
+                      height: rs(100), // Cover profile area height
+                    }}
+                    pointerEvents="none" // Completely ignore touches in this area
+                  />
+                  
+                  {/* Main touchable area */}
+                  <TouchableOpacity
+                    onPress={handleImagePress}
+                    activeOpacity={1}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'transparent'
+                    }}
+                    delayPressIn={0}
+                    delayPressOut={0}
+                    delayLongPress={600}
+                    hitSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                  />
+                </View>
               </View>
             ))}
           </ScrollView>
@@ -551,24 +576,14 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     };
   }, [posts, id, likeCount, commentCount, authorId, authorName, authorNationalityFlag, authorProfileImage, content, images, device, location, activityName, activityColor, timeAgo, activity, isEdited, editAttempts, locationEditCount, activityEditCount, type, timestamp]);
 
-  // MEMORY OPTIMIZATION: Memoize all handlers to prevent recreation
+  // CENTRALIZED: Use unified profile navigation
   const handleProfilePress = useCallback(() => {
-    if (authorName === 'Third Camacho') {
-      // Navigate to current user's profile
-      (navigation as any).navigate('Profile', { 
-        fromFeed: true,
-        previousScreen: 'Explore' 
-      });
-    } else {
-      // Navigate to other user's profile (future implementation)
-      // For now, could navigate to a generic UserProfile screen
-      // (navigation as any).navigate('UserProfile', { 
-      //   userId: authorId,
-      //   fromFeed: true,
-      //   previousScreen: 'Explore' 
-      // });
-    }
-  }, [authorName, navigation]);
+    const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'Explore');
+    handleTravelFeedProfile({
+      authorId,
+      authorName
+    });
+  }, [authorName, authorId, navigation]);
 
   // Add ref for debouncing likes
   const lastLikeTime = useRef(0);
@@ -866,7 +881,8 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         top: rs(20),
         left: rs(16),
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
+        zIndex: 1000 // Ensure profile area is above image overlay
       }}>
         {/* Profile Pic */}
         <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.5}>
