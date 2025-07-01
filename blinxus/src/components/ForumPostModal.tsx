@@ -80,6 +80,11 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
   const handleSubmit = () => {
     if (!content.trim()) return;
     
+    // VALIDATION: For global feed (blank defaultLocation), require location selection
+    if (defaultLocation === '' && selectedLocation === '') {
+      return; // Prevent submission when location is required but not selected
+    }
+    
     // VALIDATION: When in "All" tab, require specific location selection
     if (defaultLocation === 'All' && selectedLocation === 'All') {
       return; // Prevent submission when location is required but not selected
@@ -90,6 +95,9 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
     
     if (selectedLocation === 'General' || selectedLocation === 'All') {
       // For "All"/"General", use 'All' as the location ID
+      locationId = 'All';
+    } else if (selectedLocation === '') {
+      // For global feed with no selection, this shouldn't happen due to validation above
       locationId = 'All';
     } else {
       // Find the specific location and format the ID correctly
@@ -136,20 +144,25 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 
   // Filter locations based on search
   const filteredLocations = useMemo(() => {
-    const allOptions = [
-      { 
+    const allOptions = [];
+    
+    // Only add "General" option if this is not a global feed (country.id !== 'global')
+    if (country.id !== 'global') {
+      allOptions.push({ 
         id: 'all', 
         name: 'General', 
         isGeneral: true, 
         alternateNames: [] as string[],
-        displayName: country.name // FIXED: Show country name instead of 'General' in search results
-      },
-      ...country.subLocations.map(loc => ({ 
-        ...loc, 
-        isGeneral: false,
-        displayName: loc.name // Regular locations show their name
-      }))
-    ];
+        displayName: country.name // Show country name instead of 'General' in search results
+      });
+    }
+    
+    // Add all sub-locations
+    allOptions.push(...country.subLocations.map(loc => ({ 
+      ...loc, 
+      isGeneral: false,
+      displayName: loc.name // Regular locations show their name
+    })));
 
     if (!locationSearch.trim()) {
       return allOptions;
@@ -161,7 +174,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
         alt.toLowerCase().includes(locationSearch.toLowerCase())
       ))
     );
-  }, [country.subLocations, country.name, locationSearch]);
+  }, [country.subLocations, country.name, country.id, locationSearch]);
 
   const handleLocationSelect = (locationName: string) => {
     setSelectedLocation(locationName);
@@ -211,14 +224,14 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 
             <TouchableOpacity
               onPress={handleSubmit}
-              disabled={!content.trim() || (defaultLocation === 'All' && selectedLocation === 'All')}
+              disabled={!content.trim() || (defaultLocation === 'All' && selectedLocation === 'All') || (defaultLocation === '' && selectedLocation === '')}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderRadius: 20,
-                backgroundColor: (content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All'))
+                backgroundColor: (content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All') && !(defaultLocation === '' && selectedLocation === ''))
                   ? selectedCategoryData?.color || '#3B82F6'
                   : themeColors.isDark 
                     ? 'rgba(255, 255, 255, 0.1)'
@@ -226,7 +239,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               }}
             >
               <Text style={{
-                color: (content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All')) ? 'white' : themeColors.textSecondary,
+                color: (content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All') && !(defaultLocation === '' && selectedLocation === '')) ? 'white' : themeColors.textSecondary,
                 fontSize: 15,
                 fontWeight: '600',
                 fontFamily: 'System',
@@ -236,7 +249,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
               </Text>
               <Send 
                 size={14} 
-                color={(content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All')) ? 'white' : themeColors.textSecondary} 
+                color={(content.trim() && !(defaultLocation === 'All' && selectedLocation === 'All') && !(defaultLocation === '' && selectedLocation === '')) ? 'white' : themeColors.textSecondary} 
                 strokeWidth={2}
               />
             </TouchableOpacity>
@@ -276,15 +289,17 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                 <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 8 }}>📍</Text>
                 <Text style={{
                   fontSize: 15,
-                  color: selectedLocation === 'All' ? themeColors.textSecondary : themeColors.text,
+                  color: (selectedLocation === 'All' || selectedLocation === '') ? themeColors.textSecondary : themeColors.text,
                   flex: 1,
                   fontFamily: 'System',
                 }}>
-                  {selectedLocation === 'All' || selectedLocation === 'General' 
-                    ? selectedLocation === 'General' 
-                      ? country.name  // FIXED: Show country name when General is selected
-                      : `Select location in ${country.name}` 
-                    : selectedLocation
+                  {selectedLocation === '' 
+                    ? 'Select location' // For global feed with blank default
+                    : selectedLocation === 'All' || selectedLocation === 'General' 
+                      ? selectedLocation === 'General' 
+                        ? country.name  // Show country name when General is selected
+                        : `Select location in ${country.name}` 
+                      : selectedLocation
                   }
                 </Text>
                 <Search size={16} color={themeColors.textSecondary} />

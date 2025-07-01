@@ -269,7 +269,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            paddingVertical: 8,
+            paddingVertical: 4,
             paddingHorizontal: 12,
           }}
         >
@@ -356,7 +356,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
           activeOpacity={0.9}
           style={{
             paddingHorizontal: 20,
-            paddingTop: 10,
+            paddingTop: 4,
             paddingBottom: 12,
           }}
         >

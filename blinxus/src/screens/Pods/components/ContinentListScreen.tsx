@@ -20,6 +20,7 @@ import { placesData, Country, Continent } from '../../../constants/placesData';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { useJoinedPods } from '../../../store/JoinedPodsContext';
 import { ANIMATION_DURATIONS, ANIMATION_EASINGS } from '../../../utils/animations';
+import GlobalFeed, { GlobalFeedRef } from './GlobalFeed';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -333,6 +334,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
   const overlayAnimation = useRef(new Animated.Value(0)).current;
   const tabScrollRef = useRef<FlatList>(null);
   const flatListRef = useRef<FlatList>(null);
+  const globalFeedRef = useRef<GlobalFeedRef>(null);
 
   const themeColors = useThemeColors();
 
@@ -347,7 +349,8 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
 
   // Memoize tabs to prevent re-rendering
   const allTabs = useMemo(() => [
-    { id: 'for-you', name: 'For You' },
+    { id: 'feed', name: 'Feed' },
+    { id: 'hot', name: 'Hot' },
     ...placesData
   ], []);
 
@@ -393,15 +396,19 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     setRecentlyJoinedPods(new Set());
   }, [activeContinent]);
 
-  // NEW: Scroll to top function for current continent section (using centralized animations)
+  // NEW: Scroll to top function for current section (using centralized animations)
   const scrollToTop = React.useCallback(() => {
-    if (flatListRef.current) {
+    if (activeContinent === 0 && globalFeedRef.current) {
+      // Feed tab - scroll global feed to top
+      globalFeedRef.current.scrollToTop();
+    } else if (flatListRef.current) {
+      // Other tabs - scroll main list to top
       flatListRef.current.scrollToOffset({ 
         offset: 0, 
         animated: true 
       });
     }
-  }, []);
+  }, [activeContinent]);
 
   // Expose scroll to top function to parent via ref
   useImperativeHandle(ref, () => ({
@@ -411,31 +418,39 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
   // Enhanced tab change handler with state persistence
   const handleContinentChange = React.useCallback((index: number) => {
     setActiveContinent(index);
-    setSearchQuery(''); // Clear search when switching continents
+    setSearchQuery(''); // Clear search when switching tabs
     
     // Scroll to top when changing tabs
-    if (flatListRef.current) {
+    if (index === 0 && globalFeedRef.current) {
+      // Feed tab - scroll global feed to top
+      globalFeedRef.current.scrollToTop();
+    } else if (flatListRef.current) {
+      // Other tabs - scroll main list to top
       flatListRef.current.scrollToOffset({ offset: 0, animated: true });
     }
   }, []);
 
-  // Double-tap handler for "For You" tab reset
+  // Double-tap handler for "Feed"/"Hot" tab reset
   const handleDoubleTabPress = React.useCallback(() => {
     if (onDoubleTabPress) {
       onDoubleTabPress();
     }
     
-    // Reset to "For You" tab and scroll to top
+    // Reset to "Feed" tab and scroll to top
     setActiveContinent(0);
     setSearchQuery('');
-    if (flatListRef.current) {
+    
+    // Scroll appropriate component to top
+    if (globalFeedRef.current) {
+      globalFeedRef.current.scrollToTop();
+    } else if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ offset: 0, animated: true });
     }
     
     // Scroll tabs to beginning
-          if (tabScrollRef.current) {
-        tabScrollRef.current.scrollToOffset({ offset: 0, animated: true });
-      }
+    if (tabScrollRef.current) {
+      tabScrollRef.current.scrollToOffset({ offset: 0, animated: true });
+    }
   }, [onDoubleTabPress]);
   
   // Enhanced join pod function with session persistence using context
@@ -562,14 +577,18 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
   const filteredCountries = useMemo(() => {
     let countries = [];
     
-    // For You tab - show trending pods from all continents
+    // Feed tab - no countries to show (handled by GlobalFeed component)
     if (activeContinent === 0) {
+      return [];
+    }
+    // Hot tab - show trending pods from all continents
+    else if (activeContinent === 1) {
       // Get all countries from all continents
       const allCountries = placesData.reduce((acc, continent) => {
         return [...acc, ...continent.countries];
       }, [] as Country[]);
       
-      // Featured countries for For You section (all should now be "hot" with 15+ destinations)
+      // Featured countries for Hot section (all should now be "hot" with 15+ destinations)
       const featuredCountryIds = ['ph', 'jp', 'kr', 'id', 'us', 'ch'];
       
       // Filter for trending countries (popular ones) or featured countries
@@ -589,8 +608,9 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
         return b.subLocations.length - a.subLocations.length;
       });
     } else {
-      // Regular continent view
-      const continent = placesData[activeContinent - 1]; // Subtract 1 because "For You" is index 0
+      // Regular continent view - activeContinent 2+ maps to continent indices 0+
+      const continentIndex = activeContinent - 2; // Subtract 2 because Feed=0, Hot=1, then continents start
+      const continent = placesData[continentIndex];
       if (!continent) return [];
       countries = continent.countries;
     }
@@ -667,12 +687,14 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
 
   // Create grouped countries data for rendering with headers
   const groupedCountries = useMemo(() => {
-    if (activeContinent === 0 || searchQuery) {
-      // For "For You" tab or when searching, don't show groups
+    if (activeContinent === 0 || activeContinent === 1 || searchQuery) {
+      // For "Feed" tab, "Hot" tab, or when searching, don't show groups
       return filteredCountries.map(country => ({ type: 'country' as const, country }));
     }
 
-    const continent = placesData[activeContinent - 1];
+    // For continent tabs - get the correct continent
+    const continentIndex = activeContinent - 2; // Subtract 2 because Feed=0, Hot=1, then continents start
+    const continent = placesData[continentIndex];
     if (!continent) return [];
 
     const groups = regionalGroups[continent.id as keyof typeof regionalGroups];
@@ -717,10 +739,10 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
           backgroundColor: themeColors.isDark 
             ? 'rgba(26, 35, 50, 0.6)'
             : 'rgba(255, 255, 255, 0.8)',
-          borderWidth: 0.5,
+          borderWidth: 0.8,
           borderColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.06)' 
-            : 'rgba(0, 0, 0, 0.03)',
+            ? 'rgba(255, 255, 255, 0.15)' 
+            : 'rgba(0, 0, 0, 0.08)',
         }}
       >
         <View style={{
@@ -880,15 +902,17 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     }
   };
 
-  // Enhanced renderContinentTab with double-tap detection
+  // Enhanced renderContinentTab with double-tap detection and special Feed/Hot tab styling
   const renderContinentTab = React.useCallback((continent: Continent | { id: string; name: string }, index: number) => {
     const isActive = activeContinent === index;
+    const isFeedTab = index === 0; // First tab is Feed
+    const isHotTab = index === 1; // Second tab is Hot
     
     return (
       <TouchableOpacity
         onPress={() => {
-          if (index === 0 && activeContinent === 0) {
-            // Double-tap "For You" tab - trigger double-tap handler
+          if ((index === 0 || index === 1) && activeContinent === index) {
+            // Double-tap "Feed" or "Hot" tab - trigger double-tap handler
             handleDoubleTabPress();
           } else {
             handleContinentChange(index);
@@ -898,22 +922,46 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
           paddingHorizontal: 16,
           paddingVertical: 10,
           backgroundColor: isActive 
-            ? theme.colors.primary 
+            ? (isHotTab ? '#FF4500' : (isFeedTab ? theme.colors.primary : theme.colors.primary))
             : 'transparent',
           borderRadius: 20,
           marginRight: 8,
           borderWidth: isActive ? 0 : 1,
-          borderColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.15)' 
-            : 'rgba(0, 0, 0, 0.12)',
+          borderColor: isHotTab && !isActive
+            ? '#FF4500'
+            : isFeedTab && !isActive
+              ? theme.colors.primary
+              : themeColors.isDark 
+                ? 'rgba(255, 255, 255, 0.15)' 
+                : 'rgba(0, 0, 0, 0.12)',
+          flexDirection: 'row',
+          alignItems: 'center',
         }}
         activeOpacity={0.7}
       >
+        {isFeedTab && (
+          <Globe 
+            size={12} 
+            color={isActive ? '#FFFFFF' : theme.colors.primary} 
+            strokeWidth={2.5}
+            style={{ marginRight: 4 }}
+          />
+        )}
+        {isHotTab && (
+          <Sparkles 
+            size={12} 
+            color={isActive ? '#FFFFFF' : '#FF4500'} 
+            strokeWidth={2.5}
+            style={{ marginRight: 4 }}
+          />
+        )}
         <Text 
           style={{ 
-            color: isActive ? '#FFFFFF' : theme.colors.textSecondary,
+            color: isActive 
+              ? '#FFFFFF' 
+              : (isHotTab ? '#FF4500' : (isFeedTab ? theme.colors.primary : theme.colors.textSecondary)),
             fontSize: 14,
-            fontWeight: isActive ? '700' : '500',
+            fontWeight: isActive ? '700' : ((isHotTab || isFeedTab) ? '700' : '500'),
             fontFamily: 'System',
             letterSpacing: -0.1,
           }}
@@ -981,20 +1029,20 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     }
   };
 
-  // Swipe gesture handler
+  // Swipe gesture handler - Ultra sensitive
   const onSwipeGesture = (event: any) => {
     const { translationX, velocityX, state, x } = event.nativeEvent;
     
-    // Only handle swipes on the left part of the screen (first 1/2 for more sensitivity)
-    if (x > screenWidth / 2) return;
+    // Allow swipes on most of the screen (first 3/4 for better accessibility)
+    if (x > screenWidth * 0.75) return;
     
     if (state === State.END) {
-      // Left to right swipe (open MyPods) - Much more sensitive
-      if (translationX > 20 && velocityX > -100 && !isJoinedPodsVisible) {
+      // Left to right swipe (open MyPods) - Ultra sensitive
+      if (translationX > 8 && velocityX > -200 && !isJoinedPodsVisible) {
         showJoinedPods();
       }
-      // Right to left swipe (close MyPods) - Much more sensitive
-      else if (translationX < -20 && velocityX < 100 && isJoinedPodsVisible) {
+      // Right to left swipe (close MyPods) - Ultra sensitive
+      else if (translationX < -8 && velocityX < 200 && isJoinedPodsVisible) {
         hideJoinedPods();
       }
     }
@@ -1010,7 +1058,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
       {/* Fixed Header Section - No animation to keep it fixed */}
     <View style={{ 
         paddingHorizontal: 20,
-        paddingTop: 20,
+        paddingTop: 8,
         paddingBottom: 4,
     }}>
         {/* Header with Title and Search */}
@@ -1207,68 +1255,79 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
         />
       </View>
 
-      {/* Fixed Active Continent Info */}
-      <View style={{ 
-        marginHorizontal: 20,
-        marginBottom: 12,
-      }}>
-        <View style={{ 
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-        <View style={{ 
-            width: 4,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: theme.colors.primary,
-            marginRight: 8,
-          }} />
-          <Text style={{ 
-            fontSize: 11,
-            color: themeColors.textSecondary,
-            fontWeight: '600',
-            fontFamily: 'System',
-            textTransform: 'uppercase',
-            letterSpacing: 0.6,
+      {/* Conditional Content Rendering */}
+      {activeContinent === 0 ? (
+        // Feed Tab - Show Global Feed
+        <GlobalFeed 
+          ref={globalFeedRef}
+          theme={theme}
+        />
+      ) : (
+        <>
+          {/* Fixed Active Continent Info */}
+          <View style={{ 
+            marginHorizontal: 20,
+            marginBottom: 12,
           }}>
-            {activeContinent === 0 
-              ? `For You • ${filteredCountries.length} Trending` 
-              : `${placesData[activeContinent - 1].name} • ${filteredCountries.length} Countries`
-            }
-          </Text>
-        </View>
-      </View>
+            <View style={{ 
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            <View style={{ 
+                width: 4,
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: theme.colors.primary,
+                marginRight: 8,
+              }} />
+              <Text style={{ 
+                fontSize: 11,
+                color: themeColors.textSecondary,
+                fontWeight: '600',
+                fontFamily: 'System',
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+              }}>
+                {activeContinent === 1 
+                  ? `Hot • ${filteredCountries.length} Trending` 
+                  : `${placesData[activeContinent - 2]?.name} • ${filteredCountries.length} Countries`
+                }
+              </Text>
+            </View>
+          </View>
 
-      {/* Countries List with ref for scroll control */}
-      <FlatList
-        ref={flatListRef}
-        data={groupedCountries}
-        renderItem={renderGroupedItem}
-        ListEmptyComponent={ListEmptyComponent}
-        keyExtractor={(item, index) => item.type === 'header' ? `header-${item.groupName}` : `country-${item.country?.id}`}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ 
-          paddingBottom: 30,
-          flexGrow: 1 
-        }}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={1}
-        // ULTRA-RESPONSIVE: Natural scrolling behavior with performance optimizations
-        getItemLayout={(data, index) => ({
-          length: 120,
-          offset: 120 * index,
-          index,
-        })}
-        initialNumToRender={15}
-        maxToRenderPerBatch={10}
-        windowSize={15}
-        removeClippedSubviews={true}
-      />
+          {/* Countries List with ref for scroll control */}
+          <FlatList
+            ref={flatListRef}
+            data={groupedCountries}
+            renderItem={renderGroupedItem}
+            ListEmptyComponent={ListEmptyComponent}
+            keyExtractor={(item, index) => item.type === 'header' ? `header-${item.groupName}` : `country-${item.country?.id}`}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ 
+              paddingBottom: 30,
+              flexGrow: 1 
+            }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: false }
+            )}
+            scrollEventThrottle={1}
+            // ULTRA-RESPONSIVE: Natural scrolling behavior with performance optimizations
+            getItemLayout={(data, index) => ({
+              length: 120,
+              offset: 120 * index,
+              index,
+            })}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={15}
+            removeClippedSubviews={true}
+          />
+        </>
+      )}
 
       {/* Joined Pods Modal */}
       <Modal
@@ -1313,10 +1372,6 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
             paddingHorizontal: 20,
             paddingTop: 60,
             paddingBottom: 20,
-            borderBottomWidth: 0.5,
-            borderBottomColor: themeColors.isDark 
-              ? 'rgba(255, 255, 255, 0.06)' 
-              : 'rgba(0, 0, 0, 0.03)',
           }}>
             <View style={{ flex: 1 }}>
               <Text style={{
@@ -1413,7 +1468,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
               keyExtractor={(item) => `joined-${item.id}`}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                paddingTop: 20,
+                paddingTop: 8,
                 paddingBottom: 40,
               }}
               // ULTRA-RESPONSIVE: Natural scrolling for modal with performance optimizations

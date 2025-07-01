@@ -196,7 +196,6 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   }, []);
 
   const handleAuthorPress = useCallback((authorId: string) => {
-    // Get the post to extract author info
     const post = posts.find(p => p.authorId === authorId);
     if (post) {
       const { handleForumPostProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'Forum');
@@ -208,19 +207,23 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   }, [navigation, posts]);
 
   const handleTagPress = useCallback((tagId: string) => {
-    const currentTags = filters.activityTags;
+    // Add tag to current filters
+    const currentTags = filters.activityTags || [];
     if (!currentTags.includes(tagId)) {
-      actions.updateFilters({ 
-        activityTags: [...currentTags, tagId] 
+      actions.updateFilters({
+        ...filters,
+        activityTags: [...currentTags, tagId]
       });
     }
-  }, [filters.activityTags, actions.updateFilters]);
+  }, [filters, actions.updateFilters]);
 
   const handleCategoryPress = useCallback((categoryId: string) => {
-    actions.updateFilters({ 
+    // Set category filter
+    actions.updateFilters({
+      ...filters,
       category: categoryId as any
     });
-  }, [actions.updateFilters]);
+  }, [filters, actions.updateFilters]);
 
   // RADICAL: Memoized render functions for maximum performance
   const renderPost = useCallback(({ item }: { item: any }) => (

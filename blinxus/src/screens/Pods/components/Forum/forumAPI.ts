@@ -393,7 +393,102 @@ const findCountryById = (countryId: string): Country | null => {
 export class ForumAPI {
   private static posts: Map<string, ForumPost[]> = new Map();
   private static userPosts: Map<string, ForumPost[]> = new Map(); // Separate storage for user posts
+  private static globalFeed: ForumPost[] = []; // NEW: Global feed cache
   private static isPreloaded: boolean = false;
+  private static isGlobalFeedInitialized: boolean = false;
+
+  // NEW: Initialize global feed with posts from all countries
+  private static initializeGlobalFeed() {
+    if (this.isGlobalFeedInitialized) return;
+    
+    // Import all countries from placesData
+    const { placesData } = require('../../../../constants/placesData');
+    const allCountries = placesData.flatMap((continent: any) => continent.countries);
+    
+    // Generate posts for all countries and add to global feed
+    allCountries.forEach((country: any) => {
+      const countryPosts = generateMockPosts(country, 8); // Fewer posts per country for global feed
+      this.globalFeed.push(...countryPosts);
+    });
+    
+    // Sort global feed by creation date (most recent first)
+    this.globalFeed.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    this.isGlobalFeedInitialized = true;
+  }
+
+  // NEW: Get global feed posts (all posts from all countries)
+  static async getGlobalFeedPosts(params: {
+    page?: number;
+    limit?: number;
+    searchQuery?: string;
+    sortBy?: 'recent' | 'popular' | 'trending';
+  } = {}): Promise<GetForumPostsResponse> {
+    try {
+      // Initialize global feed if not done
+      this.initializeGlobalFeed();
+      
+      await simulateApiDelay(100);
+
+      // Combine global feed with all user posts from all countries
+      let allPosts = [...this.globalFeed];
+      
+      // Add all user posts from all countries to global feed
+      for (const [countryId, userPosts] of this.userPosts.entries()) {
+        allPosts.unshift(...userPosts); // User posts always at top
+      }
+
+      // Apply search filter
+      if (params.searchQuery) {
+        const query = params.searchQuery.toLowerCase();
+        allPosts = allPosts.filter(post => 
+          post.content.toLowerCase().includes(query) ||
+          post.author.displayName.toLowerCase().includes(query) ||
+          post.location.name.toLowerCase().includes(query)
+        );
+      }
+
+      // Apply sorting
+      const sortBy = params.sortBy || 'recent';
+      allPosts = allPosts.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+
+        switch (sortBy) {
+          case 'popular':
+            return (b.likes + b.replyCount) - (a.likes + a.replyCount);
+          case 'trending':
+            return b.viewCount - a.viewCount;
+          case 'recent':
+          default:
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+      });
+
+      // Apply pagination
+      const page = params.page || 1;
+      const limit = params.limit || 15;
+      const startIndex = (page - 1) * limit;
+      const paginatedPosts = allPosts.slice(startIndex, startIndex + limit);
+
+      return {
+        success: true,
+        posts: paginatedPosts,
+        totalCount: allPosts.length,
+        hasMore: startIndex + limit < allPosts.length,
+        nextPage: startIndex + limit < allPosts.length ? page + 1 : undefined
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        posts: [],
+        totalCount: 0,
+        hasMore: false,
+        error: handleApiError(error)
+      };
+    }
+  }
 
   // RADICAL FIX: Preload all posts for instant access
   private static preloadAllPosts() {
@@ -612,6 +707,9 @@ export class ForumAPI {
       const userPosts = this.userPosts.get(cacheKey) || [];
       userPosts.unshift(newPost);
       this.userPosts.set(cacheKey, userPosts);
+
+      // NEW: Also add to global feed for centralized access
+      this.globalFeed.unshift(newPost);
 
       return {
         success: true,
