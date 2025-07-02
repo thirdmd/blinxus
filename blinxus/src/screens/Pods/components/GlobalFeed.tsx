@@ -8,16 +8,18 @@ import {
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { MessageCircle, Globe } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ForumPostCard } from './Forum/ForumPostCard';
 import ForumPostModal from '../../../components/ForumPostModal';
+import FloatingCreatePostBar from '../../../components/FloatingCreatePostBar';
 import { ForumAPI } from './Forum/forumAPI';
-import { ForumPost } from './Forum/forumTypes';
+import { ForumPost, FORUM_CATEGORIES } from './Forum/forumTypes';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
-import { placesData } from '../../../constants/placesData';
+import { placesData, getCountryByLocationId, getLocationByName } from '../../../constants/placesData';
 import UserProfileNavigation from '../../../utils/userProfileNavigation';
 
 export interface GlobalFeedRef {
@@ -46,7 +48,12 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   
-
+  // Centralized filtering state (same as country forums)
+  const [filters, setFilters] = useState({
+    category: 'All' as string,
+    activityTags: [] as string[],
+    searchQuery: ''
+  });
   
   // Create post modal
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -64,7 +71,10 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       const response = await ForumAPI.getGlobalFeedPosts({
         page,
         limit: 15,
-        sortBy: 'recent'
+        sortBy: 'recent',
+        searchQuery: filters.searchQuery || undefined,
+        category: filters.category !== 'All' ? filters.category : undefined,
+        activityTags: filters.activityTags.length > 0 ? filters.activityTags : undefined
       });
 
       if (response.success) {
@@ -85,12 +95,17 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       setIsLoadingMore(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [filters]);
 
   // Initial load
   useEffect(() => {
     loadPosts(1);
   }, [loadPosts]);
+
+  // Centralized filter update function (same as country forums)
+  const updateFilters = useCallback((newFilters: Partial<typeof filters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
 
   // Scroll to top function
   const scrollToTop = useCallback(() => {
@@ -119,10 +134,6 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       setShowCreateModal(true);
     }
   }, [onCreatePost]);
-
-
-
-
 
   // Direct post interaction handlers (no centralized function to avoid hooks issues)
   const handleLike = useCallback(async (postId: string) => {
@@ -210,12 +221,21 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
   }, [navigation, posts]);
 
   const handleTagPress = useCallback((tagId: string) => {
-    // TODO: Implement tag filtering
-  }, []);
+    // Add tag to current filters (same as country forums)
+    const currentTags = filters.activityTags || [];
+    if (!currentTags.includes(tagId)) {
+      updateFilters({
+        activityTags: [...currentTags, tagId]
+      });
+    }
+  }, [filters.activityTags, updateFilters]);
 
   const handleCategoryPress = useCallback((categoryId: string) => {
-    // TODO: Implement category filtering
-  }, []);
+    // Set category filter (same as country forums)
+    updateFilters({
+      category: categoryId
+    });
+  }, [updateFilters]);
 
   const handleCreatePostSubmit = useCallback(async (postData: {
     content: string;
@@ -224,13 +244,69 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
     locationId: string;
   }) => {
     try {
-      // For global feed, we need to determine a default country
-      // In a real app, this would be based on user's location or selection
-      const defaultCountryId = 'ph'; // Philippines as default, can be made dynamic
+      // FIXED: Properly parse location from global feed selection
+      let countryId = 'ph'; // fallback to Philippines only if we can't determine the country
+      let actualLocationId = postData.locationId;
+      
+      if (postData.locationId && postData.locationId !== 'All' && postData.locationId !== '') {
+        // Check if this is a formatted location like "Bangkok, Thailand"
+        if (postData.locationId.includes(', ')) {
+          const [locationName, countryName] = postData.locationId.split(', ');
+          
+          // Find the country by name first
+          const foundCountry = placesData
+            .flatMap(continent => continent.countries)
+            .find(country => country.name === countryName);
+          
+          if (foundCountry) {
+            countryId = foundCountry.id;
+            
+            // Find the specific location within that country
+            const foundLocation = foundCountry.subLocations.find(
+              loc => loc.name === locationName
+            );
+            
+            if (foundLocation) {
+              actualLocationId = foundLocation.id;
+            } else {
+              // If location not found, use 'All' for the country
+              actualLocationId = 'All';
+            }
+          }
+        } else {
+          // Check if this is a direct country selection
+          const foundCountry = placesData
+            .flatMap(continent => continent.countries)
+            .find(country => country.name === postData.locationId || country.id === postData.locationId);
+          
+          if (foundCountry) {
+            countryId = foundCountry.id;
+            actualLocationId = 'All'; // Country-level post
+          } else {
+            // Try to find location by ID or name across all countries
+            const country = getCountryByLocationId(postData.locationId);
+            if (country) {
+              countryId = country.id;
+              actualLocationId = postData.locationId;
+            } else {
+              // Try to find by location name as fallback
+              const location = getLocationByName(postData.locationId);
+              if (location) {
+                const locationCountry = getCountryByLocationId(location.id);
+                if (locationCountry) {
+                  countryId = locationCountry.id;
+                  actualLocationId = location.id;
+                }
+              }
+            }
+          }
+        }
+      }
       
       const response = await ForumAPI.createPost({
         ...postData,
-        countryId: defaultCountryId,
+        locationId: actualLocationId, // Use the properly parsed location ID
+        countryId, // Use the properly determined country ID
       });
 
       if (response.success && response.post) {
@@ -262,36 +338,81 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
 
   const renderHeader = useCallback(() => (
     <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
-      {/* Create Post Button */}
-      <TouchableOpacity
-        onPress={handleCreatePost}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 16,
-          borderRadius: 16,
-          backgroundColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.06)'
-            : 'rgba(0, 0, 0, 0.04)',
-          borderWidth: 1,
-          borderColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.08)'
-            : 'rgba(0, 0, 0, 0.06)',
-        }}
-        activeOpacity={0.8}
-      >
-        <MessageCircle size={20} color={themeColors.textSecondary} strokeWidth={2} />
-        <Text style={{
-          color: themeColors.textSecondary,
-          fontSize: 16,
-          fontFamily: 'System',
-          marginLeft: 12,
+      {/* Active Filters Display (same as country forums) */}
+      {(filters.category !== 'All' || filters.activityTags.length > 0 || filters.searchQuery) && (
+        <View style={{
+          marginBottom: 16,
         }}>
-          What's on your mind?
-        </Text>
-      </TouchableOpacity>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+            removeClippedSubviews={false}
+          >
+            {/* Category Filter Pill */}
+            {filters.category !== 'All' && (
+              <TouchableOpacity
+                onPress={() => updateFilters({ category: 'All' })}
+                style={{
+                  backgroundColor: FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 12, marginRight: 4 }}>
+                  {FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.emoji || '💬'}
+                </Text>
+                <Text style={{
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: '600',
+                  marginRight: 4,
+                  fontFamily: 'System',
+                }}>
+                  {FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.label || filters.category}
+                </Text>
+                <Text style={{ color: 'white', fontSize: 14 }}>×</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Activity Tag Pills */}
+            {filters.activityTags.map(tagId => (
+              <TouchableOpacity
+                key={tagId}
+                onPress={() => updateFilters({
+                  activityTags: filters.activityTags.filter(t => t !== tagId)
+                })}
+                style={{
+                  backgroundColor: '#3B82F6',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={{
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: '500',
+                  marginRight: 4,
+                  fontFamily: 'System',
+                }}>
+                  {tagId}
+                </Text>
+                <Text style={{ color: 'white', fontSize: 14 }}>×</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
     </View>
-  ), [themeColors, handleCreatePost]);
+  ), [themeColors, handleCreatePost, filters, updateFilters]);
 
   const renderFooter = useCallback(() => {
     if (!isLoadingMore) return null;
@@ -411,7 +532,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         ref={flatListRef}
         data={posts}
         renderItem={renderPost}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => `global-feed-${item.id}-${index}`}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
@@ -428,13 +549,19 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingTop: 16,
-          paddingBottom: 30,
+          paddingBottom: 100, // Extra padding for create bar
           flexGrow: 1,
         }}
         removeClippedSubviews={true}
         initialNumToRender={10}
         maxToRenderPerBatch={5}
         windowSize={10}
+      />
+
+      {/* Floating Create Post Bar */}
+      <FloatingCreatePostBar 
+        onPress={handleCreatePost}
+        placeholder="What's on your mind?"
       />
 
       {/* Create Post Modal */}

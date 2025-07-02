@@ -420,11 +420,8 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     setActiveContinent(index);
     setSearchQuery(''); // Clear search when switching tabs
     
-    // Scroll to top when changing tabs
-    if (index === 0 && globalFeedRef.current) {
-      // Feed tab - scroll global feed to top
-      globalFeedRef.current.scrollToTop();
-    } else if (flatListRef.current) {
+    // Only scroll to top for non-Global Feed tabs to preserve Global Feed scroll position
+    if (index !== 0 && flatListRef.current) {
       // Other tabs - scroll main list to top
       flatListRef.current.scrollToOffset({ offset: 0, animated: true });
     }
@@ -1256,13 +1253,20 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
       </View>
 
       {/* Conditional Content Rendering */}
-      {activeContinent === 0 ? (
-        // Feed Tab - Show Global Feed
+      {/* Global Feed - Always mounted but conditionally visible to preserve scroll position */}
+      <View style={{ 
+        flex: 1,
+        display: activeContinent === 0 ? 'flex' : 'none'
+      }}>
         <GlobalFeed 
+          key="global-feed-component"
           ref={globalFeedRef}
           theme={theme}
         />
-      ) : (
+      </View>
+
+      {/* Other tabs content */}
+      {activeContinent !== 0 && (
         <>
           {/* Fixed Active Continent Info */}
           <View style={{ 

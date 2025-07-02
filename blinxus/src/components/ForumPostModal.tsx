@@ -90,7 +90,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
       return; // Prevent submission when location is required but not selected
     }
 
-    // FIXED: Handle location ID properly with better format consistency
+    // FIXED: Handle location ID properly for both global feed and country-specific forums
     let locationId: string;
     
     if (selectedLocation === 'General' || selectedLocation === 'All') {
@@ -100,14 +100,20 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
       // For global feed with no selection, this shouldn't happen due to validation above
       locationId = 'All';
     } else {
-      // Find the specific location and format the ID correctly
-      const location = country.subLocations.find(loc => loc.name === selectedLocation);
-      if (location) {
-        // FIXED: Use consistent format for location filtering
-        locationId = location.name; // Use location name for consistency with filtering
+      // For global feed, return the full location string as-is (e.g., "Bangkok, Thailand")
+      // For country-specific forums, find the location ID
+      if (country.id === 'global') {
+        // Global feed: return the selected location as-is for parsing in GlobalFeed
+        locationId = selectedLocation;
       } else {
-        // Fallback to 'All' if location not found
-        locationId = 'All';
+        // Country-specific forum: find the actual location ID
+        const location = country.subLocations.find(loc => loc.name === selectedLocation);
+        if (location) {
+          locationId = location.id; // Use actual location ID for country forums
+        } else {
+          // Fallback to 'All' if location not found
+          locationId = 'All';
+        }
       }
     }
 

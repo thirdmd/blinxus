@@ -3,13 +3,14 @@ import React, { useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from './blinxus/src/constants/colors';
 import { Home, Users2, UserCircle, Bell, Plus } from 'lucide-react-native';
 import ScrollContext, { useScrollContext } from './blinxus/src/contexts/ScrollContext';
 import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
 import { getResponsiveDimensions, getTypographyScale, ri, rs, rf } from './blinxus/src/utils/responsive';
+import { getCurrentUser } from './blinxus/src/types/userData/users_data';
 
 
 // Import screens
@@ -33,6 +34,52 @@ import { SettingsProvider } from './blinxus/src/contexts/SettingsContext';
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
 
+// Profile Tab Icon - Shows actual user profile picture
+function ProfileTabIcon({ color, focused }: { color: string; focused: boolean }) {
+  const currentUser = getCurrentUser();
+  const iconSize = ri(29); // Increased from 24 to 28
+  
+  return (
+    <View style={{
+      width: iconSize,
+      height: iconSize,
+      borderRadius: iconSize / 2,
+      borderWidth: focused ? 2.5 : 2, // Increased from 2/1.5 to 3/2.5
+      borderColor: color,
+      overflow: 'hidden',
+    }}>
+      {currentUser.profileImage ? (
+        <Image
+          source={{ uri: currentUser.profileImage }}
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: iconSize / 2,
+          }}
+        />
+      ) : (
+        <View style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: color,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: iconSize / 2,
+        }}>
+          <Text style={{
+            color: 'white',
+            fontSize: ri(10),
+            fontWeight: '600',
+            fontFamily: 'System',
+          }}>
+            {currentUser.displayName.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 // Tab Icons - Updated for 5 tabs
 function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
   const iconSize = name === 'Create' ? ri(28) : ri(24);
@@ -48,7 +95,7 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
     case 'Notifications':
       return <Bell size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Profile':
-      return <UserCircle size={iconSize} color={color} strokeWidth={strokeWidth} />;
+      return <ProfileTabIcon color={color} focused={focused} />;
     default:
       return <Home size={iconSize} color={color} strokeWidth={strokeWidth} />;
   }

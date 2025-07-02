@@ -14,6 +14,7 @@ import { MessageCircle, Filter, Search } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ForumPostCard } from './ForumPostCard';
 import ForumPostModal from '../../../../components/ForumPostModal';
+import FloatingCreatePostBar from '../../../../components/FloatingCreatePostBar';
 import { useForumPosts } from './useForumPosts';
 import { ForumAPI } from './forumAPI';
 import { LocationFilter, FORUM_CATEGORIES } from './forumTypes';
@@ -242,7 +243,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
     </View>
   ), [handleLike, handleBookmark, handleReply, handleShare, handleMore, handleAuthorPress, handleTagPress, handleCategoryPress]);
 
-  const keyExtractor = useCallback((item: any) => item.id, []);
+  const keyExtractor = useCallback((item: any, index: number) => `forum-post-${item.id}-${index}`, []);
 
   // RADICAL: Memoized refresh control
   const refreshControl = useMemo(() => (
@@ -271,33 +272,6 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   // RESTORED: Original discussion bar header
   const ListHeaderComponent = React.memo(() => (
     <View>
-      {/* Create Post Button - Original Style */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.05)'
-            : 'rgba(0, 0, 0, 0.02)',
-          borderRadius: 12,
-          padding: 16,
-          marginHorizontal: 20,
-          marginTop: 20,
-          marginBottom: 20,
-          borderWidth: 1,
-          borderColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.08)'
-            : 'rgba(0, 0, 0, 0.06)',
-        }}
-        activeOpacity={0.7}
-        onPress={handleCreatePost}
-      >
-        <Text style={{
-          color: themeColors.textSecondary,
-          fontSize: 16,
-          fontFamily: 'System',
-        }}>
-          What's on your mind about {country.name}?
-        </Text>
-      </TouchableOpacity>
 
       {/* Active Filters Display */}
       {(filters.category !== 'All' || filters.activityTags.length > 0 || filters.searchQuery) && (
@@ -454,8 +428,14 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
           backgroundColor: themeColors.background,
         }}
         contentContainerStyle={{
-          paddingBottom: 100,
+          paddingBottom: 100, // Extra padding for create bar
         }}
+      />
+
+      {/* Floating Create Post Bar */}
+      <FloatingCreatePostBar 
+        onPress={handleCreatePost}
+        placeholder={`What's on your mind about ${country.name}?`}
       />
 
       {/* RADICAL: Instant Modal - No delays, no state conflicts */}

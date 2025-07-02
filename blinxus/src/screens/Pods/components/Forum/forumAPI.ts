@@ -14,7 +14,7 @@ import {
   FORUM_CATEGORIES,
   FORUM_ACTIVITY_TAGS
 } from './forumTypes';
-import { Country, placesData } from '../../../../constants/placesData';
+import { Country, placesData, getLocationByName, getLocationById } from '../../../../constants/placesData';
 import { usersDatabase, getCurrentUser } from '../../../../types/userData/users_data';
 
 // Mock users database - includes current user integration
@@ -423,6 +423,8 @@ export class ForumAPI {
     limit?: number;
     searchQuery?: string;
     sortBy?: 'recent' | 'popular' | 'trending';
+    category?: string;
+    activityTags?: string[];
   } = {}): Promise<GetForumPostsResponse> {
     try {
       // Initialize global feed if not done
@@ -448,13 +450,23 @@ export class ForumAPI {
         return true;
       });
 
-      // Apply search filter
+      // Apply filters
       if (params.searchQuery) {
         const query = params.searchQuery.toLowerCase();
         allPosts = allPosts.filter(post => 
           post.content.toLowerCase().includes(query) ||
           post.author.displayName.toLowerCase().includes(query) ||
           post.location.name.toLowerCase().includes(query)
+        );
+      }
+
+      if (params.category && params.category !== 'All') {
+        allPosts = allPosts.filter(post => post.category === params.category);
+      }
+
+      if (params.activityTags && params.activityTags.length > 0) {
+        allPosts = allPosts.filter(post => 
+          params.activityTags!.some(tag => post.activityTags.includes(tag))
         );
       }
 
@@ -558,15 +570,14 @@ export class ForumAPI {
       // Combine mock posts with user posts - user posts always stay at top
       posts = [...userPosts, ...posts];
 
-      // Apply filters
+      // ENHANCED: Improved location filtering for centralized posting logic
       if (params.locationId && params.locationId !== 'All') {
-        // FIXED: Improved location filtering to handle multiple formats
         const locationFilter = params.locationId;
         posts = posts.filter(post => {
-          // Direct match with locationId
+          // Direct match with locationId (most common case)
           if (post.locationId === locationFilter) return true;
           
-          // Match with location name
+          // Match with location name (for name-based filtering)
           if (post.location.name === locationFilter) return true;
           
           // Handle legacy format (countryId-locationId)
@@ -575,11 +586,19 @@ export class ForumAPI {
             if (locationPart === locationFilter) return true;
           }
           
-          // Handle case where locationFilter is a location name and post.locationId is also a name
+          // Handle case where filter is location name and we need to find by name
+          const filterLocation = getLocationByName(locationFilter);
+          if (filterLocation && post.locationId === filterLocation.id) return true;
+          
+          // Handle case where post locationId is a name but filter is an ID
           if (post.locationId === locationFilter) return true;
           
           return false;
         });
+      } else if (params.locationId === 'All') {
+        // For "All" filter, show ALL posts in this country (including specific locations)
+        // This ensures posts created in specific cities are visible in the country's "All" view
+        // Posts are already filtered by country, so no additional filtering needed
       }
 
       if (params.category) {
@@ -667,6 +686,43 @@ export class ForumAPI {
 
       // Mock implementation - use current user data
       const currentUser = MOCK_USERS.find(user => user.id === 'current_user')!;
+      
+      // FIXED: Properly handle location data structure for consistent filtering
+      let locationData: { id: string; name: string; type: 'country' | 'city' | 'region' | 'landmark'; countryId: string };
+      
+      if (data.locationId === 'All' || data.locationId === '') {
+        // For "All" location, use country as location
+        const country = findCountryById(data.countryId);
+        locationData = {
+          id: 'All',
+          name: country?.name || data.countryId,
+          type: 'country' as const,
+          countryId: data.countryId
+        };
+      } else {
+        // For specific locations, properly structure the data
+        // First check if locationId is actually a location name from placesData
+        let actualLocation = getLocationById(data.locationId) || getLocationByName(data.locationId);
+        
+        if (actualLocation) {
+          // Found exact location in placesData
+          locationData = {
+            id: actualLocation.id,
+            name: actualLocation.name,
+            type: 'city' as const,
+            countryId: data.countryId
+          };
+        } else {
+          // Location not found in placesData, use as-is (might be a custom location)
+          locationData = {
+            id: data.locationId,
+            name: data.locationId,
+            type: 'city' as const,
+            countryId: data.countryId
+          };
+        }
+      }
+
       const newPost: ForumPost = {
         id: `user-post-${Date.now()}`,
         authorId: 'current_user',
@@ -674,15 +730,8 @@ export class ForumAPI {
         title: data.title,
         content: data.content,
         
-        locationId: data.locationId,
-        location: {
-          id: data.locationId,
-          name: data.locationId === 'All' 
-            ? (findCountryById(data.countryId)?.name || data.countryId) 
-            : data.locationId,
-          type: 'city',
-          countryId: data.countryId
-        },
+        locationId: locationData.id,
+        location: locationData,
         countryId: data.countryId,
         category: data.category,
         activityTags: data.activityTags,
