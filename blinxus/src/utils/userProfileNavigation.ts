@@ -2,6 +2,13 @@
 // Centralized User Profile Navigation - Backend Ready & Future Proof
 
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { Animated } from 'react-native';
+import { 
+  createSlideInRightAnimation, 
+  createSlideOutRightAnimation, 
+  ANIMATION_DURATIONS, 
+  ANIMATION_EASINGS 
+} from './animations';
 
 export interface UserProfileNavigationConfig {
   userId?: string;
@@ -13,17 +20,15 @@ export interface UserProfileNavigationConfig {
 }
 
 export interface UserNavigationContext {
-  fromFeed: boolean;
-  previousScreen: string;
-  userId?: string;
+  fromFeed?: boolean;
+  previousScreen?: string;
   scrollPosition?: number;
-  [key: string]: any;
 }
 
 export class UserProfileNavigation {
   
   /**
-   * Navigate to any user's profile with consistent behavior
+   * Navigate to any user's profile with consistent behavior and smooth animations
    * Handles both current user and other users (backend ready)
    */
   static navigateToUserProfile(
@@ -36,13 +41,39 @@ export class UserProfileNavigation {
     const isCurrentUser = username === 'Third Camacho' || userId === 'current_user';
     
     if (isCurrentUser) {
-      // Navigate to current user's Profile screen
+      // ENTRY ANIMATION: Smooth slide-in animation for profile navigation
+      const slideInAnimation = new Animated.Value(100); // Start slightly off-screen
+      const fadeInAnimation = new Animated.Value(0.8); // Start slightly faded
+      
+      // Navigate to current user's Profile screen with animations
       (navigation as any).navigate('Profile', {
         fromFeed: true,
         previousScreen: fromScreen,
         scrollPosition: scrollPosition,
-        ...additionalParams
+        ...additionalParams,
+        // Pass animation values for the profile screen to use
+        entryAnimation: {
+          slideIn: slideInAnimation,
+          fadeIn: fadeInAnimation,
+        }
       });
+      
+      // Trigger entry animation after navigation
+      setTimeout(() => {
+        Animated.parallel([
+          createSlideInRightAnimation(slideInAnimation, {
+            duration: ANIMATION_DURATIONS.medium,
+            easing: ANIMATION_EASINGS.easeOut,
+          }),
+          Animated.timing(fadeInAnimation, {
+            toValue: 1,
+            duration: ANIMATION_DURATIONS.medium,
+            easing: ANIMATION_EASINGS.easeOut,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 50); // Small delay to ensure navigation completes
+      
     } else {
       // For now, show alert for mock users (no backend yet)
       // TODO: Replace with actual UserProfile navigation when backend is ready
@@ -54,14 +85,36 @@ export class UserProfileNavigation {
       );
       
       // Future implementation (uncomment when UserProfile screen exists):
+      // const slideInAnimation = new Animated.Value(100);
+      // const fadeInAnimation = new Animated.Value(0.8);
+      // 
       // (navigation as any).navigate('UserProfile', {
       //   userId: userId || username,
       //   username: username,
       //   fromFeed: true,
       //   previousScreen: fromScreen,
       //   scrollPosition: scrollPosition,
+      //   entryAnimation: {
+      //     slideIn: slideInAnimation,
+      //     fadeIn: fadeInAnimation,
+      //   },
       //   ...additionalParams
       // });
+      // 
+      // setTimeout(() => {
+      //   Animated.parallel([
+      //     createSlideInRightAnimation(slideInAnimation, {
+      //       duration: ANIMATION_DURATIONS.medium,
+      //       easing: ANIMATION_EASINGS.easeOut,
+      //     }),
+      //     Animated.timing(fadeInAnimation, {
+      //       toValue: 1,
+      //       duration: ANIMATION_DURATIONS.medium,
+      //       easing: ANIMATION_EASINGS.easeOut,
+      //       useNativeDriver: true,
+      //     }),
+      //   ]).start();
+      // }, 50);
     }
   }
 
@@ -73,33 +126,50 @@ export class UserProfileNavigation {
     return {
       fromFeed: params.fromFeed || false,
       previousScreen: params.previousScreen || 'Unknown',
-      userId: params.userId,
       scrollPosition: params.scrollPosition,
       ...params
     };
   }
 
   /**
-   * Handle back navigation from user profile with scroll position restoration
+   * Handle back navigation from user profile with scroll position restoration and exit animations
    */
   static handleBackNavigation(
     navigation: NavigationProp<ParamListBase>,
     context: UserNavigationContext,
     scrollRef?: React.RefObject<any>
   ): void {
-    if (context.fromFeed && context.previousScreen) {
-      // Use existing NavigationManager for consistent back behavior
-      const { NavigationManager } = require('./navigationManager');
-      NavigationManager.goBack({
-        navigation: navigation as any,
-        previousScreen: context.previousScreen,
-        scrollPosition: context.scrollPosition,
-        scrollRef: scrollRef
-      });
-    } else {
-      // Fallback to simple back navigation
-      (navigation as any).goBack();
-    }
+    // EXIT ANIMATION: Smooth slide-out animation before navigation
+    const slideOutAnimation = new Animated.Value(0);
+    const fadeOutAnimation = new Animated.Value(1);
+    
+    Animated.parallel([
+      createSlideOutRightAnimation(slideOutAnimation, {
+        duration: ANIMATION_DURATIONS.fast,
+        easing: ANIMATION_EASINGS.easeIn,
+      }),
+      Animated.timing(fadeOutAnimation, {
+        toValue: 0.8,
+        duration: ANIMATION_DURATIONS.fast,
+        easing: ANIMATION_EASINGS.easeIn,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // After exit animation completes, perform navigation
+      if (context.fromFeed && context.previousScreen) {
+        // Use existing NavigationManager for consistent back behavior
+        const { NavigationManager } = require('./navigationManager');
+        NavigationManager.goBack({
+          navigation: navigation as any,
+          previousScreen: context.previousScreen,
+          scrollPosition: context.scrollPosition,
+          scrollRef: scrollRef
+        });
+      } else {
+        // Fallback to simple back navigation
+        (navigation as any).goBack();
+      }
+    });
   }
 
   /**

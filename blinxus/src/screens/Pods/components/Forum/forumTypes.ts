@@ -15,7 +15,7 @@ export interface ForumUser {
 export interface ForumLocation {
   id: string;
   name: string;
-  type: 'country' | 'city' | 'region' | 'landmark';
+  type: 'country' | 'city' | 'region' | 'landmark' | 'global';
   countryId: string;
   coordinates?: {
     latitude: number;
@@ -243,6 +243,11 @@ export const FORUM_ACTIVITY_TAGS: ForumActivityTag[] = [
   { id: 'island-hopping', label: 'Island Hopping', emoji: '🏝️', category: 'activity' },
   { id: 'waterfalls', label: 'Waterfalls', emoji: '💦', category: 'activity' },
   { id: 'casinos', label: 'Casinos', emoji: '🎰', category: 'activity' },
+  { id: 'animals', label: 'Animals', emoji: '🦁', category: 'activity' },
+  { id: 'marine-life', label: 'Marine Life', emoji: '🐬', category: 'activity' },
+  { id: 'plants', label: 'Plants', emoji: '🌱', category: 'activity' },
+  { id: 'gym', label: 'Gym', emoji: '🦾', category: 'activity' },
+  { id: 'attractions', label: 'Attractions', emoji: '🎡', category: 'activity' },
   
   // Accommodation
   { id: 'hotels', label: 'Hotels', emoji: '🏨', category: 'accommodation' },

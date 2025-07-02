@@ -688,9 +688,18 @@ export class ForumAPI {
       const currentUser = MOCK_USERS.find(user => user.id === 'current_user')!;
       
       // FIXED: Properly handle location data structure for consistent filtering
-      let locationData: { id: string; name: string; type: 'country' | 'city' | 'region' | 'landmark'; countryId: string };
+      let locationData: { id: string; name: string; type: 'country' | 'city' | 'region' | 'landmark' | 'global'; countryId: string };
       
-      if (data.locationId === 'All' || data.locationId === '') {
+      // Handle Global Feed specific posts (Global Feed Only Logic)
+      if (data.countryId === 'global' && data.locationId === 'global-all') {
+        // For Global posts, use special global location data
+        locationData = {
+          id: 'global-all',
+          name: 'Global',
+          type: 'global' as const,
+          countryId: 'global'
+        };
+      } else if (data.locationId === 'All' || data.locationId === '') {
         // For "All" location, use country as location
         const country = findCountryById(data.countryId);
         locationData = {
@@ -761,16 +770,25 @@ export class ForumAPI {
         }
       };
 
-      // Add to user posts database (separate from mock posts)
-      const cacheKey = data.countryId;
-      const userPosts = this.userPosts.get(cacheKey) || [];
-      userPosts.unshift(newPost);
-      this.userPosts.set(cacheKey, userPosts);
+      // FIXED: Handle global posts differently - Global Feed Only Logic
+      if (data.countryId === 'global') {
+        // Global posts only go to global feed, NOT to any country-specific feeds
+        const existingIndex = this.globalFeed.findIndex(post => post.id === newPost.id);
+        if (existingIndex === -1) {
+          this.globalFeed.unshift(newPost);
+        }
+      } else {
+        // Regular country/location posts - add to both country-specific and global feeds
+        const cacheKey = data.countryId;
+        const userPosts = this.userPosts.get(cacheKey) || [];
+        userPosts.unshift(newPost);
+        this.userPosts.set(cacheKey, userPosts);
 
-      // NEW: Also add to global feed for centralized access (check for duplicates)
-      const existingIndex = this.globalFeed.findIndex(post => post.id === newPost.id);
-      if (existingIndex === -1) {
-        this.globalFeed.unshift(newPost);
+        // Also add to global feed for centralized access (check for duplicates)
+        const existingIndex = this.globalFeed.findIndex(post => post.id === newPost.id);
+        if (existingIndex === -1) {
+          this.globalFeed.unshift(newPost);
+        }
       }
 
       return {

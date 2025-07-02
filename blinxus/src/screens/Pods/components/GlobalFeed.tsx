@@ -247,10 +247,18 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       // FIXED: Properly parse location from global feed selection
       let countryId = 'ph'; // fallback to Philippines only if we can't determine the country
       let actualLocationId = postData.locationId;
+      let isGlobalPost = false; // Track if this is a global-only post
       
       if (postData.locationId && postData.locationId !== 'All' && postData.locationId !== '') {
+        // Handle "Global" selection specifically - GLOBAL FEED ONLY LOGIC
+        if (postData.locationId === 'Global' || postData.locationId === 'global-all') {
+          // For Global posts, use special global identifier
+          countryId = 'global'; // Special identifier for global-only posts
+          actualLocationId = 'global-all'; // Keep global identifier
+          isGlobalPost = true; // Mark as global-only post
+        }
         // Check if this is a formatted location like "Bangkok, Thailand"
-        if (postData.locationId.includes(', ')) {
+        else if (postData.locationId.includes(', ')) {
           const [locationName, countryName] = postData.locationId.split(', ');
           
           // Find the country by name first
@@ -485,16 +493,26 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         </View>
         
         {/* Create Post Modal */}
-        <ForumPostModal
-          visible={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreatePostSubmit}
-          country={{
-            id: 'global',
-            name: 'Global',
-            alternateNames: [],
-            continentId: 'global',
-            subLocations: placesData.reduce((allLocations, continent) => {
+              <ForumPostModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreatePostSubmit}
+        country={{
+          id: 'global',
+          name: 'Global',
+          alternateNames: [],
+          continentId: 'global',
+          subLocations: [
+            // Add "Global" as the first option
+            {
+              id: 'global-all',
+              name: 'Global',
+              alternateNames: ['Worldwide', 'International'],
+              parentId: 'global',
+              popularActivities: [],
+            },
+            // Add all countries and locations
+            ...placesData.reduce((allLocations, continent) => {
               const continentLocations = continent.countries.reduce((countryLocations, country) => {
                 // Add country as a location option
                 countryLocations.push({
@@ -519,9 +537,10 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
               
               return [...allLocations, ...continentLocations];
             }, [] as any[])
-          }}
-          defaultLocation=""
-        />
+          ]
+        }}
+        defaultLocation=""
+      />
       </View>
     );
   }
@@ -574,31 +593,42 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
           name: 'Global',
           alternateNames: [],
           continentId: 'global',
-          subLocations: placesData.reduce((allLocations, continent) => {
-            const continentLocations = continent.countries.reduce((countryLocations, country) => {
-              // Add country as a location option
-              countryLocations.push({
-                id: country.id,
-                name: country.name,
-                alternateNames: country.alternateNames,
-                parentId: 'global',
-                popularActivities: [],
-              });
-              
-              // Add all sub-locations from this country
-              country.subLocations.forEach(subLocation => {
+          subLocations: [
+            // Add "Global" as the first option
+            {
+              id: 'global-all',
+              name: 'Global',
+              alternateNames: ['Worldwide', 'International'],
+              parentId: 'global',
+              popularActivities: [],
+            },
+            // Add all countries and locations
+            ...placesData.reduce((allLocations, continent) => {
+              const continentLocations = continent.countries.reduce((countryLocations, country) => {
+                // Add country as a location option
                 countryLocations.push({
-                  ...subLocation,
-                  name: `${subLocation.name}, ${country.name}`, // Show location with country for clarity
+                  id: country.id,
+                  name: country.name,
+                  alternateNames: country.alternateNames,
                   parentId: 'global',
+                  popularActivities: [],
                 });
-              });
+                
+                // Add all sub-locations from this country
+                country.subLocations.forEach(subLocation => {
+                  countryLocations.push({
+                    ...subLocation,
+                    name: `${subLocation.name}, ${country.name}`, // Show location with country for clarity
+                    parentId: 'global',
+                  });
+                });
+                
+                return countryLocations;
+              }, [] as any[]);
               
-              return countryLocations;
-            }, [] as any[]);
-            
-            return [...allLocations, ...continentLocations];
-          }, [] as any[])
+              return [...allLocations, ...continentLocations];
+            }, [] as any[])
+          ]
         }}
         defaultLocation=""
       />
