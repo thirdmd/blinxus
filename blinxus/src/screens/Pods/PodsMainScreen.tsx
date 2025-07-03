@@ -96,8 +96,9 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
           }).start();
         }, 100);
         
-        // Set active tab
-        setActiveTab('Forum');
+        // Set active tab from navigation params or default to Forum
+        const initialTab = params.initialTab || 'Forum';
+        setActiveTab(initialTab);
         
         // Clear the navigation context after a delay to prevent affecting future navigations
         setTimeout(() => {

@@ -13,6 +13,7 @@ import { LucidPhotoManager } from '../../types/userData/posts_data';
 import { colors } from '../../constants/colors';
 import { activityTags, ActivityKey } from '../../constants/activityTags';
 import Button from '../../components/Button';
+import LocationSelector from '../../components/LocationSelector';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
@@ -39,24 +40,8 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
   const MIN_IMAGES_PER_DAY = 3;
   const MAX_IMAGES_PER_DAY = 4;
 
-  const handleLocationPress = () => {
-    Alert.prompt(
-      'Destination',
-      'Where did you go?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Add', 
-          onPress: (location) => {
-            if (location && location.trim()) {
-              setSelectedLocation(location.trim());
-            }
-          }
-        }
-      ],
-      'plain-text',
-      selectedLocation
-    );
+  const handleLocationSelect = (location: string) => {
+    setSelectedLocation(location);
   };
 
   useImperativeHandle(ref, () => ({
@@ -299,35 +284,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       {/* Destination */}
       <View style={{ paddingHorizontal: 20, paddingTop: 24, marginBottom: 20 }}>
-        <TouchableOpacity
-          onPress={handleLocationPress}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            borderRadius: 8,
-            backgroundColor: themeColors.isDark 
-              ? 'rgba(45, 45, 45, 1)' 
-              : 'rgba(240, 240, 240, 1)',
-            height: 44,
-          }}
-          activeOpacity={0.8}
-        >
-          <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 10 }}>🌍</Text>
-          <Text style={{
-            fontSize: 15,
-            color: selectedLocation ? themeColors.text : themeColors.textSecondary,
-            flex: 1,
-            fontFamily: 'System',
-            fontWeight: '400',
-          }}>
-            {selectedLocation || 'Where did you go?'}
-          </Text>
-          {selectedLocation && (
-            <ChevronRight size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
-          )}
-        </TouchableOpacity>
+        <LocationSelector
+          selectedLocation={selectedLocation}
+          onLocationSelect={handleLocationSelect}
+          placeholder="Where did you go?"
+          showCountryInResults={true}
+        />
       </View>
 
       {/* Duration Mode Selection */}

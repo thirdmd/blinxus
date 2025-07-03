@@ -30,6 +30,7 @@ import { Country, SubLocation } from '../../../constants/placesData';
 import { ForumPostsList } from './Forum/ForumPostsList';
 import { LocationFilter } from './Forum/forumTypes';
 import { ForumAPI } from './Forum/forumAPI';
+import PhotoFeed from './PhotoFeed';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { useJoinedPods } from '../../../store/JoinedPodsContext';
 import { ANIMATION_DURATIONS, ANIMATION_EASINGS } from '../../../utils/animations';
@@ -638,7 +639,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
         }}>
           {[
             { key: 'Forum', icon: MessageCircle },
-            { key: 'Explore', icon: Grid3X3 },
+            { key: 'Explore', icon: Grid3X3 }, // PhotoFeed - Visual content from Create Posts & Lucids
             { key: 'Market', icon: ShoppingBag },
             { key: 'Events', icon: Calendar },
             { key: 'Lost', icon: HelpCircle }
@@ -701,22 +702,12 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
             />
           </View>
 
-          {/* Explore Tab Content */}
+          {/* Explore Tab Content - PhotoFeed */}
           <View style={{ width: width, height: '100%' }}>
-            <View style={{ 
-              flex: 1,
-              alignItems: 'center', 
-              paddingVertical: 40,
-              marginHorizontal: 20,
-            }}>
-              <Text style={{
-                color: themeColors.textSecondary,
-                fontSize: 16,
-                fontFamily: 'System',
-              }}>
-                Photo feed coming soon
-              </Text>
-            </View>
+            <PhotoFeed
+              country={country}
+              selectedLocationFilter={selectedLocationFilter}
+            />
           </View>
 
           {/* Market Tab Content */}

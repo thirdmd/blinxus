@@ -14,6 +14,7 @@ import { activityTags, activityNames, ActivityKey } from '../../constants/activi
 import type { ActivityTag } from '../../constants/activityTags';
 import PillTag from '../../components/PillTag';
 import Button from '../../components/Button';
+import LocationSelector from '../../components/LocationSelector';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
@@ -35,24 +36,8 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
   const [postText, setPostText] = useState<string>('');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
-  const handleLocationPress = () => {
-    Alert.prompt(
-      'Location',
-      'Where are you posting about?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Add', 
-          onPress: (location) => {
-            if (location && location.trim()) {
-              setSelectedLocation(location.trim());
-            }
-          }
-        }
-      ],
-      'plain-text',
-      selectedLocation
-    );
+  const handleLocationSelect = (location: string) => {
+    setSelectedLocation(location);
   };
 
   const handleImagePicker = () => {
@@ -142,35 +127,12 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       {/* Location */}
       <View style={{ paddingHorizontal: 20, paddingTop: 24, marginBottom: 20 }}>
-        <TouchableOpacity
-          onPress={handleLocationPress}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            borderRadius: 8,
-            backgroundColor: themeColors.isDark 
-              ? 'rgba(45, 45, 45, 1)' 
-              : 'rgba(240, 240, 240, 1)',
-            height: 44,
-          }}
-          activeOpacity={0.8}
-        >
-          <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 10 }}>📍</Text>
-          <Text style={{
-            fontSize: 15,
-            color: selectedLocation ? themeColors.text : themeColors.textSecondary,
-            flex: 1,
-            fontFamily: 'System',
-            fontWeight: '400',
-          }}>
-            {selectedLocation || 'Add location'}
-          </Text>
-          {selectedLocation && (
-            <ChevronRight size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
-          )}
-        </TouchableOpacity>
+        <LocationSelector
+          selectedLocation={selectedLocation}
+          onLocationSelect={handleLocationSelect}
+          placeholder="Add location"
+          showCountryInResults={true}
+        />
       </View>
 
       {/* Photo */}

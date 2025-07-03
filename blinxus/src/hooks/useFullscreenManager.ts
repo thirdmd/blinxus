@@ -11,7 +11,7 @@ import {
 export interface FullscreenConfig {
   // Context information
   screenName: string;
-  feedContext?: 'recent' | 'activities' | 'explore' | 'profile';
+  feedContext?: 'recent' | 'activities' | 'explore' | 'profile' | 'photos';
   
   // Data management
   posts: PostCardProps[];

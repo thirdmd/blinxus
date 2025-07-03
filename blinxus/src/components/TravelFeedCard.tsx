@@ -15,6 +15,7 @@ import DetailPostView from './DetailPostView';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../utils/responsive';
 import { useOrientation, Orientation } from '../hooks/useOrientation';
 import UserProfileNavigation from '../utils/userProfileNavigation';
+import { placesData, getLocationByName, getCountryByLocationId } from '../constants/placesData';
 
 interface TravelFeedCardProps extends PostCardProps {
   onDetailsPress: () => void;
@@ -585,6 +586,47 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     });
   }, [authorName, authorId, navigation]);
 
+  // CENTRALIZED: Location navigation to Pods PhotoFeed
+  const handleLocationPress = useCallback(() => {
+    if (!location) return;
+    
+    // Find the location in placesData
+    const foundLocation = getLocationByName(location);
+    if (foundLocation) {
+      // Get the country for this location
+      const country = getCountryByLocationId(foundLocation.id);
+      if (country) {
+        // Navigate to Pods with specific country and location
+        (navigation as any).navigate('Pods', {
+          initialCountry: country.id,
+          initialLocation: foundLocation.id,
+          autoNavigateToCountry: true,
+          targetLocationFilter: foundLocation.name,
+          autoSelectLocationTab: true,
+          // Navigate directly to PhotoFeed tab (Explore tab)
+          initialTab: 'Explore'
+        });
+      }
+    } else {
+      // Try to find as a country name
+      const foundCountry = placesData
+        .flatMap(continent => continent.countries)
+        .find(country => country.name === location);
+      
+      if (foundCountry) {
+        // Navigate to country-level PhotoFeed
+        (navigation as any).navigate('Pods', {
+          initialCountry: foundCountry.id,
+          initialLocation: 'All',
+          autoNavigateToCountry: true,
+          targetLocationFilter: 'All',
+          autoSelectLocationTab: true,
+          initialTab: 'Explore'
+        });
+      }
+    }
+  }, [location, navigation]);
+
   // Add ref for debouncing likes
   const lastLikeTime = useRef(0);
   const lastSaveTime = useRef(0);
@@ -944,9 +986,12 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
               )}
             </Text>
           </TouchableOpacity>
-          {/* Location Pill with Activity Color */}
+          {/* Location Pill with Activity Color - CENTRALIZED Navigation */}
           <View style={{ marginTop: rs(4), flexDirection: 'row', alignItems: 'center' }}>
-            <View 
+            <TouchableOpacity
+              onPress={handleLocationPress}
+              activeOpacity={0.8}
+              hitSlop={{ top: rs(8), bottom: rs(8), left: rs(8), right: rs(8) }}
               style={{ 
                 paddingHorizontal: rs(8), 
                 paddingVertical: rs(3), 
@@ -974,7 +1019,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
               >
                 {postData.location}
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
