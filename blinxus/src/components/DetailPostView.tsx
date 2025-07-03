@@ -477,40 +477,43 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
               </View>
             </View>
 
-            <View style={{ marginBottom: 40 }}>
-              <Text style={{ fontSize: 16, fontWeight: 'normal', color: darkColors.text, marginBottom: 16 }}>
-                ACTIVITIES
-              </Text>
-              {!canEditActivity && (
-                <Text style={{ fontSize: 14, color: darkColors.textSecondary, fontWeight: '300', marginBottom: 12 }}>
-                  Activities have already been edited
+            {/* CENTRALIZED: Only show activity editing for NON-LUCID posts */}
+            {currentPost.type !== 'lucid' && (
+              <View style={{ marginBottom: 40 }}>
+                <Text style={{ fontSize: 16, fontWeight: 'normal', color: darkColors.text, marginBottom: 16 }}>
+                  ACTIVITIES
                 </Text>
-              )}
-              <View 
-                style={{
-                  borderWidth: 1,
-                  borderColor: darkColors.border,
-                  borderRadius: 8,
-                  padding: 16,
-                  backgroundColor: darkColors.backgroundSecondary,
-                  opacity: canEditActivity ? 1 : 0.5
-                }}
-              >
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {activityTags.map((tag: ActivityTag) => (
-                    <PillTag
-                      key={tag.id}
-                      label={tag.name}
-                      color={tag.color}
-                      selected={editActivity === tag.id}
-                      onPress={canEditActivity ? () => handleActivitySelect(tag.id) : undefined}
-                      size="medium"
-                      isCreatePage={true}
-                    />
-                  ))}
+                {!canEditActivity && (
+                  <Text style={{ fontSize: 14, color: darkColors.textSecondary, fontWeight: '300', marginBottom: 12 }}>
+                    Activities have already been edited
+                  </Text>
+                )}
+                <View 
+                  style={{
+                    borderWidth: 1,
+                    borderColor: darkColors.border,
+                    borderRadius: 8,
+                    padding: 16,
+                    backgroundColor: darkColors.backgroundSecondary,
+                    opacity: canEditActivity ? 1 : 0.5
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {activityTags.map((tag: ActivityTag) => (
+                      <PillTag
+                        key={tag.id}
+                        label={tag.name}
+                        color={tag.color}
+                        selected={editActivity === tag.id}
+                        onPress={canEditActivity ? () => handleActivitySelect(tag.id) : undefined}
+                        size="medium"
+                        isCreatePage={true}
+                      />
+                    ))}
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
           </ScrollView>
         </View>
       </Modal>

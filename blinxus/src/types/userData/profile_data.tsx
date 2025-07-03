@@ -62,10 +62,10 @@ export interface Interest {
   }
   
   export const posts: PostType[] = [
-    { id: 1, image: 'https://images.pexels.com/photos/457882/pexels-photo-457882.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Boracay Beach' },
-    { id: 2, image: 'https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Manila Sunset' },
-    { id: 3, image: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Palawan Paradise' },
-    { id: 4, image: 'https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Rice Terraces' },
-    { id: 5, image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Island Hopping' },
-    { id: 6, image: 'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Heritage Site' },
+    { id: 1, image: 'https://images.pexels.com/photos/457882/pexels-photo-457882.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Boracay' },
+    { id: 2, image: 'https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Manila' },
+    { id: 3, image: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Palawan' },
+    { id: 4, image: 'https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Baguio' },
+    { id: 5, image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Siargao' },
+    { id: 6, image: 'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=800', location: 'Ilocos' },
   ];

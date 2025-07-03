@@ -16,6 +16,7 @@ import {
 import { Search, X, ChevronRight } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { placesData, getLocationByName } from '../constants/placesData';
+import LocationDisplayHelper, { LocationDisplayOption } from '../utils/locationDisplayHelper';
 
 interface LocationSelectorProps {
   selectedLocation: string;
@@ -34,54 +35,10 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
   const [showLocationSearch, setShowLocationSearch] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
 
-  // Get all locations from placesData - CENTRALIZED
-  const allLocations = useMemo(() => {
-    const locations: Array<{
-      id: string;
-      name: string;
-      displayName: string;
-      country: string;
-      isGeneral?: boolean;
-    }> = [];
-
-    placesData.forEach(continent => {
-      continent.countries.forEach(country => {
-        // Add country as general location
-        locations.push({
-          id: country.id,
-          name: country.name,
-          displayName: country.name,
-          country: country.name,
-          isGeneral: true,
-        });
-
-        // Add all sublocations
-        country.subLocations.forEach(location => {
-          locations.push({
-            id: location.id,
-            name: location.name,
-            displayName: showCountryInResults ? `${location.name}, ${country.name}` : location.name,
-            country: country.name,
-          });
-        });
-      });
-    });
-
-    return locations;
-  }, [showCountryInResults]);
-
-  // Filter locations based on search
+  // CENTRALIZED: Get filtered locations using LocationDisplayHelper
   const filteredLocations = useMemo(() => {
-    if (!locationSearch.trim()) {
-      return allLocations;
-    }
-
-    const query = locationSearch.toLowerCase();
-    return allLocations.filter(location =>
-      location.name.toLowerCase().includes(query) ||
-      location.country.toLowerCase().includes(query)
-    );
-  }, [allLocations, locationSearch]);
+    return LocationDisplayHelper.filterLocations(locationSearch, false);
+  }, [locationSearch]);
 
   const handleLocationSelect = (locationName: string) => {
     onLocationSelect(locationName);
@@ -202,7 +159,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
 
           {/* Location Results */}
           <ScrollView style={{ flex: 1 }}>
-            {filteredLocations.map((item) => (
+            {filteredLocations.map((item: LocationDisplayOption) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => handleLocationSelect(item.name)}

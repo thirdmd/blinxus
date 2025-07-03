@@ -14,6 +14,7 @@ import { X, Search, Send } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import FilterPill from './FilterPill';
 import { Country, SubLocation } from '../constants/placesData';
+import LocationDisplayHelper, { LocationDisplayOption } from '../utils/locationDisplayHelper';
 import { 
   FORUM_ACTIVITY_TAGS, 
   FORUM_CATEGORIES, 
@@ -149,39 +150,16 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 
   const selectedCategoryData = FORUM_CATEGORIES.find(cat => cat.id === selectedCategory);
 
-  // Filter locations based on search
+  // CENTRALIZED: Filter locations using LocationDisplayHelper
   const filteredLocations = useMemo(() => {
-    const allOptions = [];
-    
-    // Only add "General" option if this is not a global feed (country.id !== 'global')
-    if (country.id !== 'global') {
-      allOptions.push({ 
-        id: 'all', 
-        name: 'General', 
-        isGeneral: true, 
-        alternateNames: [] as string[],
-        displayName: country.name // Show country name instead of 'General' in search results
-      });
+    // For GlobalFeed, use global location filtering
+    if (country.id === 'global') {
+      return LocationDisplayHelper.filterLocations(locationSearch, true);
     }
     
-    // Add all sub-locations
-    allOptions.push(...country.subLocations.map(loc => ({ 
-      ...loc, 
-      isGeneral: false,
-      displayName: loc.name // Regular locations show their name
-    })));
-
-    if (!locationSearch.trim()) {
-      return allOptions;
-    }
-
-    return allOptions.filter(location => 
-      location.name.toLowerCase().includes(locationSearch.toLowerCase()) ||
-      (location.alternateNames && location.alternateNames.some((alt: string) => 
-        alt.toLowerCase().includes(locationSearch.toLowerCase())
-      ))
-    );
-  }, [country.subLocations, country.name, country.id, locationSearch]);
+    // For country-specific forums, use country location filtering
+    return LocationDisplayHelper.getCountryLocations(country, locationSearch);
+  }, [country, locationSearch]);
 
   const handleLocationSelect = (locationName: string) => {
     setSelectedLocation(locationName);
@@ -638,7 +616,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
 
           {/* Location Results */}
           <ScrollView style={{ flex: 1 }}>
-            {filteredLocations.map((item) => (
+            {filteredLocations.map((item: LocationDisplayOption) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => handleLocationSelect(item.name)}
@@ -662,7 +640,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   fontWeight: selectedLocation === item.name ? '600' : '400',
                   flex: 1,
                 }}>
-                  {item.isGeneral ? item.displayName : item.name}
+                  {item.displayName}
                 </Text>
                 {item.isGeneral && (
                   <Text style={{

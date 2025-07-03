@@ -344,7 +344,7 @@ export const usaData: Country = {
     {
       id: 'us-los-angeles',
       name: 'Los Angeles',
-      alternateNames: ['LA', 'City of Angels', 'Hollywood'],
+      alternateNames: ['LA', 'LAX', 'City of Angels', 'Hollywood'],
       parentId: 'us',
       popularActivities: ['city', 'cultural', 'amusements'],
       description: 'Entertainment capital with beaches, Hollywood, and perfect weather.',
@@ -398,7 +398,7 @@ export const usaData: Country = {
     {
       id: 'us-san-francisco',
       name: 'San Francisco',
-      alternateNames: ['SF', 'The City', 'Fog City'],
+      alternateNames: ['SF', 'SFO', 'The City', 'Fog City'],
       parentId: 'us',
       popularActivities: ['city', 'cultural', 'heritage'],
       description: 'Hilly city famous for Golden Gate Bridge and tech innovation.',
@@ -2822,6 +2822,58 @@ export const getLocationByName = (name: string): SubLocation | null => {
   }
   
   return null;
+};
+
+// NEW: Get country by name - for country-level navigation
+export const getCountryByName = (name: string): Country | null => {
+  const normalizedName = name.toLowerCase().trim();
+  
+  for (const continent of placesData) {
+    for (const country of continent.countries) {
+      // Check main name
+      if (country.name.toLowerCase() === normalizedName) {
+        return country;
+      }
+      
+      // Check alternate names
+      if (country.alternateNames.some(altName => 
+        altName.toLowerCase() === normalizedName
+      )) {
+        return country;
+      }
+    }
+  }
+  
+  return null;
+};
+
+// NEW: Unified location resolver - handles both SubLocations and Countries
+export const resolveLocationForNavigation = (locationName: string): { 
+  type: 'sublocation' | 'country' | null;
+  location?: SubLocation;
+  country?: Country;
+} => {
+  // First try to find as SubLocation
+  const subLocation = getLocationByName(locationName);
+  if (subLocation) {
+    const country = getCountryByLocationId(subLocation.id);
+    return {
+      type: 'sublocation',
+      location: subLocation,
+      country: country || undefined
+    };
+  }
+  
+  // Then try to find as Country
+  const country = getCountryByName(locationName);
+  if (country) {
+    return {
+      type: 'country',
+      country: country
+    };
+  }
+  
+  return { type: null };
 };
 
 export const getCountryByLocationId = (locationId: string): Country | null => {

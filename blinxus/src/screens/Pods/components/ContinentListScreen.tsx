@@ -47,7 +47,6 @@ const CountryCard: React.FC<{
   isPodJoined: (podId: string) => boolean;
   onJoinPod: (countryId: string) => void;
 }> = ({ country, index, theme, themeColors, onPress, isPodJoined, onJoinPod }) => {
-  const isPopular = country.subLocations.length > 15;
   const isUserJoined = isPodJoined(country.id);
   // Generate consistent member count based on country ID (won't change on re-renders)
   const memberCount = Math.floor((country.id.charCodeAt(0) * country.id.charCodeAt(country.id.length - 1) * 37) % 5000 + 100);
@@ -138,19 +137,7 @@ const CountryCard: React.FC<{
           borderRadius: 20,
         }} />
 
-        {/* Popular Badge Accent */}
-        {isPopular && (
-          <View style={{
-            position: 'absolute',
-            right: -30,
-            top: -30,
-            width: 100,
-            height: 100,
-            borderRadius: 50,
-            backgroundColor: theme.colors.primary,
-            opacity: 0.04,
-        }} />
-        )}
+
 
         {/* Content */}
         <View style={{ 
@@ -212,23 +199,12 @@ const CountryCard: React.FC<{
               opacity: 0.75,
             }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={{
-                  width: 15,
-                  height: 15,
-                  borderRadius: 7.5,
-                  backgroundColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.06)'
-                    : 'rgba(0, 0, 0, 0.04)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 6,
-                }}>
-                  <Users 
-                    size={9} 
-                    color={theme.colors.textSecondary} 
-                    strokeWidth={2.5}
-                  />
-                </View>
+                <Users 
+                  size={12} 
+                  color={theme.colors.textSecondary} 
+                  strokeWidth={2}
+                  style={{ marginRight: 6 }}
+                />
                 <Text 
                   style={{ 
                     color: theme.colors.textSecondary,
@@ -544,9 +520,17 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
   const filteredCountries = useMemo(() => {
     let countries = [];
     
-    // Feed tab - no countries to show (handled by GlobalFeed component)
+    // Feed tab - show all countries from all continents when searching
     if (activeContinent === 0) {
-      return [];
+      if (searchQuery) {
+        // When searching in Global Feed, show all countries from all continents
+        countries = placesData.reduce((acc, continent) => {
+          return [...acc, ...continent.countries];
+        }, [] as Country[]);
+      } else {
+        // When not searching, no countries to show (handled by GlobalFeed component)
+        return [];
+      }
     } else {
       // Regular continent view - activeContinent 1+ maps to continent indices 0+
       const continentIndex = activeContinent - 1; // Subtract 1 because Feed=0, then continents start
@@ -1190,7 +1174,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
       {/* Global Feed - Always mounted but conditionally visible to preserve scroll position */}
       <View style={{ 
         flex: 1,
-        display: activeContinent === 0 ? 'flex' : 'none'
+        display: activeContinent === 0 && !searchQuery ? 'flex' : 'none'
       }}>
         <GlobalFeed 
           key="global-feed-component"
@@ -1199,8 +1183,8 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
         />
       </View>
 
-      {/* Other tabs content */}
-      {activeContinent !== 0 && (
+      {/* Countries List - Show for other tabs or when searching in Global Feed */}
+      {(activeContinent !== 0 || (activeContinent === 0 && searchQuery)) && (
         <>
           {/* Countries List with ref for scroll control */}
           <FlatList

@@ -15,7 +15,8 @@ import DetailPostView from './DetailPostView';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../utils/responsive';
 import { useOrientation, Orientation } from '../hooks/useOrientation';
 import UserProfileNavigation from '../utils/userProfileNavigation';
-import { placesData, getLocationByName, getCountryByLocationId } from '../constants/placesData';
+import { placesData, getLocationByName, getCountryByLocationId, resolveLocationForNavigation } from '../constants/placesData';
+import { LocationNavigation } from '../utils/locationNavigation';
 
 interface TravelFeedCardProps extends PostCardProps {
   onDetailsPress: () => void;
@@ -325,14 +326,14 @@ const ImmersiveImageCarousel: React.FC<{
                   }}
                   pointerEvents="box-none" // Allow touches to pass through to children
                 >
-                  {/* Profile exclusion zone - no touch handling */}
+                  {/* Profile exclusion zone - ULTRA PRECISE AREA ONLY for profile pic and name */}
                   <View
                     style={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
-                      width: '70%', // Cover profile area width
-                      height: rs(100), // Cover profile area height
+                      width: rs(180), // Reduced width - only cover profile pic and name
+                      height: rs(45), // Reduced height - only cover profile pic and name row, NOT location pill
                     }}
                     pointerEvents="none" // Completely ignore touches in this area
                   />
@@ -534,10 +535,11 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const postData = useMemo(() => {
     const currentPost = posts.find(p => p.id === id);
     if (currentPost) {
-      // Get the current activity color from activityColors based on the activity key
-      let currentActivityColor = activityColor; // fallback to original
-      let currentActivityName = activityName; // fallback to original
+      // ABSOLUTE TRUTH: Get current activity data from post
+      let currentActivityColor: string | undefined = undefined; // Default to undefined (no filter)
+      let currentActivityName: string | undefined = undefined; // Default to undefined (no filter)
       
+      // Only set activity color/name if post currently has an activity
       if (currentPost.activity) {
         currentActivityColor = activityColors[currentPost.activity];
         currentActivityName = activityNames[currentPost.activity];
@@ -547,8 +549,8 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         ...currentPost,
         likes: likeCount, // Use current like count for UI consistency
         comments: commentCount, // Use current comment count for UI consistency
-        activityColor: currentActivityColor, // Use updated activity color
-        activityName: currentActivityName, // Use updated activity name
+        activityColor: currentActivityColor, // ABSOLUTE TRUTH: undefined if no activity
+        activityName: currentActivityName, // ABSOLUTE TRUTH: undefined if no activity
       };
     }
     // Fallback to original data if not found in context
@@ -586,45 +588,20 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     });
   }, [authorName, authorId, navigation]);
 
-  // CENTRALIZED: Location navigation to Pods PhotoFeed
+  // CENTRALIZED: Location navigation to Pods Forum - UNIVERSAL SYSTEM
   const handleLocationPress = useCallback(() => {
     if (!location) return;
     
-    // Find the location in placesData
-    const foundLocation = getLocationByName(location);
-    if (foundLocation) {
-      // Get the country for this location
-      const country = getCountryByLocationId(foundLocation.id);
-      if (country) {
-        // Navigate to Pods with specific country and location
-        (navigation as any).navigate('Pods', {
-          initialCountry: country.id,
-          initialLocation: foundLocation.id,
-          autoNavigateToCountry: true,
-          targetLocationFilter: foundLocation.name,
-          autoSelectLocationTab: true,
-          // Navigate directly to PhotoFeed tab (Explore tab)
-          initialTab: 'Explore'
-        });
-      }
-    } else {
-      // Try to find as a country name
-      const foundCountry = placesData
-        .flatMap(continent => continent.countries)
-        .find(country => country.name === location);
-      
-      if (foundCountry) {
-        // Navigate to country-level PhotoFeed
-        (navigation as any).navigate('Pods', {
-          initialCountry: foundCountry.id,
-          initialLocation: 'All',
-          autoNavigateToCountry: true,
-          targetLocationFilter: 'All',
-          autoSelectLocationTab: true,
-          initialTab: 'Explore'
-        });
-      }
-    }
+    // DEBUG: Log the location to understand what's happening
+    console.log(`[DEBUG] Attempting to navigate to location: "${location}"`);
+    
+    // Test location resolution
+    const resolved = resolveLocationForNavigation(location);
+    console.log(`[DEBUG] Location resolved:`, resolved);
+    
+    // Use centralized navigation system - handles everything automatically
+    const success = LocationNavigation.navigateToForum(navigation, location);
+    console.log(`[DEBUG] Navigation success:`, success);
   }, [location, navigation]);
 
   // Add ref for debouncing likes
@@ -991,7 +968,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             <TouchableOpacity
               onPress={handleLocationPress}
               activeOpacity={0.8}
-              hitSlop={{ top: rs(8), bottom: rs(8), left: rs(8), right: rs(8) }}
+              hitSlop={{ top: rs(12), bottom: rs(12), left: rs(12), right: rs(12) }}
               style={{ 
                 paddingHorizontal: rs(8), 
                 paddingVertical: rs(3), 
@@ -1001,7 +978,10 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                 borderColor: isLucid ? 'rgba(255, 255, 255, 0.5)' : (postData.activityColor ? 'transparent' : 'rgba(255, 255, 255, 0.5)'),
                 flexDirection: 'row',
                 alignItems: 'center',
-                alignSelf: 'flex-start'
+                alignSelf: 'flex-start',
+                // ULTRA RESPONSIVE: Add minimum touch area
+                minWidth: rs(60),
+                minHeight: rs(24)
               }}
             >
               <Text style={{ fontSize: typography.caption, color: 'white' }}>📍</Text>
@@ -1017,7 +997,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                   textShadowRadius: isLucid ? rs(3) : (postData.activityColor ? 0 : rs(3))
                 }}
               >
-                {postData.location}
+{postData.location}
               </Text>
             </TouchableOpacity>
           </View>

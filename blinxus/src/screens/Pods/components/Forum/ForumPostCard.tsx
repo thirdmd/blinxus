@@ -259,7 +259,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
               <TouchableOpacity
                 onPress={handleLocationPress}
                 activeOpacity={0.7}
-                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 style={{ alignSelf: 'flex-start' }}
               >
                 <View style={{
@@ -281,6 +281,9 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
                   shadowOpacity: themeColors.isDark ? 0.2 : 0.1,
                   shadowRadius: 2,
                   elevation: 1,
+                  // CENTRALIZED: Add minimum touch area for consistency
+                  minWidth: 60,
+                  minHeight: 24,
                 }}>
                   <Text style={{ 
                     fontSize: 13, 

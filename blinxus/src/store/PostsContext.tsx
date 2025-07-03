@@ -6,7 +6,7 @@ interface PostsContextType {
   posts: Post[];
   addPost: (post: Omit<Post, 'id' | 'timestamp' | 'timeAgo' | 'likes' | 'comments'>) => void;
   deletePost: (postId: string) => void;
-  editPost: (postId: string, updates: { content?: string; location?: string; activity?: ActivityKey }) => void;
+  editPost: (postId: string, updates: { content?: string; location?: string; activity?: ActivityKey | undefined }) => void;
   likePost: (postId: string) => void;
   unlikePost: (postId: string) => void;
   addComment: (postId: string) => void;
@@ -34,7 +34,7 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
   };
 
-  const editPost = (postId: string, updates: { content?: string; location?: string; activity?: ActivityKey }) => {
+  const editPost = (postId: string, updates: { content?: string; location?: string; activity?: ActivityKey | undefined }) => {
     setPosts(prevPosts => 
       prevPosts.map(post => {
         if (post.id === postId) {
@@ -44,7 +44,7 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           
           // Check what's being edited
           const isLocationEdit = updates.location !== undefined;
-          const isActivityEdit = updates.activity !== undefined;
+          const isActivityEdit = 'activity' in updates; // Check if activity key exists (even if undefined)
           
           // Check if location edit is allowed (if trying to edit location)
           const canEditLocation = !isLocationEdit || locationEditCount < 1;
@@ -57,14 +57,36 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             return post; // Return unchanged post
           }
           
-          // Allow the edit and increment appropriate counters
-          return {
+          // Create updated post with absolute truth
+          const updatedPost = {
             ...post,
-            ...updates,
             isEdited: true,
             locationEditCount: isLocationEdit ? locationEditCount + 1 : locationEditCount,
             activityEditCount: isActivityEdit ? activityEditCount + 1 : activityEditCount
           };
+          
+          // Apply content update
+          if (updates.content !== undefined) {
+            updatedPost.content = updates.content;
+          }
+          
+          // Apply location update
+          if (updates.location !== undefined) {
+            updatedPost.location = updates.location;
+          }
+          
+          // Apply activity update - ABSOLUTE TRUTH: handle removal properly
+          if (isActivityEdit) {
+            if (updates.activity === undefined) {
+              // Remove activity completely - ABSOLUTE TRUTH
+              delete updatedPost.activity;
+            } else {
+              // Set new activity
+              updatedPost.activity = updates.activity;
+            }
+          }
+          
+          return updatedPost;
         }
         return post;
       })

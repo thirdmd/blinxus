@@ -21,6 +21,7 @@ import { ForumPost, FORUM_CATEGORIES } from './Forum/forumTypes';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, getCountryByLocationId, getLocationByName } from '../../../constants/placesData';
+import LocationDisplayHelper from '../../../utils/locationDisplayHelper';
 import UserProfileNavigation from '../../../utils/userProfileNavigation';
 import LocationNavigation from '../../../utils/locationNavigation';
 import { SPACING } from '../../../constants/spacing';
@@ -475,48 +476,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={handleCreatePostSubmit}
-        country={{
-          id: 'global',
-          name: 'Global',
-          alternateNames: [],
-          continentId: 'global',
-          subLocations: [
-            // Add "Global" as the first option
-            {
-              id: 'global-all',
-              name: 'Global',
-              alternateNames: ['Worldwide', 'International'],
-              parentId: 'global',
-              popularActivities: [],
-            },
-            // Add all countries and locations
-            ...placesData.reduce((allLocations, continent) => {
-              const continentLocations = continent.countries.reduce((countryLocations, country) => {
-                // Add country as a location option
-                countryLocations.push({
-                  id: country.id,
-                  name: country.name,
-                  alternateNames: country.alternateNames,
-                  parentId: 'global',
-                  popularActivities: [],
-                });
-                
-                // Add all sub-locations from this country
-                country.subLocations.forEach(subLocation => {
-                  countryLocations.push({
-                    ...subLocation,
-                    name: `${subLocation.name}, ${country.name}`, // Show location with country for clarity
-                    parentId: 'global',
-                  });
-                });
-                
-                return countryLocations;
-              }, [] as any[]);
-              
-              return [...allLocations, ...continentLocations];
-            }, [] as any[])
-          ]
-        }}
+        country={LocationDisplayHelper.createGlobalFeedCountry()}
         defaultLocation=""
       />
       </View>
@@ -566,48 +526,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={handleCreatePostSubmit}
-        country={{
-          id: 'global',
-          name: 'Global',
-          alternateNames: [],
-          continentId: 'global',
-          subLocations: [
-            // Add "Global" as the first option
-            {
-              id: 'global-all',
-              name: 'Global',
-              alternateNames: ['Worldwide', 'International'],
-              parentId: 'global',
-              popularActivities: [],
-            },
-            // Add all countries and locations
-            ...placesData.reduce((allLocations, continent) => {
-              const continentLocations = continent.countries.reduce((countryLocations, country) => {
-                // Add country as a location option
-                countryLocations.push({
-                  id: country.id,
-                  name: country.name,
-                  alternateNames: country.alternateNames,
-                  parentId: 'global',
-                  popularActivities: [],
-                });
-                
-                // Add all sub-locations from this country
-                country.subLocations.forEach(subLocation => {
-                  countryLocations.push({
-                    ...subLocation,
-                    name: `${subLocation.name}, ${country.name}`, // Show location with country for clarity
-                    parentId: 'global',
-                  });
-                });
-                
-                return countryLocations;
-              }, [] as any[]);
-              
-              return [...allLocations, ...continentLocations];
-            }, [] as any[])
-          ]
-        }}
+        country={LocationDisplayHelper.createGlobalFeedCountry()}
         defaultLocation=""
       />
     </View>
