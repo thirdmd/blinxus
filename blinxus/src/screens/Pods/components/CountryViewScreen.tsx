@@ -21,7 +21,7 @@ import {
   Keyboard,
   InteractionManager,
 } from 'react-native';
-import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X } from 'lucide-react-native';
+import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X, MessageCircle, Grid3X3, ShoppingBag, Calendar, HelpCircle } from 'lucide-react-native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -80,7 +80,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   const searchInputRef = useRef<TextInput>(null);
   
   // TAB TRANSITIONS: Animation values for smooth tab switching
-  const tabs: PodTabType[] = ['Forum', 'Explore', 'Activities'];
+  const tabs: PodTabType[] = ['Forum', 'Explore', 'Market', 'Events', 'Lost'];
   const initialTabIndex = tabs.indexOf(activeTab);
   const tabContainerTranslateX = useRef(new Animated.Value(-initialTabIndex * width)).current;
   const currentTabIndex = useRef(initialTabIndex);
@@ -443,7 +443,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       </View>
 
       {/* ULTRA-SMOOTH: Location Filter Tabs with Optimized Search */}
-      <View style={{ marginTop: 20, marginBottom: 20 }}>
+      <View style={{ marginTop: 20, marginBottom: 8 }}>
         <View style={{ 
           flexDirection: 'row', 
           alignItems: 'center',
@@ -600,41 +600,43 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       {/* PERFORMANCE: Ultra-fast tab navigation */}
       <View style={{ 
         marginHorizontal: 20,
-        marginBottom: 24,
-        marginTop: 8,
+        marginBottom: 16,
+        marginTop: 4,
       }}>
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 0,
+          justifyContent: 'space-between',
+          paddingHorizontal: 20,
         }}>
-          {['Forum', 'Explore', 'Activities'].map((tab) => (
+          {[
+            { key: 'Forum', icon: MessageCircle },
+            { key: 'Explore', icon: Grid3X3 },
+            { key: 'Market', icon: ShoppingBag },
+            { key: 'Events', icon: Calendar },
+            { key: 'Lost', icon: HelpCircle }
+          ].map(({ key, icon: Icon }) => (
             <TouchableOpacity
-              key={tab}
-              onPress={() => handleTabChange(tab as PodTabType)}
+              key={key}
+              onPress={() => handleTabChange(key as PodTabType)}
               style={{
-                flex: 1,
-                paddingVertical: 12,
-                paddingHorizontal: 4,
+                paddingVertical: 8,
+                paddingHorizontal: 16,
                 alignItems: 'center',
                 position: 'relative',
               }}
               activeOpacity={0.8}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={{
-                fontSize: 15,
-                fontWeight: activeTab === tab ? '600' : '400',
-                color: activeTab === tab 
-                  ? themeColors.text
-                  : themeColors.textSecondary,
-                fontFamily: 'System',
-                letterSpacing: -0.2,
-              }}>
-                {tab}
-              </Text>
+              <Icon 
+                size={20} 
+                color={activeTab === key 
+                  ? theme.colors.primary
+                  : themeColors.textSecondary} 
+                strokeWidth={2}
+              />
               
-              {activeTab === tab && (
+              {activeTab === key && (
                 <View style={{
                   position: 'absolute',
                   bottom: 0,
@@ -662,7 +664,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       <View style={{ flex: 1, overflow: 'hidden' }}>
         <Animated.View style={{ 
           flexDirection: 'row',
-          width: width * 3, // Triple width to fit all three tabs
+          width: width * 5, // Five tabs width
           height: '100%',
           transform: [{ translateX: tabContainerTranslateX }],
         }}>
@@ -689,12 +691,12 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
                 fontSize: 16,
                 fontFamily: 'System',
               }}>
-                Explore content coming soon
+                Photo feed coming soon
               </Text>
             </View>
           </View>
 
-          {/* Activities Tab Content */}
+          {/* Market Tab Content */}
           <View style={{ width: width, height: '100%' }}>
             <View style={{ 
               flex: 1,
@@ -707,7 +709,43 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
                 fontSize: 16,
                 fontFamily: 'System',
               }}>
-                Activities content coming soon
+                Marketplace coming soon
+              </Text>
+            </View>
+          </View>
+
+          {/* Events Tab Content */}
+          <View style={{ width: width, height: '100%' }}>
+            <View style={{ 
+              flex: 1,
+              alignItems: 'center', 
+              paddingVertical: 40,
+              marginHorizontal: 20,
+            }}>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 16,
+                fontFamily: 'System',
+              }}>
+                Events coming soon
+              </Text>
+            </View>
+          </View>
+
+          {/* Lost Tab Content */}
+          <View style={{ width: width, height: '100%' }}>
+            <View style={{ 
+              flex: 1,
+              alignItems: 'center', 
+              paddingVertical: 40,
+              marginHorizontal: 20,
+            }}>
+              <Text style={{
+                color: themeColors.textSecondary,
+                fontSize: 16,
+                fontFamily: 'System',
+              }}>
+                Lost & found coming soon
               </Text>
             </View>
           </View>

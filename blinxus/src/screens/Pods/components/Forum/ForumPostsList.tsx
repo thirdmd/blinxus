@@ -486,7 +486,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
           backgroundColor: themeColors.background,
         }}
         contentContainerStyle={{
-          paddingTop: 8,
+          paddingTop: 0,
           paddingBottom: 50, // Reduced padding to align with "What's on your mind" bar
         }}
       />

@@ -37,14 +37,14 @@ const RootStack = createStackNavigator();
 // Profile Tab Icon - Shows actual user profile picture
 function ProfileTabIcon({ color, focused }: { color: string; focused: boolean }) {
   const currentUser = getCurrentUser();
-  const iconSize = ri(29); // Increased from 24 to 28
+  const iconSize = ri(26); // Increased from 24 to 28
   
   return (
     <View style={{
       width: iconSize,
       height: iconSize,
       borderRadius: iconSize / 2,
-      borderWidth: focused ? 2.0 : 1.5, // Made thinner by 0.5px
+      borderWidth: focused ? 2.5 : 2.0, // Made 0.5px thicker (was 2.0 : 1.5)
       borderColor: color,
       overflow: 'hidden',
     }}>
@@ -80,28 +80,28 @@ function ProfileTabIcon({ color, focused }: { color: string; focused: boolean })
   );
 }
 
-// Subtle Square Create Icon Component
+// Subtle Square Create Icon Component - Keep original thickness
 function SubtleCreateIcon({ color, size, focused }: { color: string; size: number; focused: boolean }) {
   return (
     <View style={{
       width: size,
       height: size,
       borderRadius: size * 0.25, // Subtle rounded square
-      borderWidth: focused ? 1.5 : 1.2,
+      borderWidth: focused ? 1.9 : 2, // Keep original thickness for Create
       borderColor: '#0047AB', // Always subtle cobalt blue
       backgroundColor: focused ? 'rgba(0, 71, 171, 0.12)' : 'rgba(0, 71, 171, 0.06)', // Very subtle blue tint
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      {/* Minimal plus inside */}
+      {/* Minimal plus inside - Keep thin */}
       <View style={{
         width: size * 0.42,
-        height: 1.5,
+        height: 1.5, // Keep thin
         backgroundColor: '#0047AB',
         borderRadius: 0.75,
       }} />
       <View style={{
-        width: 1.5,
+        width: 1.5, // Keep thin
         height: size * 0.42,
         backgroundColor: '#0047AB',
         borderRadius: 0.75,
@@ -111,10 +111,10 @@ function SubtleCreateIcon({ color, size, focused }: { color: string; size: numbe
   );
 }
 
-// Tab Icons - Updated for 5 tabs
+// Tab Icons - Made 0.5px thicker except Create
 function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
-  const iconSize = name === 'Create' ? ri(28) : ri(24);
-  const strokeWidth = focused ? 2.0 : 1.5; // Made thinner by 0.5px
+  const iconSize = ri(21.5); // ALL icons same size
+  const strokeWidth = focused ? 2 : 1.8; // Made 0.5px thicker (was 2.0 : 1.5)
   
   switch (name) {
     case 'Home':
@@ -130,55 +130,6 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
     default:
       return <Home size={iconSize} color={color} strokeWidth={strokeWidth} />;
   }
-}
-
-// Special Create Tab Button - Same size as other icons, subtle design
-function CreateTabButton({ onPress, accessibilityState, navigation }: any) {
-  const themeColors = useThemeColors();
-  
-  const handlePress = () => {
-    navigation.navigate('CreatePost');
-  };
-  
-  return (
-    <TouchableOpacity
-      onPress={handlePress}
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: rs(2), // Slight lift to align with other icons
-      }}
-      activeOpacity={0.8}
-    >
-      {/* Subtle square create icon - same size as other tab icons */}
-      <View style={{
-        width: ri(24), // Same size as other icons
-        height: ri(24),
-        borderRadius: ri(6), // Subtle rounded square
-        borderWidth: 1.5,
-        borderColor: '#0047AB', // Subtle cobalt blue border
-        backgroundColor: 'rgba(0, 71, 171, 0.08)', // Very subtle blue tint
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {/* Minimal plus inside */}
-        <View style={{
-          width: ri(10),
-          height: 1.5,
-          backgroundColor: '#0047AB',
-          borderRadius: 0.75,
-        }} />
-        <View style={{
-          width: 1.5,
-          height: ri(10),
-          backgroundColor: '#0047AB',
-          borderRadius: 0.75,
-          position: 'absolute',
-        }} />
-      </View>
-    </TouchableOpacity>
-  );
 }
 
 // Wrapper components to avoid inline functions
@@ -218,6 +169,13 @@ function TabNavigator() {
     const now = Date.now();
     const lastTap = lastTapRef.current[routeName] || 0;
     const isDoubleTap = now - lastTap < 300; // Double tap detected (within 300ms)
+    
+    // Special handling for Create button - FIXED: Always navigate immediately
+    if (routeName === 'Create') {
+      navigation.navigate('CreatePost');
+      lastTapRef.current[routeName] = now;
+      return;
+    }
     
     if (isFocused) {
       // SAME SCREEN: Single press = reset, Double press = refresh
@@ -361,12 +319,8 @@ function TabNavigator() {
         screenOptions={({ route, navigation }) => ({
           headerShown: false,
           tabBarIcon: ({ color, focused }) => {
-            if (route.name === 'Create') {
-              return null; // Custom button handles this
-            }
             return <TabIcon name={route.name} color={color} focused={focused} />;
           },
-          tabBarButton: route.name === 'Create' ? (props: any) => <CreateTabButton {...props} navigation={navigation} /> : undefined,
           tabBarStyle: {
             backgroundColor: themeColors.background,
             borderTopColor: themeColors.border,
@@ -378,28 +332,26 @@ function TabNavigator() {
           tabBarLabelStyle: {
             fontSize: rf(11),
             fontWeight: '500',
-            marginTop: route.name === 'Create' ? rs(4) : rs(2),
+            marginTop: rs(2),
           },
           tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : themeColors.text,
           tabBarInactiveTintColor: themeColors.textSecondary,
           tabBarLabel: ({ focused }) => {
             if (route.name === 'Create') {
-              return (
-                <Text style={{
-                  fontSize: rf(11),
-                  fontWeight: '500',
-                  color: '#0047AB',
-                  marginTop: rs(4)
-                }}>
-                  Create
-                </Text>
-              );
+              return null; // Remove "Create" text
             }
             return !focused ? '' : undefined;
           },
         })}
         screenListeners={({ route, navigation }) => ({
           tabPress: (e) => {
+            // FIXED: Prevent default for Create to handle navigation manually
+            if (route.name === 'Create') {
+              e.preventDefault();
+              handleTabPress(route.name, navigation, false);
+              return;
+            }
+            
             const isFocused = navigation.isFocused();
             handleTabPress(route.name, navigation, isFocused);
           },

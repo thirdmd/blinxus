@@ -178,37 +178,29 @@ const CountryCard: React.FC<{
                   {country.name}
                 </Text>
               
-              {/* Modern Join Button */}
-              {!isUserJoined && (
-                <TouchableOpacity
-                  onPress={() => onJoinPod(country.id)}
-                  style={{
-                    marginLeft: 10,
-                    paddingHorizontal: 12,
-                    paddingVertical: 4,
-                    borderRadius: 14,
-                    backgroundColor: theme.colors.primary,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    shadowColor: theme.colors.primary,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4,
-                    elevation: 4,
-                  }}
-                  activeOpacity={0.85}
-                >
-                  <Text style={{
-                    color: 'white',
-                    fontSize: 11,
-                    fontWeight: '600',
-                    fontFamily: 'System',
-                    letterSpacing: 0.1,
-                  }}>
-                    Join
-                  </Text>
-                </TouchableOpacity>
-              )}
+              {/* Sleek Join/Joined Button */}
+              <TouchableOpacity
+                onPress={() => !isUserJoined && onJoinPod(country.id)}
+                style={{
+                  marginLeft: 10,
+                  paddingHorizontal: 4,
+                  paddingVertical: 2,
+                }}
+                activeOpacity={isUserJoined ? 1 : 0.7}
+                disabled={isUserJoined}
+              >
+                <Text style={{
+                  color: isUserJoined 
+                    ? themeColors.textSecondary 
+                    : theme.colors.primary,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  fontFamily: 'System',
+                  letterSpacing: -0.1,
+                }}>
+                  {isUserJoined ? 'Joined' : 'Join'}
+                </Text>
+              </TouchableOpacity>
               
 
               </View>
@@ -1210,38 +1202,6 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
       {/* Other tabs content */}
       {activeContinent !== 0 && (
         <>
-          {/* Fixed Active Continent Info */}
-          <View style={{ 
-            marginHorizontal: 20,
-            marginBottom: 8,
-          }}>
-            <View style={{ 
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            <View style={{ 
-                width: 4,
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: theme.colors.primary,
-                marginRight: 8,
-              }} />
-              <Text style={{ 
-                fontSize: 11,
-                color: themeColors.textSecondary,
-                fontWeight: '600',
-                fontFamily: 'System',
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
-              }}>
-                {activeContinent === 0 
-                  ? `Global Feed` 
-                  : `${placesData[activeContinent - 1]?.name} • ${filteredCountries.length} Countries`
-                }
-              </Text>
-            </View>
-          </View>
-
           {/* Countries List with ref for scroll control */}
           <FlatList
             ref={flatListRef}

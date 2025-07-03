@@ -2,8 +2,8 @@ import { ActivityKey } from '../../constants/activityTags';
 import { SubLocation, Country, Continent } from '../../constants/placesData';
 
 // Pod Tab Types
-export type PodTabType = 'Forum' | 'Highlights' | 'Explore' | 'Q&A' | 'Market' | 'Events' | 'Activities' | 'Lost';
-export const allPodTabs: PodTabType[] = ['Forum', 'Highlights', 'Explore', 'Q&A', 'Market', 'Events', 'Activities', 'Lost'];
+export type PodTabType = 'Forum' | 'Highlights' | 'Explore' | 'Q&A' | 'Market' | 'Events' | 'Lost';
+export const allPodTabs: PodTabType[] = ['Forum', 'Highlights', 'Explore', 'Q&A', 'Market', 'Events', 'Lost'];
 
 // Navigation state for Pods screens
 export interface PodsNavigationState {

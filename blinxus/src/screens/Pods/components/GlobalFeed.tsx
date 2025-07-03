@@ -354,7 +354,6 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
       {/* Active Filters Display (same as country forums) */}
       {(filters.category !== 'All' || filters.activityTags.length > 0 || filters.searchQuery) && (
         <View style={{
-          marginBottom: 16,
         }}>
           <ScrollView
             horizontal
@@ -572,7 +571,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         onEndReachedThreshold={0.3}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
-          paddingTop: 16,
+          paddingTop: 0,
           paddingBottom: 50, // Reduced padding to align with "What's on your mind" bar
           flexGrow: 1,
         }}
