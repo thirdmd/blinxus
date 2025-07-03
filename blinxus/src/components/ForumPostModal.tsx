@@ -396,7 +396,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                 marginBottom: 4,
                 fontFamily: 'System',
               }}>
-                Related to
+                Tags
               </Text>
               <Text style={{
                 fontSize: 13,
@@ -416,7 +416,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   marginBottom: 12,
                   fontFamily: 'System',
                 }}>
-                  🎯 Activities
+                  Activities
                 </Text>
                 <View style={{
                   flexDirection: 'row',
@@ -446,7 +446,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   marginBottom: 12,
                   fontFamily: 'System',
                 }}>
-                  🏨 Accommodation
+                  Accommodation
                 </Text>
                 <View style={{
                   flexDirection: 'row',
@@ -476,7 +476,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   marginBottom: 12,
                   fontFamily: 'System',
                 }}>
-                  🚗 Transport
+                  Transport
                 </Text>
                 <View style={{
                   flexDirection: 'row',
@@ -506,7 +506,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   marginBottom: 12,
                   fontFamily: 'System',
                 }}>
-                  🍽️ Food & Drinks
+                  Food & Drinks
                 </Text>
                 <View style={{
                   flexDirection: 'row',
@@ -536,7 +536,7 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   marginBottom: 12,
                   fontFamily: 'System',
                 }}>
-                  🎭 Culture
+                  Culture
                 </Text>
                 <View style={{
                   flexDirection: 'row',

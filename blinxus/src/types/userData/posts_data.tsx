@@ -1,5 +1,83 @@
 import { ActivityKey } from '../../constants/activityTags';
 
+// Centralized Lucid Photo Management Utilities
+export class LucidPhotoManager {
+  /**
+   * Converts day-by-day photos to flat array for backward compatibility
+   */
+  static dayPhotosToFlatArray(dayPhotos: { [dayIndex: number]: string[] }): string[] {
+    const flatArray: string[] = [];
+    const sortedDays = Object.keys(dayPhotos).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    sortedDays.forEach(dayIndex => {
+      const dayImages = dayPhotos[parseInt(dayIndex)] || [];
+      flatArray.push(...dayImages);
+    });
+    
+    return flatArray;
+  }
+
+  /**
+   * Converts flat array to day-by-day structure (for migration/fallback)
+   */
+  static flatArrayToDayPhotos(images: string[], imagesPerDay: number = 4): { [dayIndex: number]: string[] } {
+    const dayPhotos: { [dayIndex: number]: string[] } = {};
+    
+    for (let i = 0; i < images.length; i += imagesPerDay) {
+      const dayIndex = Math.floor(i / imagesPerDay);
+      dayPhotos[dayIndex] = images.slice(i, i + imagesPerDay);
+    }
+    
+    return dayPhotos;
+  }
+
+  /**
+   * Gets the total number of images across all days
+   */
+  static getTotalImageCount(dayPhotos: { [dayIndex: number]: string[] }): number {
+    return Object.values(dayPhotos).reduce((total, dayImages) => total + dayImages.length, 0);
+  }
+
+  /**
+   * Validates if all days have the required number of images (3-4 per day)
+   */
+  static validateDayPhotos(dayPhotos: { [dayIndex: number]: string[] }, duration: number, minPerDay: number = 3, maxPerDay: number = 4): boolean {
+    for (let day = 0; day < duration; day++) {
+      const dayImageCount = dayPhotos[day]?.length || 0;
+      if (dayImageCount < minPerDay || dayImageCount > maxPerDay) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Gets images for a specific day (0-indexed)
+   */
+  static getDayImages(dayPhotos: { [dayIndex: number]: string[] }, dayIndex: number): string[] {
+    return dayPhotos[dayIndex] || [];
+  }
+
+  /**
+   * Creates a lucid post data structure
+   */
+  static createLucidPostData(
+    duration: number,
+    durationMode: 'days' | 'dates',
+    dayPhotos: { [dayIndex: number]: string[] },
+    startDate?: Date,
+    endDate?: Date
+  ) {
+    return {
+      duration,
+      durationMode,
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+      dayPhotos,
+    };
+  }
+}
+
 export interface Post {
   id: string;
   authorId: string;
@@ -10,6 +88,14 @@ export interface Post {
   content?: string;
   title?: string;
   images?: string[];
+  // Lucid-specific fields for day-by-day photo structure
+  lucidData?: {
+    duration: number; // Number of days
+    durationMode: 'days' | 'dates';
+    startDate?: string; // ISO date string
+    endDate?: string; // ISO date string
+    dayPhotos: { [dayIndex: number]: string[] }; // Day-by-day photos: { 0: ['img1', 'img2'], 1: ['img3', 'img4'] }
+  };
   device?: string;
   location: string; // REQUIRED
   activity?: ActivityKey; // OPTIONAL
@@ -167,6 +253,17 @@ export const initialPostsData: Post[] = [
       'https://images.pexels.com/photos/1007427/pexels-photo-1007427.jpeg?auto=compress&cs=tinysrgb&w=800',
       'https://images.pexels.com/photos/1450360/pexels-photo-1450360.jpeg?auto=compress&cs=tinysrgb&w=800'
     ],
+    lucidData: {
+      duration: 1,
+      durationMode: 'days',
+      dayPhotos: {
+        0: [
+          'https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg?auto=compress&cs=tinysrgb&w=800',
+          'https://images.pexels.com/photos/1007427/pexels-photo-1007427.jpeg?auto=compress&cs=tinysrgb&w=800',
+          'https://images.pexels.com/photos/1450360/pexels-photo-1450360.jpeg?auto=compress&cs=tinysrgb&w=800'
+        ]
+      }
+    },
     location: 'Kyoto, Japan',
     activity: 'cultural',
     timestamp: '2025-01-06T12:30:00Z',

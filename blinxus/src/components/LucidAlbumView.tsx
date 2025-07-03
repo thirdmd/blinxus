@@ -6,6 +6,7 @@ import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { RESPONSIVE_SCREEN, getTextStyles } from '../utils/responsive';
+import { LucidPhotoManager } from '../types/userData/posts_data';
 
 const { width, height } = RESPONSIVE_SCREEN;
 
@@ -48,21 +49,45 @@ const LucidAlbumView: React.FC<LucidAlbumViewProps> = ({
   const scrollRef = useRef<ScrollView>(null);
   const lastScrollY = useRef(0);
 
-  // Convert post data to album format - organize images by days (4 per day)
-  const organizeDays = (images: string[]): string[][] => {
+  // Convert post data to album format using centralized structure
+  const organizeDays = (post: PostCardProps): string[][] => {
+    // First, try to use the centralized lucidData structure
+    if (post.lucidData?.dayPhotos) {
     const days: string[][] = [];
-    const imagesPerDay = 4;
-    
-    for (let i = 0; i < images.length; i += imagesPerDay) {
-      days.push(images.slice(i, i + imagesPerDay));
+      const sortedDayIndices = Object.keys(post.lucidData.dayPhotos)
+        .map(key => parseInt(key))
+        .sort((a, b) => a - b);
+      
+      sortedDayIndices.forEach(dayIndex => {
+        const dayImages = post.lucidData!.dayPhotos[dayIndex] || [];
+        days.push(dayImages);
+      });
+      
+      return days;
     }
     
+    // Fallback: Convert flat images array to day structure (for backward compatibility)
+    if (post.images && post.images.length > 0) {
+      const dayPhotos = LucidPhotoManager.flatArrayToDayPhotos(post.images, 4);
+      const days: string[][] = [];
+      const sortedDayIndices = Object.keys(dayPhotos)
+        .map(key => parseInt(key))
+        .sort((a, b) => a - b);
+      
+      sortedDayIndices.forEach(dayIndex => {
+        const dayImages = dayPhotos[dayIndex] || [];
+        days.push(dayImages);
+      });
+    
     return days;
+    }
+    
+    return [[]];
   };
   
   const albumData: LucidAlbumData = {
     title: post.title || post.location, // Use title field directly, fallback to location
-    days: post.images ? organizeDays(post.images) : [[]],
+    days: organizeDays(post),
     allPhotos: post.images || [],
     location: post.location,
     authorName: post.authorName,

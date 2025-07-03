@@ -231,7 +231,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       'egypt': 'Africa',
       'australia': 'Oceania',
     };
-    return continentMap[country.id.toLowerCase()] || 'Global Feed';
+    return continentMap[country.id.toLowerCase()] || '';
   }, [country.id]);
   
   // OPTIMIZED: Memoized location tabs
@@ -353,7 +353,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            paddingVertical: 4,
+            paddingVertical: 1,
             paddingHorizontal: 12,
           }}
         >
@@ -441,7 +441,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
           style={{
             paddingHorizontal: 20,
             paddingTop: 4,
-            paddingBottom: 12,
+            paddingBottom: 10,
           }}
         >
           <Text style={{
@@ -471,7 +471,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       </View>
 
       {/* ULTRA-SMOOTH: Location Filter Tabs with Optimized Search */}
-      <View style={{ marginTop: 20, marginBottom: 8 }}>
+      <View style={{ marginTop: 10, marginBottom: 0 }}>
         <View style={{ 
           flexDirection: 'row', 
           alignItems: 'center',

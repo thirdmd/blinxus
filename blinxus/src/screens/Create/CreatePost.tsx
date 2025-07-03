@@ -10,11 +10,10 @@ import {
   Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { X, ArrowRight, Edit3, Zap, Camera } from 'lucide-react-native';
+import { X, ArrowRight, Camera, Image as ImageIcon } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import CreateRegularPost from './CreateRegularPost';
 import CreateLucids from './CreateLucids';
-import CreateBlinx from './CreateBlinx';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTypographyScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
 
@@ -22,7 +21,7 @@ const { width } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
 const typography = getTypographyScale();
 
-type PostType = 'Post' | 'Blinx' | 'Lucids';
+type PostType = 'Post' | 'Lucids';
 
 interface TabButtonProps {
   title: string;
@@ -32,79 +31,42 @@ interface TabButtonProps {
   themeColors: any;
 }
 
-function TabButton({ title, icon, isActive, onPress, themeColors }: TabButtonProps) {
-  const scaleValue = useRef(new Animated.Value(isActive ? 1.15 : 0.95)).current;
-  const underlineScale = useRef(new Animated.Value(isActive ? 1 : 0)).current;
-  const opacityValue = useRef(new Animated.Value(isActive ? 1 : 0.6)).current;
-
-  React.useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scaleValue, {
-        toValue: isActive ? 1.15 : 0.95,
-        useNativeDriver: true,
-        tension: 200,
-        friction: 6,
-      }),
-      Animated.spring(underlineScale, {
-        toValue: isActive ? 1 : 0,
-        useNativeDriver: true,
-        tension: 250,
-        friction: 7,
-      }),
-      Animated.spring(opacityValue, {
-        toValue: isActive ? 1 : 0.6,
-        useNativeDriver: true,
-        tension: 300,
-        friction: 8,
-      }),
-    ]).start();
-  }, [isActive]);
-
+const TabButton: React.FC<TabButtonProps> = ({ title, icon, isActive, onPress, themeColors }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
       style={{ 
-        flex: 1, 
-        paddingVertical: 12, 
-        paddingHorizontal: 4, 
-        marginHorizontal: 4 
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
+        backgroundColor: isActive 
+          ? themeColors.isDark 
+            ? 'rgba(255, 255, 255, 0.1)'
+            : 'rgba(0, 0, 0, 0.08)'
+          : 'transparent',
+        marginRight: 8,
       }}
-      activeOpacity={0.3}
-    >
-      <Animated.View 
-        style={{ 
-          alignItems: 'center',
-          transform: [{ scale: scaleValue }],
-          opacity: opacityValue 
-        }}
+      activeOpacity={0.7}
       >
-        {React.isValidElement(icon) && React.cloneElement(icon, {
-          size: 18,
+      {React.cloneElement(icon as React.ReactElement, { 
+        size: 16, 
           color: isActive ? themeColors.text : themeColors.textSecondary,
           strokeWidth: 1.5
         } as any)}
         <Text style={{
-          fontWeight: '300',
-          fontSize: 14,
-          marginTop: 6,
-          color: isActive ? themeColors.text : themeColors.textSecondary
+        marginLeft: 6,
+        fontSize: 15,
+        fontWeight: isActive ? '600' : '400',
+        color: isActive ? themeColors.text : themeColors.textSecondary,
+        fontFamily: 'System',
         }}>
           {title}
         </Text>
-        <Animated.View 
-          style={{
-            width: 24,
-            height: 2,
-            backgroundColor: themeColors.text,
-            marginTop: 8,
-            borderRadius: 1,
-            transform: [{ scaleX: underlineScale }]
-          }}
-        />
-      </Animated.View>
     </TouchableOpacity>
   );
-}
+};
 
 export default function CreatePost() {
   const navigation = useNavigation();
@@ -143,8 +105,6 @@ export default function CreatePost() {
     switch (activeTab) {
       case 'Post':
         return <CreateRegularPost key={`post-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
-      case 'Blinx':
-        return <CreateBlinx key={`blinx-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       case 'Lucids':
         return <CreateLucids key={`lucids-${key}`} ref={childRef} navigation={navigation} onValidationChange={handleValidationChange} />;
       default:
@@ -156,17 +116,12 @@ export default function CreatePost() {
     {
       key: 'Post' as PostType,
       title: 'Post',
-      icon: <Edit3 />
-    },
-    {
-      key: 'Blinx' as PostType,
-      title: 'Blinx',
-      icon: <Zap />
+      icon: <Camera />
     },
     {
       key: 'Lucids' as PostType,
       title: 'Lucids',
-      icon: <Camera />
+      icon: <ImageIcon />
     }
   ];
 
@@ -182,8 +137,8 @@ export default function CreatePost() {
         flexDirection: 'row', 
         alignItems: 'center', 
         justifyContent: 'space-between', 
-        paddingHorizontal: 24, 
-        paddingVertical: 16 
+        paddingHorizontal: 20,
+        paddingVertical: 16,
       }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -193,12 +148,10 @@ export default function CreatePost() {
             alignItems: 'center', 
             justifyContent: 'center' 
           }}
-          activeOpacity={0.3}
+          activeOpacity={0.7}
         >
           <X size={24} color={themeColors.text} strokeWidth={2} />
         </TouchableOpacity>
-        
-        <View style={{ flex: 1 }} />
         
         <TouchableOpacity
           onPress={handleShare}
@@ -209,16 +162,18 @@ export default function CreatePost() {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: isValid 
-              ? (themeColors.isDark ? themeColors.text : '#000000')
-              : themeColors.backgroundSecondary
+              ? themeColors.cobalt
+              : themeColors.isDark 
+                ? 'rgba(255, 255, 255, 0.1)'
+                : 'rgba(0, 0, 0, 0.1)',
           }}
-          activeOpacity={0.3}
+          activeOpacity={0.7}
           disabled={!isValid}
         >
           <ArrowRight 
             size={18} 
             color={isValid 
-              ? (themeColors.isDark ? themeColors.background : '#ffffff')
+              ? '#ffffff'
               : themeColors.textSecondary
             } 
             strokeWidth={2} 
@@ -227,8 +182,8 @@ export default function CreatePost() {
       </View>
 
       {/* Tab Selection */}
-      <View style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
-        <View style={{ flexDirection: 'row' }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
           {getTabData().map((tab) => (
             <TabButton
               key={tab.key}
@@ -243,19 +198,8 @@ export default function CreatePost() {
       </View>
 
       {/* Content Area */}
-      <View style={{ 
-        flex: 1, 
-        backgroundColor: themeColors.background 
-      }}>
-        <View style={{ 
-          backgroundColor: themeColors.background, 
-          borderTopLeftRadius: 24, 
-          borderTopRightRadius: 24, 
-          flex: 1, 
-          paddingTop: 24 
-        }}>
+      <View style={{ flex: 1 }}>
           {renderContent()}
-        </View>
       </View>
     </SafeAreaView>
   );

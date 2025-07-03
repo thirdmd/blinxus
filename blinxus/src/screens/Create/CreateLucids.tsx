@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Image,
 } from 'react-native';
-import { Navigation, ChevronRight, Plus, Calendar, Image } from 'lucide-react-native';
+import { Navigation, ChevronRight, Plus, Calendar, X } from 'lucide-react-native';
+import { LucidPhotoManager } from '../../types/userData/posts_data';
 import { colors } from '../../constants/colors';
 import { activityTags, ActivityKey } from '../../constants/activityTags';
 import Button from '../../components/Button';
@@ -34,12 +36,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
   
   const minDuration = 1;
   const maxDuration = 30;
-
-
+  const MIN_IMAGES_PER_DAY = 3;
+  const MAX_IMAGES_PER_DAY = 4;
 
   const handleLocationPress = () => {
     Alert.prompt(
-      'Location',
+      'Destination',
       'Where did you go?',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -61,43 +63,56 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
     handleSubmit: handleCreateLucid
   }), [selectedLocation, duration, dayPhotos, durationMode, startDate, endDate]);
 
+  // Calculate duration from date range
+  const calculateDurationFromDates = (): number => {
+    if (!startDate || !endDate) return 1;
+    const timeDiff = endDate.getTime() - startDate.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end days
+    return Math.max(1, Math.min(daysDiff, maxDuration));
+  };
+
+  // Centralized duration calculation
+  const getCurrentDuration = (): number => {
+    return durationMode === 'dates' ? calculateDurationFromDates() : duration;
+  };
+
+  // Update duration when switching from dates to days mode
   useEffect(() => {
-    // PROPER VALIDATION: Follow exact rules
-    const hasLocation = selectedLocation.trim().length > 0;
-    const totalDays = durationMode === 'dates' ? calculateDurationFromDates() : duration;
+    if (durationMode === 'days' && startDate && endDate) {
+      const calculatedDuration = calculateDurationFromDates();
+      setDuration(calculatedDuration);
+    }
+  }, [durationMode, startDate, endDate]);
+
+  // Update dates when changing duration in days mode
+  useEffect(() => {
+    if (durationMode === 'days' && duration > 1) {
+      const today = new Date();
+      const endDateCalculated = new Date(today);
+      endDateCalculated.setDate(today.getDate() + duration - 1);
+      setStartDate(today);
+      setEndDate(endDateCalculated);
+    }
+  }, [duration, durationMode]);
+
+  useEffect(() => {
+    const finalDuration = getCurrentDuration();
     
-    // Check if ALL days have exactly 4 images each
-    let allDaysHaveRequiredImages = true;
-    let totalImages = 0;
-    
-    for (let day = 0; day < totalDays; day++) {
-      const dayImages = dayPhotos[day];
-      const dayImageCount = dayImages?.length || 0;
-      totalImages += dayImageCount;
-      
-      // Each day must have exactly 4 images
-      if (dayImageCount !== 4) {
-        allDaysHaveRequiredImages = false;
+    // Check if all days have the required number of images (3-4 per day)
+    let allDaysValid = true;
+    for (let day = 0; day < finalDuration; day++) {
+      const dayImageCount = dayPhotos[day]?.length || 0;
+      if (dayImageCount < MIN_IMAGES_PER_DAY || dayImageCount > MAX_IMAGES_PER_DAY) {
+        allDaysValid = false;
+        break;
       }
     }
     
-    const isValid = hasLocation && allDaysHaveRequiredImages && totalImages >= 4;
-    
-    // Validation check complete
+    const isValid = selectedLocation.trim() !== '' && allDaysValid;
     onValidationChange(isValid);
-  }, [selectedLocation, dayPhotos, duration, durationMode, startDate, endDate]);
+  }, [selectedLocation, duration, dayPhotos, durationMode, startDate, endDate, onValidationChange]);
 
-  // Calculate duration from dates
-  const calculateDurationFromDates = () => {
-    if (startDate && endDate) {
-      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      return Math.min(diffDays, maxDuration);
-    }
-    return 1;
-  };
-
-  // Handle date selection with more options
+  // Handle date selection with preset options
   const handleDateSelection = (type: 'start' | 'end') => {
     const today = new Date();
     const tomorrow = new Date(today);
@@ -116,6 +131,10 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           onPress: () => {
             if (type === 'start') {
               setStartDate(today);
+              // Auto-set end date to tomorrow if not set
+              if (!endDate) {
+                setEndDate(tomorrow);
+              }
             } else {
               setEndDate(today);
             }
@@ -126,6 +145,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           onPress: () => {
             if (type === 'start') {
               setStartDate(tomorrow);
+              // Auto-set end date to day after tomorrow if not set
+              if (!endDate) {
+                const dayAfterTomorrow = new Date(tomorrow);
+                dayAfterTomorrow.setDate(tomorrow.getDate() + 1);
+                setEndDate(dayAfterTomorrow);
+              }
             } else {
               setEndDate(tomorrow);
             }
@@ -136,6 +161,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           onPress: () => {
             if (type === 'start') {
               setStartDate(nextWeek);
+              // Auto-set end date to week after if not set
+              if (!endDate) {
+                const weekAfter = new Date(nextWeek);
+                weekAfter.setDate(nextWeek.getDate() + 7);
+                setEndDate(weekAfter);
+              }
             } else {
               setEndDate(nextWeek);
             }
@@ -146,6 +177,12 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           onPress: () => {
             if (type === 'start') {
               setStartDate(nextMonth);
+              // Auto-set end date to month after if not set
+              if (!endDate) {
+                const monthAfter = new Date(nextMonth);
+                monthAfter.setDate(nextMonth.getDate() + 30);
+                setEndDate(monthAfter);
+              }
             } else {
               setEndDate(nextMonth);
             }
@@ -164,66 +201,94 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
     });
   };
 
-  // Handle photo selection for a specific day
-  const handleDayPhotoSelection = (dayIndex: number) => {
+  const handleDurationChange = (increment: boolean) => {
+    setDuration(prev => {
+      const newDuration = increment ? prev + 1 : prev - 1;
+      return Math.max(minDuration, Math.min(newDuration, maxDuration));
+    });
+  };
+
+  const handleAddPhoto = (dayIndex: number) => {
+    const currentCount = dayPhotos[dayIndex]?.length || 0;
     
-    // Check if photos already exist for this day
-    if (dayPhotos[dayIndex]) {
-      // If photos exist, remove them
-      setDayPhotos(prev => {
-        const updated = { ...prev };
-        delete updated[dayIndex];
-        return updated;
-      });
-    } else {
-      // Automatically add 4 photos without popup
-      const timestamp = Date.now();
-      const { travelImages } = require('../../constants/mockImages');
-      const mockPhotos = [
-        travelImages[(dayIndex * 4) % travelImages.length],
-        travelImages[(dayIndex * 4 + 1) % travelImages.length],
-        travelImages[(dayIndex * 4 + 2) % travelImages.length],
-        travelImages[(dayIndex * 4 + 3) % travelImages.length],
-      ];
+    if (currentCount >= MAX_IMAGES_PER_DAY) {
+      Alert.alert(
+        'Maximum Photos Reached',
+        `You can only add up to ${MAX_IMAGES_PER_DAY} photos per day.`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    const { getRandomTravelImage } = require('../../constants/mockImages');
+    const newImage = getRandomTravelImage();
+    
+    setDayPhotos(prev => ({
+      ...prev,
+      [dayIndex]: [...(prev[dayIndex] || []), newImage]
+    }));
+  };
+
+  const handleRemovePhoto = (dayIndex: number, photoIndex: number) => {
       setDayPhotos(prev => ({
         ...prev,
-        [dayIndex]: mockPhotos
-      }));
+      [dayIndex]: prev[dayIndex]?.filter((_, index) => index !== photoIndex) || []
+    }));
+  };
+
+  const getPhotoValidationText = (dayIndex: number) => {
+    const currentCount = dayPhotos[dayIndex]?.length || 0;
+    
+    if (currentCount === 0) {
+      return `Add 3-4 photos`;
+    } else if (currentCount >= MIN_IMAGES_PER_DAY && currentCount <= MAX_IMAGES_PER_DAY) {
+      return `${currentCount}/4 photos`;
+    } else if (currentCount < MIN_IMAGES_PER_DAY) {
+      return `${currentCount}/4 photos`;
+    } else {
+      return `Add 3-4 photos`;
+    }
+  };
+
+  const getPhotoValidationColor = (dayIndex: number) => {
+    const currentCount = dayPhotos[dayIndex]?.length || 0;
+    
+    if (currentCount >= MIN_IMAGES_PER_DAY && currentCount <= MAX_IMAGES_PER_DAY) {
+      return themeColors.cobalt; // Valid state
+    } else {
+      return themeColors.textSecondary; // Invalid state
     }
   };
 
   const handleCreateLucid = () => {
-    // No validation alerts here - button state should handle validation
-    const finalDuration = durationMode === 'dates' ? calculateDurationFromDates() : duration;
+    const finalDuration = getCurrentDuration();
     
     try {
-      // Collect all actual uploaded images from all days
-      const allImages: string[] = [];
+      // Create centralized lucid data structure
+      const lucidData = LucidPhotoManager.createLucidPostData(
+        finalDuration,
+        durationMode,
+        dayPhotos,
+        startDate || undefined,
+        endDate || undefined
+      );
       
-      // Ensure we collect images from all days in the correct order
-      for (let day = 0; day < finalDuration; day++) {
-        const dayImages = dayPhotos[day];
-        if (dayImages && dayImages.length > 0) {
-          allImages.push(...dayImages);
-        }
-      }
-      
-      // Create Lucid post with collected images
+      // Generate flat array for backward compatibility
+      const allImages = LucidPhotoManager.dayPhotosToFlatArray(dayPhotos);
       
       addPost({
         authorId: 'current_user',
         authorName: 'Third Camacho',
         authorNationalityFlag: '🇵🇭',
         type: 'lucid',
-        title: selectedLocation.trim(), // Use destination as exact title
-        content: undefined, // No content needed, title is enough
-        images: allImages, // Use actual uploaded images, not generated ones
+        title: selectedLocation.trim(),
+        content: undefined,
+        images: allImages, // Flat array for backward compatibility
+        lucidData, // Centralized day-by-day structure
         location: selectedLocation.trim(),
-        // For now, no specific activity - can be added later
         activity: undefined,
     });
     
-          // Close the modal and return to previous screen
       navigation.goBack();
     } catch (error) {
       // Error handling for Lucid creation
@@ -231,55 +296,59 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
   };
 
   return (
-    <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingTop: 8 }} showsVerticalScrollIndicator={false}>
-      {/* Location */}
-      <View style={{ marginBottom: 24 }}>
+    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      {/* Destination */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 24, marginBottom: 20 }}>
         <TouchableOpacity
           onPress={handleLocationPress}
           style={{
-            backgroundColor: themeColors.backgroundSecondary,
-            borderRadius: 16,
-            padding: 16,
             flexDirection: 'row',
             alignItems: 'center',
-            borderWidth: selectedLocation ? 2 : 0,
-            borderColor: selectedLocation ? themeColors.text : 'transparent',
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            borderRadius: 8,
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(45, 45, 45, 1)' 
+              : 'rgba(240, 240, 240, 1)',
+            height: 44,
           }}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <Navigation 
-            size={16} 
-            color={selectedLocation ? themeColors.text : themeColors.textSecondary} 
-            strokeWidth={1.5} 
-          />
+          <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 10 }}>🌍</Text>
           <Text style={{
-            marginLeft: 12,
-            flex: 1,
-            fontSize: 16,
+            fontSize: 15,
             color: selectedLocation ? themeColors.text : themeColors.textSecondary,
+            flex: 1,
+            fontFamily: 'System',
             fontWeight: '400',
           }}>
-            {selectedLocation || 'Destination'}
+            {selectedLocation || 'Where did you go?'}
           </Text>
-          <ChevronRight size={20} color={themeColors.textSecondary} strokeWidth={1.5} />
+          {selectedLocation && (
+            <ChevronRight size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
+          )}
         </TouchableOpacity>
       </View>
 
       {/* Duration Mode Selection */}
-      <View style={{ marginBottom: 24 }}>
-        <Text style={{ fontSize: 16, fontWeight: '400', color: themeColors.text, marginBottom: 12 }}>
-          Duration
-        </Text>
-        
+      <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
         {/* Mode Toggle */}
-        <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: themeColors.backgroundSecondary, borderRadius: 12, padding: 4 }}>
+        <View style={{ 
+          flexDirection: 'row', 
+          marginBottom: 16, 
+          backgroundColor: themeColors.isDark 
+            ? 'rgba(255, 255, 255, 0.08)'
+            : 'rgba(0, 0, 0, 0.05)', 
+          borderRadius: 8, 
+          padding: 2 
+        }}>
           <TouchableOpacity
             onPress={() => setDurationMode('days')}
             style={{
               flex: 1,
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              borderRadius: 8,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 6,
               backgroundColor: durationMode === 'days' ? themeColors.background : 'transparent',
               alignItems: 'center',
             }}
@@ -287,7 +356,9 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           >
             <Text style={{
               color: durationMode === 'days' ? themeColors.text : themeColors.textSecondary,
-              fontWeight: '500',
+              fontWeight: durationMode === 'days' ? '600' : '400',
+              fontSize: 13,
+              fontFamily: 'System',
             }}>
               Days
             </Text>
@@ -296,9 +367,9 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
             onPress={() => setDurationMode('dates')}
             style={{
               flex: 1,
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              borderRadius: 8,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 6,
               backgroundColor: durationMode === 'dates' ? themeColors.background : 'transparent',
               alignItems: 'center',
             }}
@@ -306,7 +377,9 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
           >
             <Text style={{
               color: durationMode === 'dates' ? themeColors.text : themeColors.textSecondary,
-              fontWeight: '500',
+              fontWeight: durationMode === 'dates' ? '600' : '400',
+              fontSize: 13,
+              fontFamily: 'System',
             }}>
               Dates
             </Text>
@@ -315,109 +388,94 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
 
         {/* Duration Input */}
         {durationMode === 'days' ? (
-          <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 18, fontWeight: '400', color: themeColors.text }}>
-                {duration} days
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.08)'
+              : 'rgba(0, 0, 0, 0.05)',
+            borderRadius: 8,
+            padding: 2
+          }}>
                 <TouchableOpacity
-                  onPress={() => duration > minDuration && setDuration(duration - 1)}
+              onPress={() => handleDurationChange(false)}
+              disabled={duration <= minDuration}
                   style={{
-                    backgroundColor: themeColors.background,
-                    borderRadius: 8,
-                    padding: 8,
-                    marginRight: 8,
-                    opacity: duration > minDuration ? 1 : 0.5,
+                width: 32,
+                height: 32,
+                borderRadius: 6,
+                backgroundColor: duration > minDuration ? themeColors.background : 'transparent',
+                alignItems: 'center',
+                justifyContent: 'center',
                   }}
+              activeOpacity={0.7}
                 >
                   <Text style={{ 
-                    ...getTextStyles().userName,
-                    color: themeColors.text 
+                fontSize: 16,
+                color: duration > minDuration ? themeColors.text : themeColors.textSecondary,
+                fontWeight: '600',
                   }}>
                     -
                   </Text>
                 </TouchableOpacity>
                 
-                <TextInput
-                  value={duration.toString()}
-                  onChangeText={(text) => {
-                    // Allow empty string for editing
-                    if (text === '') {
-                      return;
-                    }
-                    
-                    const num = parseInt(text);
-                    // Only update if it's a valid number within range
-                    if (!isNaN(num) && num >= minDuration && num <= maxDuration) {
-                      setDuration(num);
-                    }
-                  }}
-                  onBlur={() => {
-                    // If field is empty on blur, reset to minimum
-                    if (duration < minDuration || isNaN(duration)) {
-                      setDuration(minDuration);
-                    }
-                  }}
-                  style={{
-                    backgroundColor: themeColors.background,
-                    borderRadius: 8,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
+            <Text style={{
+              flex: 1,
                     textAlign: 'center',
-                    fontSize: 16,
+              fontSize: 15,
                     color: themeColors.text,
-                    fontWeight: '400',
-                    minWidth: 50,
-                    marginRight: 8,
-                  }}
-                  keyboardType="numeric"
-                  maxLength={2}
-                  selectTextOnFocus={true}
-                />
+              fontWeight: '500',
+              fontFamily: 'System',
+            }}>
+              {duration} {duration === 1 ? 'day' : 'days'}
+            </Text>
                 
                 <TouchableOpacity
-                  onPress={() => duration < maxDuration && setDuration(duration + 1)}
+              onPress={() => handleDurationChange(true)}
+              disabled={duration >= maxDuration}
                   style={{
-                    backgroundColor: themeColors.background,
-                    borderRadius: 8,
-                    padding: 8,
-                    opacity: duration < maxDuration ? 1 : 0.5,
+                width: 32,
+                height: 32,
+                borderRadius: 6,
+                backgroundColor: duration < maxDuration ? themeColors.background : 'transparent',
+                alignItems: 'center',
+                justifyContent: 'center',
                   }}
+              activeOpacity={0.7}
                 >
                   <Text style={{ 
-                    ...getTextStyles().userName,
-                    color: themeColors.text 
+                fontSize: 16,
+                color: duration < maxDuration ? themeColors.text : themeColors.textSecondary,
+                fontWeight: '600',
                   }}>
                     +
                   </Text>
                 </TouchableOpacity>
-              </View>
-            </View>
           </View>
         ) : (
-          <View style={{ backgroundColor: themeColors.backgroundSecondary, borderRadius: 16, padding: 16 }}>
-            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 6 }}>
               <TouchableOpacity
                 onPress={() => handleDateSelection('start')}
                 style={{
                   flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: themeColors.background,
-                  borderRadius: 12,
-                  padding: 12,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.05)',
+                borderRadius: 8,
+                padding: 10,
                 }}
                 activeOpacity={0.7}
               >
-                <Calendar size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
+              <Calendar size={14} color={themeColors.textSecondary} strokeWidth={1.5} />
                 <Text style={{ 
-                  marginLeft: 8, 
+                marginLeft: 6, 
                   color: startDate ? themeColors.text : themeColors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: '400',
+                fontSize: 13,
+                fontFamily: 'System',
                 }}>
-                  {startDate ? formatDate(startDate) : 'Start date'}
+                {startDate ? formatDate(startDate) : 'Start'}
                 </Text>
               </TouchableOpacity>
               
@@ -427,100 +485,156 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
                   flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: themeColors.background,
-                  borderRadius: 12,
-                  padding: 12,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.05)',
+                borderRadius: 8,
+                padding: 10,
                 }}
                 activeOpacity={0.7}
               >
-                <Calendar size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
-                <Text style={{ 
-                  marginLeft: 8, 
-                  color: endDate ? themeColors.text : themeColors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: '400',
-                }}>
-                  {endDate ? formatDate(endDate) : 'End date'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            
-            {startDate && endDate && (
+              <Calendar size={14} color={themeColors.textSecondary} strokeWidth={1.5} />
               <Text style={{ 
-                textAlign: 'center', 
-                color: themeColors.textSecondary, 
-                fontSize: 14,
-                fontWeight: '400',
+                marginLeft: 6, 
+                color: endDate ? themeColors.text : themeColors.textSecondary,
+                fontSize: 13,
+                fontFamily: 'System',
               }}>
-                Duration: {calculateDurationFromDates()} days
+                {endDate ? formatDate(endDate) : 'End'}
               </Text>
-            )}
+            </TouchableOpacity>
           </View>
         )}
       </View>
 
-      {/* Days Preview */}
-      <View style={{ marginBottom: 32 }}>
-        <Text style={{ fontSize: 16, fontWeight: '400', color: themeColors.text, marginBottom: 12 }}>
-          Days
-        </Text>
-        <View>
-          {Array.from({ length: durationMode === 'dates' ? calculateDurationFromDates() : duration }, (_, i) => (
-            <View key={i} style={{
-              backgroundColor: themeColors.backgroundSecondary,
-              borderRadius: 16,
-              padding: 16,
+      {/* Day-by-Day Photos */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 40 }}>
+
+        {Array.from({ length: getCurrentDuration() }, (_, index) => (
+          <View key={index} style={{ 
+            marginBottom: 12,
+            borderRadius: 8,
+            backgroundColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.03)'
+              : 'rgba(0, 0, 0, 0.02)',
+            borderWidth: 0.5,
+            borderColor: themeColors.isDark 
+              ? 'rgba(255, 255, 255, 0.08)'
+              : 'rgba(0, 0, 0, 0.05)',
+            padding: 12,
+          }}>
+            <View style={{
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: 8,
+              marginBottom: dayPhotos[index] && dayPhotos[index].length > 0 ? 10 : 0,
             }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: themeColors.text, fontWeight: '400' }}>
-                  Day {i + 1}
-                  {durationMode === 'dates' && startDate && (
-                    <Text style={{ color: themeColors.textSecondary, fontSize: 14 }}>
-                      {' '}• {formatDate(new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000))}
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: themeColors.text,
+                fontFamily: 'System',
+              }}>
+                Day {index + 1}
                     </Text>
-                  )}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={{
+                  fontSize: 11,
+                  color: getPhotoValidationColor(index),
+                  fontFamily: 'System',
+                }}>
+                  {getPhotoValidationText(index)}
                 </Text>
-                {dayPhotos[i] && (
-                  <Text style={{ color: themeColors.textSecondary, fontSize: 12, marginTop: 2 }}>
-                    {dayPhotos[i].length} photos added
-                  </Text>
-                )}
-              </View>
               <TouchableOpacity 
-                onPress={() => handleDayPhotoSelection(i)}
+                  onPress={() => handleAddPhoto(index)}
+                  disabled={(dayPhotos[index]?.length || 0) >= MAX_IMAGES_PER_DAY}
                 style={{
-                  backgroundColor: dayPhotos[i] ? themeColors.cobalt : themeColors.backgroundTertiary,
-                  borderRadius: 20,
-                  padding: 8,
-                  flexDirection: 'row',
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: (dayPhotos[index]?.length || 0) < MAX_IMAGES_PER_DAY 
+                      ? themeColors.cobalt 
+                      : themeColors.isDark 
+                        ? 'rgba(255, 255, 255, 0.1)'
+                        : 'rgba(0, 0, 0, 0.1)',
                   alignItems: 'center',
+                    justifyContent: 'center',
                 }}
                 activeOpacity={0.7}
               >
-                {dayPhotos[i] ? (
-                  <>
-                    <Image size={14} color={colors.white} strokeWidth={1.5} />
-                    <Text style={{ 
-                      color: colors.white, 
-                      fontSize: 12, 
-                      marginLeft: 4,
-                      fontWeight: '500'
-                    }}>
-                      {dayPhotos[i].length}
-                    </Text>
-                  </>
-                ) : (
-                  <Plus size={16} color={themeColors.textSecondary} strokeWidth={1.5} />
-                )}
+                  <Plus 
+                    size={12} 
+                    color={(dayPhotos[index]?.length || 0) < MAX_IMAGES_PER_DAY ? '#ffffff' : themeColors.textSecondary} 
+                    strokeWidth={2} 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {dayPhotos[index] && dayPhotos[index].length > 0 ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                {dayPhotos[index].map((photo, photoIndex) => (
+                  <View key={photoIndex} style={{ position: 'relative' }}>
+                    <Image
+                      source={{ uri: photo }}
+                      style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 6,
+                      }}
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      onPress={() => handleRemovePhoto(index, photoIndex)}
+                      style={{
+                        position: 'absolute',
+                        top: -6,
+                        right: -6,
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        backgroundColor: themeColors.background,
+                        borderWidth: 1,
+                        borderColor: themeColors.border,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <X size={8} color={themeColors.text} strokeWidth={2} />
               </TouchableOpacity>
             </View>
           ))}
         </View>
+            ) : (
+              <View style={{
+                height: 40,
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(0, 0, 0, 0.05)',
+                borderStyle: 'dashed',
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.01)'
+                  : 'rgba(0, 0, 0, 0.005)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Text style={{
+                  fontSize: 11,
+                  color: themeColors.textSecondary,
+                  fontFamily: 'System',
+                }}>
+                  No photos yet
+                </Text>
+              </View>
+            )}
+          </View>
+        ))}
       </View>
+
+
     </ScrollView>
   );
 });

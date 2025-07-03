@@ -12,6 +12,14 @@ export interface PostCardProps {
   content?: string;
   title?: string;
   images?: string[];
+  // Lucid-specific fields for day-by-day photo structure
+  lucidData?: {
+    duration: number; // Number of days
+    durationMode: 'days' | 'dates';
+    startDate?: string; // ISO date string
+    endDate?: string; // ISO date string
+    dayPhotos: { [dayIndex: number]: string[] }; // Day-by-day photos: { 0: ['img1', 'img2'], 1: ['img3', 'img4'] }
+  };
   device?: string;
   location: string;
   activity?: ActivityKey;
