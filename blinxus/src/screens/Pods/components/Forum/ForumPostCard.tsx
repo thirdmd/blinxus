@@ -17,9 +17,10 @@ import {
   ThumbsDown,
   Send
 } from 'lucide-react-native';
-import { ForumPost, FORUM_CATEGORIES, FORUM_ACTIVITY_TAGS } from './forumTypes';
+import { ForumPost, ForumLocation, FORUM_CATEGORIES, FORUM_ACTIVITY_TAGS } from './forumTypes';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { getTextStyles } from '../../../../utils/responsive';
+import { ForumTagsDisplay } from '../../../../utils/forumLocationLogic';
 
 interface ForumPostCardProps {
   post: ForumPost;
@@ -32,6 +33,7 @@ interface ForumPostCardProps {
   onAuthorPress?: (authorId: string) => void;
   onTagPress?: (tagId: string) => void;
   onCategoryPress?: (categoryId: string) => void;
+  onLocationPress?: (post: ForumPost, location: ForumLocation) => void;
   compact?: boolean;
 }
 
@@ -48,6 +50,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
   onAuthorPress,
   onTagPress,
   onCategoryPress,
+  onLocationPress,
   compact = false
 }) => {
   const themeColors = useThemeColors();
@@ -61,6 +64,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
   const handleShare = useCallback(() => onShare?.(post.id), [onShare, post.id]);
   const handleMore = useCallback(() => onMore?.(post.id), [onMore, post.id]);
   const handleAuthorPress = useCallback(() => onAuthorPress?.(post.authorId), [onAuthorPress, post.authorId]);
+  const handleLocationPress = useCallback(() => onLocationPress?.(post, post.location), [onLocationPress, post]);
 
   // Get category data
   const categoryData = FORUM_CATEGORIES.find(cat => cat.id === post.category);
@@ -91,19 +95,16 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
     <View 
       style={{
         backgroundColor: themeColors.background,
-        borderRadius: 12,
-        padding: compact ? 12 : 16,
-        marginBottom: compact ? 12 : 16,
+        borderRadius: 16,
+        padding: compact ? 8 : 8,
+        marginBottom: compact ? 8 : 7.5,
+        marginHorizontal: 8,
         borderWidth: 1,
         borderColor: themeColors.isDark 
-          ? 'rgba(255, 255, 255, 0.08)'
-          : 'rgba(0, 0, 0, 0.06)',
-        // Add subtle shadow for depth
-        shadowColor: themeColors.isDark ? '#000' : '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: themeColors.isDark ? 0.3 : 0.05,
-        shadowRadius: 3,
-        elevation: 2,
+          ? 'rgba(255, 255, 255, 0.15)'
+          : 'rgba(0, 0, 0, 0.12)',
+        // Allow flexible height based on content
+        minHeight: compact ? 120 : 160,
       }}
     >
       {/* Category and Activity Tags */}
@@ -150,40 +151,37 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
           </TouchableOpacity>
         )}
         
-        {/* Activity Tags */}
-        {post.activityTags.slice(0, compact ? 2 : 3).map((tagId) => {
-          const tagData = FORUM_ACTIVITY_TAGS.find(tag => tag.id === tagId);
-          return tagData ? (
-            <TouchableOpacity
-              key={tagId}
-              onPress={() => onTagPress?.(tagId)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 12,
-                backgroundColor: themeColors.isDark 
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.08)',
-              }}
-              activeOpacity={0.8}
-              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-            >
-              <Text style={{ fontSize: 12, marginRight: 3 }}>
-                {tagData.emoji}
-              </Text>
-              <Text style={{
-                fontSize: 12,
-                fontWeight: '500',
-                color: themeColors.text,
-                fontFamily: 'System',
-              }}>
-                {tagData.label}
-              </Text>
-            </TouchableOpacity>
-          ) : null;
-        })}
+        {/* Activity Tags - Show ALL tags with horizontal scrolling */}
+        {ForumTagsDisplay.getTagsForDisplay(post.activityTags, FORUM_ACTIVITY_TAGS).map((tagData) => (
+          <TouchableOpacity
+            key={tagData.id}
+            onPress={() => onTagPress?.(tagData.id)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 12,
+              backgroundColor: themeColors.isDark 
+                ? 'rgba(255, 255, 255, 0.1)'
+                : 'rgba(0, 0, 0, 0.08)',
+            }}
+            activeOpacity={0.8}
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
+            <Text style={{ fontSize: 12, marginRight: 3 }}>
+              {tagData.emoji}
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              fontWeight: '500',
+              color: themeColors.text,
+              fontFamily: 'System',
+            }}>
+              {tagData.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
       {/* Author Info */}
@@ -254,14 +252,97 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
             </View>
           </TouchableOpacity>
           
-          {/* Location and Timestamp - Not Clickable */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-            <Text style={{ fontSize: 14, color: themeColors.textSecondary, marginRight: 4 }}>📍</Text>
+          {/* Location and Timestamp - Location clickable for navigation */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+            {/* Location - Distinctive clickable design */}
+            {post.location.countryId !== 'global' && post.location.type !== 'global' && onLocationPress ? (
+              <TouchableOpacity
+                onPress={handleLocationPress}
+                activeOpacity={0.7}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                <View style={{
+                  paddingLeft: 7,
+                  paddingRight: 10,
+                  paddingVertical: 3,
+                  borderRadius: 16,
+                  backgroundColor: themeColors.isDark 
+                    ? 'rgba(59, 130, 246, 0.12)'
+                    : 'rgba(59, 130, 246, 0.06)',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: themeColors.isDark ? 0.8 : 0.6,
+                  borderColor: themeColors.isDark 
+                    ? 'rgba(59, 130, 246, 0.35)'
+                    : 'rgba(59, 130, 246, 0.25)',
+                  shadowColor: '#3B82F6',
+                  shadowOffset: { width: 0, height: 0.5 },
+                  shadowOpacity: themeColors.isDark ? 0.2 : 0.1,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}>
+                  <Text style={{ 
+                    fontSize: 13, 
+                    marginRight: 3,
+                  }}>📍</Text>
+                  <Text style={{
+                    fontSize: 13,
+                    color: themeColors.isDark 
+                      ? 'rgba(139, 184, 255, 0.9)' 
+                      : 'rgba(0, 0, 0, 0.6)',
+                    fontWeight: '500',
+                    fontFamily: 'System',
+                    letterSpacing: -0.1,
+                  }}>
+                    {post.location.name.split('-').pop() || post.location.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <View style={{
+                paddingLeft: 7,
+                paddingRight: 10,
+                paddingVertical: 3,
+                borderRadius: 16,
+                backgroundColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.05)'
+                  : 'rgba(0, 0, 0, 0.02)',
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderWidth: themeColors.isDark ? 0.6 : 0.4,
+                borderColor: themeColors.isDark 
+                  ? 'rgba(255, 255, 255, 0.12)'
+                  : 'rgba(0, 0, 0, 0.08)',
+                alignSelf: 'flex-start',
+              }}>
+                <Text style={{ 
+                  fontSize: 13, 
+                  color: themeColors.textSecondary, 
+                  marginRight: 3,
+                  opacity: themeColors.isDark ? 0.8 : 0.6,
+                }}>📍</Text>
+                <Text style={{
+                  fontSize: 13,
+                  color: themeColors.isDark 
+                    ? 'rgba(255, 255, 255, 0.75)' 
+                    : 'rgba(0, 0, 0, 0.5)',
+                  fontWeight: '400',
+                  fontFamily: 'System',
+                  letterSpacing: -0.1,
+                }}>
+                  {post.location.name.split('-').pop() || post.location.name}
+                </Text>
+              </View>
+            )}
+            
+            {/* Timestamp */}
             <Text style={{
               ...textStyles.forumMeta,
               color: themeColors.textSecondary,
+              marginLeft: 8,
             }}>
-              {post.location.name.split('-').pop() || post.location.name} • {formatTimestamp(post.createdAt)}
+              {formatTimestamp(post.createdAt)}
             </Text>
           </View>
         </View>
@@ -281,37 +362,39 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
         </TouchableOpacity>
       </View>
       
-      {/* Post Content */}
+      {/* Post Content - Reverted to smaller font size */}
       <Text style={{
-        ...textStyles.forumContent,
+        fontSize: compact ? 14 : 15,
         color: themeColors.text,
         lineHeight: compact ? 20 : 22,
-        marginBottom: 12,
+        marginBottom: compact ? 12 : 16,
+        fontFamily: 'System',
+        fontWeight: '400',
+        letterSpacing: -0.1,
+        // Allow content to expand naturally
+        flexShrink: 1,
       }}>
         {post.content}
       </Text>
       
-      {/* ULTRA-RESPONSIVE: Engagement Bar */}
+      {/* ULTRA-RESPONSIVE: Engagement Bar - Reduced spacing */}
       <View style={{ 
         flexDirection: 'row', 
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: 12,
-        borderTopWidth: 0.5,
-        borderTopColor: themeColors.isDark 
-          ? 'rgba(255, 255, 255, 0.06)'
-          : 'rgba(0, 0, 0, 0.04)',
+        paddingTop: compact ? 12 : 14,
+        marginTop: 4,
       }}>
-        {/* Left side - Interactions */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+        {/* Left side - Interactions with reduced spacing */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
           {/* Like button */}
           <TouchableOpacity 
             onPress={handleLike}
             style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
-              paddingVertical: 4,
-              paddingHorizontal: 4,
+              paddingVertical: 2,
+              paddingHorizontal: 2,
             }}
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -326,7 +409,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
               <Text style={{
                 ...textStyles.caption,
                 color: post.isLiked ? '#EF4444' : themeColors.textSecondary,
-                marginLeft: 6,
+                marginLeft: 4,
                 fontWeight: post.isLiked ? '600' : '500',
               }}>
                 {post.likes}
@@ -341,8 +424,8 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
               style={{ 
                 flexDirection: 'row', 
                 alignItems: 'center',
-                paddingVertical: 4,
-                paddingHorizontal: 4,
+                paddingVertical: 2,
+                paddingHorizontal: 2,
               }}
               activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -362,8 +445,8 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
             style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
-              paddingVertical: 4,
-              paddingHorizontal: 4,
+              paddingVertical: 2,
+              paddingHorizontal: 2,
             }}
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -373,7 +456,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
               <Text style={{
                 ...textStyles.caption,
                 color: themeColors.textSecondary,
-                marginLeft: 6,
+                marginLeft: 4,
                 fontWeight: '500',
               }}>
                 {post.replyCount}
@@ -382,14 +465,14 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
           </TouchableOpacity>
         </View>
 
-        {/* Right side - Actions */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        {/* Right side - Actions with reduced spacing */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           {/* Bookmark button */}
           <TouchableOpacity 
             onPress={handleBookmark}
             style={{
-              paddingVertical: 4,
-              paddingHorizontal: 4,
+              paddingVertical: 2,
+              paddingHorizontal: 2,
             }}
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -407,8 +490,8 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
             <TouchableOpacity 
               onPress={handleShare}
               style={{
-                paddingVertical: 4,
-                paddingHorizontal: 4,
+                paddingVertical: 2,
+                paddingHorizontal: 2,
               }}
               activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

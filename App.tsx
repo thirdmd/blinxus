@@ -44,7 +44,7 @@ function ProfileTabIcon({ color, focused }: { color: string; focused: boolean })
       width: iconSize,
       height: iconSize,
       borderRadius: iconSize / 2,
-      borderWidth: focused ? 2.5 : 2, // Increased from 2/1.5 to 3/2.5
+      borderWidth: focused ? 2.0 : 1.5, // Made thinner by 0.5px
       borderColor: color,
       overflow: 'hidden',
     }}>
@@ -80,10 +80,41 @@ function ProfileTabIcon({ color, focused }: { color: string; focused: boolean })
   );
 }
 
+// Subtle Square Create Icon Component
+function SubtleCreateIcon({ color, size, focused }: { color: string; size: number; focused: boolean }) {
+  return (
+    <View style={{
+      width: size,
+      height: size,
+      borderRadius: size * 0.25, // Subtle rounded square
+      borderWidth: focused ? 1.5 : 1.2,
+      borderColor: '#0047AB', // Always subtle cobalt blue
+      backgroundColor: focused ? 'rgba(0, 71, 171, 0.12)' : 'rgba(0, 71, 171, 0.06)', // Very subtle blue tint
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      {/* Minimal plus inside */}
+      <View style={{
+        width: size * 0.42,
+        height: 1.5,
+        backgroundColor: '#0047AB',
+        borderRadius: 0.75,
+      }} />
+      <View style={{
+        width: 1.5,
+        height: size * 0.42,
+        backgroundColor: '#0047AB',
+        borderRadius: 0.75,
+        position: 'absolute',
+      }} />
+    </View>
+  );
+}
+
 // Tab Icons - Updated for 5 tabs
 function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
   const iconSize = name === 'Create' ? ri(28) : ri(24);
-  const strokeWidth = focused ? 2.5 : 2;
+  const strokeWidth = focused ? 2.0 : 1.5; // Made thinner by 0.5px
   
   switch (name) {
     case 'Home':
@@ -91,7 +122,7 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
     case 'Pods':
       return <Users2 size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Create':
-      return <Plus size={iconSize} color={color} strokeWidth={strokeWidth} />;
+      return <SubtleCreateIcon color={color} size={iconSize} focused={focused} />;
     case 'Notifications':
       return <Bell size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Profile':
@@ -101,13 +132,11 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
   }
 }
 
-// Special Create Tab Button - Now opens modal instead of tab
+// Special Create Tab Button - Same size as other icons, subtle design
 function CreateTabButton({ onPress, accessibilityState, navigation }: any) {
   const themeColors = useThemeColors();
-  const responsiveDimensions = getResponsiveDimensions();
   
   const handlePress = () => {
-    // Navigate to CreatePost modal instead of tab
     navigation.navigate('CreatePost');
   };
   
@@ -118,24 +147,35 @@ function CreateTabButton({ onPress, accessibilityState, navigation }: any) {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        top: rs(-4), // Less elevation to avoid overlap
+        paddingTop: rs(2), // Slight lift to align with other icons
       }}
       activeOpacity={0.8}
     >
+      {/* Subtle square create icon - same size as other tab icons */}
       <View style={{
-        width: responsiveDimensions.fab.size,
-        height: responsiveDimensions.fab.size,
-        borderRadius: responsiveDimensions.fab.borderRadius,
-        backgroundColor: '#0047AB', // Always cobalt blue
-        justifyContent: 'center',
+        width: ri(24), // Same size as other icons
+        height: ri(24),
+        borderRadius: ri(6), // Subtle rounded square
+        borderWidth: 1.5,
+        borderColor: '#0047AB', // Subtle cobalt blue border
+        backgroundColor: 'rgba(0, 71, 171, 0.08)', // Very subtle blue tint
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: rs(4) },
-        shadowOpacity: 0.3,
-        shadowRadius: rs(8),
-        elevation: responsiveDimensions.fab.elevation,
+        justifyContent: 'center',
       }}>
-        <Plus size={ri(24)} color="#FFFFFF" strokeWidth={2} />
+        {/* Minimal plus inside */}
+        <View style={{
+          width: ri(10),
+          height: 1.5,
+          backgroundColor: '#0047AB',
+          borderRadius: 0.75,
+        }} />
+        <View style={{
+          width: 1.5,
+          height: ri(10),
+          backgroundColor: '#0047AB',
+          borderRadius: 0.75,
+          position: 'absolute',
+        }} />
       </View>
     </TouchableOpacity>
   );
@@ -444,4 +484,4 @@ export default function App() {
       </SettingsProvider>
     </ThemeProvider>
   );
-} 
+}

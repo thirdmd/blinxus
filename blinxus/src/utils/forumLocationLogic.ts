@@ -71,8 +71,6 @@ export const postMatchesLocationFilter = (
   return post.locationId === location.id;
 };
 
-
-
 // Get continent name for a country
 export const getContinentNameByCountry = (country: Country): string => {
   const continent = placesData.find(continent => 
@@ -100,4 +98,70 @@ export const getEmptyStateMessage = (locationFilter: LocationFilter): { title: s
     title: 'No discussions yet',
     subtitle: `Be the first to start a conversation in ${locationFilter}`
   };
+};
+
+/**
+ * Centralized Forum Tag Display Logic
+ * Handles how forum tags should be displayed across all pods components
+ */
+export const ForumTagsDisplay = {
+  /**
+   * Get all activity tags for display (no limit)
+   * @param activityTags Array of tag IDs
+   * @param forumActivityTags Available forum activity tags
+   * @param maxTags Optional maximum number of tags to show (default: unlimited)
+   * @returns Array of tag data for display
+   */
+  getTagsForDisplay: (
+    activityTags: string[], 
+    forumActivityTags: any[], 
+    maxTags?: number
+  ) => {
+    const validTags = activityTags
+      .map(tagId => forumActivityTags.find(tag => tag.id === tagId))
+      .filter(Boolean);
+    
+    return maxTags ? validTags.slice(0, maxTags) : validTags;
+  },
+
+  /**
+   * Check if tags should be scrollable horizontally
+   * @param tagsCount Number of tags
+   * @returns boolean indicating if horizontal scroll should be enabled
+   */
+  shouldEnableHorizontalScroll: (tagsCount: number) => {
+    return tagsCount > 2; // Enable scroll when more than 2 tags
+  },
+
+  /**
+   * Get tag display configuration for different contexts
+   */
+  getDisplayConfig: (context: 'card' | 'detail' | 'compact') => {
+    switch (context) {
+      case 'card':
+        return {
+          showAllTags: true,
+          enableHorizontalScroll: true,
+          maxTagsBeforeScroll: 2
+        };
+      case 'detail':
+        return {
+          showAllTags: true,
+          enableHorizontalScroll: true,
+          maxTagsBeforeScroll: 3
+        };
+      case 'compact':
+        return {
+          showAllTags: true,
+          enableHorizontalScroll: true,
+          maxTagsBeforeScroll: 1
+        };
+      default:
+        return {
+          showAllTags: true,
+          enableHorizontalScroll: true,
+          maxTagsBeforeScroll: 2
+        };
+    }
+  }
 }; 

@@ -14,6 +14,10 @@ export interface PodsNavigationState {
   activeTab: PodTabType;
   searchQuery: string;
   isSearchMode: boolean;
+  navigationContext?: {
+    targetLocationFilter?: string;
+    autoSelectLocationTab?: boolean;
+  };
 }
 
 // UI Layout Configurations

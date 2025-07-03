@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
-import { Search, Globe, ChevronRight, TrendingUp, Sparkles, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
+import { Search, Globe, ChevronRight, TrendingUp, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, Country, Continent } from '../../../constants/placesData';
 import { useThemeColors } from '../../../hooks/useThemeColors';
@@ -99,16 +99,16 @@ const CountryCard: React.FC<{
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         style={{
-          marginBottom: 8,
+          marginBottom: 6,
           marginHorizontal: 20,
-          borderRadius: 18,
+          borderRadius: 20,
           overflow: 'hidden',
-          height: 88,
+          height: 84,
           position: 'relative',
         }}
         activeOpacity={0.95}
       >
-        {/* Frosted Background Layer */}
+        {/* Modern Glass Background */}
         <View style={{
           position: 'absolute',
           top: 0,
@@ -116,16 +116,16 @@ const CountryCard: React.FC<{
           right: 0,
           bottom: 0,
           backgroundColor: themeColors.isDark 
-            ? 'rgba(26, 35, 50, 0.7)'
-            : 'rgba(255, 255, 255, 0.75)',
-          borderRadius: 18,
+            ? 'rgba(30, 35, 45, 0.85)'
+            : 'rgba(255, 255, 255, 0.85)',
+          borderRadius: 20,
           borderWidth: 0.5,
           borderColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.06)' 
-            : 'rgba(0, 0, 0, 0.03)',
+            ? 'rgba(255, 255, 255, 0.08)' 
+            : 'rgba(0, 0, 0, 0.04)',
         }} />
         
-        {/* Subtle gradient overlay */}
+        {/* Subtle inner glow */}
         <View style={{
           position: 'absolute',
           top: 0,
@@ -133,128 +133,106 @@ const CountryCard: React.FC<{
           right: 0,
           bottom: 0,
           backgroundColor: themeColors.isDark 
-            ? 'rgba(40, 40, 40, 0.03)' 
-            : 'rgba(240, 240, 240, 0.03)',
-          borderRadius: 18,
+            ? 'rgba(255, 255, 255, 0.02)' 
+            : 'rgba(0, 0, 0, 0.01)',
+          borderRadius: 20,
         }} />
 
-        {/* Popular Badge Glow Effect */}
+        {/* Popular Badge Accent */}
         {isPopular && (
           <View style={{
             position: 'absolute',
-            right: -40,
-            top: -40,
-            width: 120,
-            height: 120,
-            borderRadius: 60,
+            right: -30,
+            top: -30,
+            width: 100,
+            height: 100,
+            borderRadius: 50,
             backgroundColor: theme.colors.primary,
-            opacity: 0.06,
+            opacity: 0.04,
         }} />
         )}
 
         {/* Content */}
         <View style={{ 
           flex: 1,
-          paddingHorizontal: 20,
-          paddingVertical: 18,
+          paddingHorizontal: 18,
+          paddingVertical: 16,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
           <View style={{ flex: 1, marginRight: 12 }}>
             {/* Country Name */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                 <Text 
                   style={{ 
                   color: themeColors.text,
-                    fontSize: 19,
+                    fontSize: 18,
                     fontWeight: '700',
-                  letterSpacing: -0.6,
+                  letterSpacing: -0.5,
                   fontFamily: 'System',
-                  lineHeight: 23,
+                  lineHeight: 22,
                   }}
                 numberOfLines={1}
                 >
                   {country.name}
                 </Text>
               
-              {/* Join Button */}
+              {/* Modern Join Button */}
               {!isUserJoined && (
                 <TouchableOpacity
                   onPress={() => onJoinPod(country.id)}
                   style={{
-                    marginLeft: 8,
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 10,
+                    marginLeft: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 4,
+                    borderRadius: 14,
                     backgroundColor: theme.colors.primary,
                     alignItems: 'center',
                     justifyContent: 'center',
+                    shadowColor: theme.colors.primary,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 4,
                   }}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                 >
                   <Text style={{
                     color: 'white',
-                    fontSize: 9,
-                    fontWeight: '700',
+                    fontSize: 11,
+                    fontWeight: '600',
                     fontFamily: 'System',
-                    letterSpacing: 0.2,
-                    textTransform: 'uppercase',
+                    letterSpacing: 0.1,
                   }}>
                     Join
                   </Text>
                 </TouchableOpacity>
               )}
               
-              {/* Popular Badge */}
-              {isPopular && (
-                <View style={{
-                  marginLeft: isUserJoined ? 10 : 8,
-                  backgroundColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.06)',
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderRadius: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}>
-                  <Sparkles size={10} color="#FF4500" strokeWidth={3} />
-                    <Text style={{ 
-                    color: "#FF4500",
-                    fontSize: 10,
-                    fontWeight: '700',
-                    marginLeft: 4,
-                    fontFamily: 'System',
-                    letterSpacing: 0.4,
-                    textTransform: 'uppercase',
-                    }}>
-                    Hot
-                    </Text>
-                  </View>
-                )}
+
               </View>
               
             {/* Stats */}
             <View style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
-              opacity: 0.7,
+              opacity: 0.75,
             }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 8,
+                  width: 15,
+                  height: 15,
+                  borderRadius: 7.5,
                   backgroundColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.08)'
+                    ? 'rgba(255, 255, 255, 0.06)'
                     : 'rgba(0, 0, 0, 0.04)',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: 6,
                 }}>
                   <Users 
-                    size={10} 
+                    size={9} 
                     color={theme.colors.textSecondary} 
                     strokeWidth={2.5}
                   />
@@ -262,7 +240,7 @@ const CountryCard: React.FC<{
                 <Text 
                   style={{ 
                     color: theme.colors.textSecondary,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: '500',
                     fontFamily: 'System',
                     letterSpacing: -0.1,
@@ -273,17 +251,17 @@ const CountryCard: React.FC<{
               </View>
               
               <View style={{
-                width: 3,
-                height: 3,
-                borderRadius: 1.5,
+                width: 2,
+                height: 2,
+                borderRadius: 1,
                 backgroundColor: theme.colors.textSecondary,
-                marginHorizontal: 10,
-                opacity: 0.3,
+                marginHorizontal: 8,
+                opacity: 0.4,
               }} />
               
               <Text style={{
                 color: theme.colors.textSecondary,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: '500',
                 fontFamily: 'System',
                 letterSpacing: -0.1,
@@ -293,19 +271,19 @@ const CountryCard: React.FC<{
             </View>
           </View>
 
-          {/* Arrow Button */}
+          {/* Modern Arrow Button */}
           <View style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: 32,
+            height: 32,
+            borderRadius: 16,
             backgroundColor: themeColors.isDark 
-              ? 'rgba(255, 255, 255, 0.06)'
-              : 'rgba(0, 0, 0, 0.03)',
+              ? 'rgba(255, 255, 255, 0.08)'
+              : 'rgba(0, 0, 0, 0.04)',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
             <ChevronRight 
-              size={18} 
+              size={16} 
               color={theme.colors.textSecondary} 
               strokeWidth={2.5}
             />
@@ -350,7 +328,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
   // Memoize tabs to prevent re-rendering
   const allTabs = useMemo(() => [
     { id: 'feed', name: 'Global Feed' },
-    { id: 'hot', name: 'Hot' },
+    
     ...placesData
   ], []);
 
@@ -577,36 +555,9 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     // Feed tab - no countries to show (handled by GlobalFeed component)
     if (activeContinent === 0) {
       return [];
-    }
-    // Hot tab - show trending pods from all continents
-    else if (activeContinent === 1) {
-      // Get all countries from all continents
-      const allCountries = placesData.reduce((acc, continent) => {
-        return [...acc, ...continent.countries];
-      }, [] as Country[]);
-      
-      // Featured countries for Hot section (all should now be "hot" with 15+ destinations)
-      const featuredCountryIds = ['ph', 'jp', 'kr', 'id', 'us', 'ch'];
-      
-      // Filter for trending countries (popular ones) or featured countries
-      countries = allCountries.filter(country => 
-        country.subLocations.length > 15 || featuredCountryIds.includes(country.id)
-      );
-      
-      // Sort: Hot countries (15+ destinations) first, then featured countries
-      countries.sort((a, b) => {
-        const aIsHot = a.subLocations.length > 15;
-        const bIsHot = b.subLocations.length > 15;
-        
-        if (aIsHot && !bIsHot) return -1;
-        if (!aIsHot && bIsHot) return 1;
-        
-        // If both are hot or both are featured, sort by destination count (descending)
-        return b.subLocations.length - a.subLocations.length;
-      });
     } else {
-      // Regular continent view - activeContinent 2+ maps to continent indices 0+
-      const continentIndex = activeContinent - 2; // Subtract 2 because Feed=0, Hot=1, then continents start
+      // Regular continent view - activeContinent 1+ maps to continent indices 0+
+      const continentIndex = activeContinent - 1; // Subtract 1 because Feed=0, then continents start
       const continent = placesData[continentIndex];
       if (!continent) return [];
       countries = continent.countries;
@@ -684,13 +635,13 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
 
   // Create grouped countries data for rendering with headers
   const groupedCountries = useMemo(() => {
-    if (activeContinent === 0 || activeContinent === 1 || searchQuery) {
-      // For "Feed" tab, "Hot" tab, or when searching, don't show groups
+    if (activeContinent === 0 || searchQuery) {
+      // For "Feed" tab or when searching, don't show groups
       return filteredCountries.map(country => ({ type: 'country' as const, country }));
     }
 
     // For continent tabs - get the correct continent
-    const continentIndex = activeContinent - 2; // Subtract 2 because Feed=0, Hot=1, then continents start
+    const continentIndex = activeContinent - 1; // Subtract 1 because Feed=0, then continents start
     const continent = placesData[continentIndex];
     if (!continent) return [];
 
@@ -899,68 +850,58 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     }
   };
 
-  // Enhanced renderContinentTab with double-tap detection and special Feed/Hot tab styling
+  // Enhanced renderContinentTab with double-tap detection and special Feed tab styling
   const renderContinentTab = React.useCallback((continent: Continent | { id: string; name: string }, index: number) => {
     const isActive = activeContinent === index;
     const isFeedTab = index === 0; // First tab is Feed
-    const isHotTab = index === 1; // Second tab is Hot
     
     return (
       <TouchableOpacity
         onPress={() => {
-          if ((index === 0 || index === 1) && activeContinent === index) {
-            // Double-tap "Feed" or "Hot" tab - trigger double-tap handler
+          if (index === 0 && activeContinent === index) {
+            // Double-tap "Feed" tab - trigger double-tap handler
             handleDoubleTabPress();
           } else {
             handleContinentChange(index);
           }
         }}
         style={{ 
-          paddingHorizontal: 16,
-          paddingVertical: 10,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
           backgroundColor: isActive 
-            ? (isHotTab ? '#FF4500' : (isFeedTab ? theme.colors.primary : theme.colors.primary))
+            ? (isFeedTab ? theme.colors.primary : theme.colors.primary)
             : 'transparent',
-          borderRadius: 20,
-          marginRight: 8,
-          borderWidth: isActive ? 0 : 1,
-          borderColor: isHotTab && !isActive
-            ? '#FF4500'
-            : isFeedTab && !isActive
+          borderRadius: 12,
+          marginRight: 6,
+          borderWidth: isActive ? 0 : 0.5,
+          borderColor: isFeedTab && !isActive
               ? theme.colors.primary
               : themeColors.isDark 
-                ? 'rgba(255, 255, 255, 0.15)' 
-                : 'rgba(0, 0, 0, 0.12)',
+                ? 'rgba(255, 255, 255, 0.08)' 
+                : 'rgba(0, 0, 0, 0.06)',
           flexDirection: 'row',
           alignItems: 'center',
+          minHeight: 28,
         }}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         {isFeedTab && (
           <Globe 
-            size={12} 
+            size={11} 
             color={isActive ? '#FFFFFF' : theme.colors.primary} 
             strokeWidth={2.5}
-            style={{ marginRight: 4 }}
-          />
-        )}
-        {isHotTab && (
-          <Sparkles 
-            size={12} 
-            color={isActive ? '#FFFFFF' : '#FF4500'} 
-            strokeWidth={2.5}
-            style={{ marginRight: 4 }}
+            style={{ marginRight: 3 }}
           />
         )}
         <Text 
           style={{ 
             color: isActive 
               ? '#FFFFFF' 
-              : (isHotTab ? '#FF4500' : (isFeedTab ? theme.colors.primary : theme.colors.textSecondary)),
+              : (isFeedTab ? theme.colors.primary : theme.colors.textSecondary),
             fontSize: 14,
-            fontWeight: isActive ? '700' : ((isHotTab || isFeedTab) ? '700' : '500'),
+            fontWeight: isActive ? '600' : (isFeedTab ? '600' : '500'),
             fontFamily: 'System',
-            letterSpacing: -0.1,
+            letterSpacing: -0.2,
           }}
         >
           {continent.name}
@@ -1056,14 +997,14 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     <View style={{ 
         paddingHorizontal: 20,
         paddingTop: 8,
-        paddingBottom: 4,
+        paddingBottom: 0,
     }}>
         {/* Header with Title and Search */}
         <View style={{ 
           flexDirection: 'row', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          marginBottom: 20,
+          marginBottom: 16,
         }}>
           {/* Title Section */}
           <View style={{ flex: 1 }}>
@@ -1233,7 +1174,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
       </View>
 
       {/* Fixed Continent Tabs - Replace ScrollView with horizontal FlatList */}
-      <View style={{ marginBottom: 12 }}>
+      <View style={{ marginBottom: 8 }}>
         <FlatList
           ref={tabScrollRef}
           data={allTabs}
@@ -1243,6 +1184,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 20,
+            gap: 0,
           }}
           style={{ 
             flexGrow: 0,
@@ -1271,7 +1213,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
           {/* Fixed Active Continent Info */}
           <View style={{ 
             marginHorizontal: 20,
-            marginBottom: 12,
+            marginBottom: 8,
           }}>
             <View style={{ 
               flexDirection: 'row',
@@ -1292,9 +1234,9 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
                 textTransform: 'uppercase',
                 letterSpacing: 0.6,
               }}>
-                {activeContinent === 1 
-                  ? `Hot • ${filteredCountries.length} Trending` 
-                  : `${placesData[activeContinent - 2]?.name} • ${filteredCountries.length} Countries`
+                {activeContinent === 0 
+                  ? `Global Feed` 
+                  : `${placesData[activeContinent - 1]?.name} • ${filteredCountries.length} Countries`
                 }
               </Text>
             </View>

@@ -41,6 +41,10 @@ interface CountryViewScreenProps {
   onLocationPress: (location: SubLocation) => void;
   onBack: () => void;
   theme: PodThemeConfig;
+  navigationContext?: {
+    targetLocationFilter?: string;
+    autoSelectLocationTab?: boolean;
+  };
 }
 
 export interface CountryViewScreenRef {
@@ -56,6 +60,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   onLocationPress,
   onBack,
   theme,
+  navigationContext,
 }, ref) => {
   const themeColors = useThemeColors();
   
@@ -64,6 +69,9 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   
   // Scroll ref for the main content area
   const forumScrollRef = useRef<any>(null);
+  
+  // Scroll ref for the location filter tabs
+  const locationTabsScrollRef = useRef<ScrollView>(null);
   
   // OPTIMIZED: Search functionality state with better performance
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,6 +96,54 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   
   const isJoined = isPodJoined(country.id);
   const hasNotifications = isPodNotificationsEnabled(country.id);
+
+  // Function to scroll to the selected location tab
+  const scrollToSelectedTab = useCallback((targetFilter: string) => {
+    if (!locationTabsScrollRef.current) return;
+    
+    // Create array of all location tabs (same as in render)
+    const locationTabs = ['All', ...country.subLocations.map(loc => loc.name)];
+    const targetIndex = locationTabs.findIndex(tab => tab === targetFilter);
+    
+    if (targetIndex !== -1) {
+      // Calculate scroll position to center the target tab
+      const tabWidth = 100; // Approximate tab width including padding and gap
+      const screenWidth = width; // Screen width
+      const visibleAreaWidth = screenWidth - 40; // Account for padding (20px each side)
+      
+      // Position to center the target tab in the visible area
+      const targetTabPosition = targetIndex * tabWidth;
+      const scrollPosition = Math.max(0, targetTabPosition - (visibleAreaWidth / 2) + (tabWidth / 2));
+      
+      locationTabsScrollRef.current.scrollTo({
+        x: scrollPosition,
+        animated: true
+      });
+    }
+  }, [country.subLocations]);
+
+  // Handle automatic location tab selection from navigation context
+  useEffect(() => {
+    if (navigationContext?.autoSelectLocationTab && navigationContext?.targetLocationFilter) {
+      const targetFilter = navigationContext.targetLocationFilter;
+      
+      // Check if the target filter exists in the country's locations
+      const hasTargetLocation = targetFilter === 'All' || 
+        country.subLocations.some(loc => 
+          loc.name === targetFilter || 
+          loc.name.toLowerCase() === targetFilter.toLowerCase()
+        );
+      
+      if (hasTargetLocation) {
+        setSelectedLocationFilter(targetFilter);
+        
+        // Auto-scroll to the selected tab after a short delay
+        setTimeout(() => {
+          scrollToSelectedTab(targetFilter);
+        }, 300);
+      }
+    }
+  }, [navigationContext, country.subLocations]);
   
   // TAB TRANSITIONS: INSTANT response with smooth animation
   const animateToTab = useCallback((targetTab: PodTabType) => {
@@ -147,7 +203,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       'egypt': 'Africa',
       'australia': 'Oceania',
     };
-    return continentMap[country.id.toLowerCase()] || 'Explore';
+    return continentMap[country.id.toLowerCase()] || 'Global Feed';
   }, [country.id]);
   
   // OPTIMIZED: Memoized location tabs
@@ -488,6 +544,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
           
           {/* PERFORMANCE: Ultra-smooth location tabs */}
           <ScrollView
+            ref={locationTabsScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
@@ -507,26 +564,19 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
                 key={tab}
                 onPress={() => handleLocationFilterChange(tab)}
                 style={{
-                  paddingVertical: 8,
-                  paddingHorizontal: 16,
+                  paddingVertical: 6,
+                  paddingHorizontal: 12,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderRadius: 20,
-                  minHeight: 36,
+                  borderRadius: 12,
+                  minHeight: 28,
                   backgroundColor: selectedLocationFilter === tab 
                     ? theme.colors.primary 
                     : 'transparent',
-                  borderWidth: selectedLocationFilter === tab ? 0 : 1,
+                  borderWidth: selectedLocationFilter === tab ? 0 : 0.5,
                   borderColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.15)' 
-                    : 'rgba(0, 0, 0, 0.12)',
-                  ...(selectedLocationFilter === tab && {
-                    shadowColor: theme.colors.primary,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 4,
-                    elevation: 3,
-                  }),
+                    ? 'rgba(255, 255, 255, 0.08)' 
+                    : 'rgba(0, 0, 0, 0.06)',
                 }}
                 activeOpacity={0.8}
               >
@@ -535,9 +585,9 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
                     ? '#FFFFFF'
                     : theme.colors.textSecondary,
                   fontSize: 14,
-                  fontWeight: selectedLocationFilter === tab ? '700' : '500',
+                  fontWeight: selectedLocationFilter === tab ? '600' : '500',
                   fontFamily: 'System',
-                  letterSpacing: -0.1,
+                  letterSpacing: -0.2,
                 }}>
                   {tab}
                 </Text>

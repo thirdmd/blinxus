@@ -1,4 +1,5 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo, useEffect } from 'react';
+import { useRoute } from '@react-navigation/native';
 import { SafeAreaView, StatusBar, View, ScrollView, Animated, Dimensions } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -16,6 +17,7 @@ import { ANIMATION_DURATIONS } from '../../utils/animations';
 import { 
   philippinesData, 
   asiaData,
+  placesData,
   SubLocation,
   Country
 } from '../../constants/placesData';
@@ -33,6 +35,7 @@ export interface PodsMainScreenRef {
 
 const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   const themeColors = useThemeColors();
+  const route = useRoute();
   const [navigationState, setNavigationState] = useState<PodsNavigationState>(createInitialPodsState());
   const [activeTab, setActiveTab] = useState<PodTabType>('Forum');
   
@@ -59,6 +62,53 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   
   // Initialize posting service
   const postingService = PodsPostingService.getInstance();
+
+  // Handle navigation parameters from location clicks
+  useEffect(() => {
+    const params = route.params as any;
+    
+    if (params?.autoNavigateToCountry && params?.initialCountry) {
+      // Find the target country
+      const targetCountry = placesData
+        .flatMap(continent => continent.countries)
+        .find(country => country.id === params.initialCountry);
+      
+      if (targetCountry) {
+        // Set up the navigation state with target location info
+        setNavigationState(prev => ({
+          ...prev,
+          currentScreen: 'country-view',
+          selectedCountry: targetCountry,
+          selectedContinent: asiaData, // Default to Asia, could be improved
+          // Add navigation context for location selection
+          navigationContext: {
+            targetLocationFilter: params.targetLocationFilter,
+            autoSelectLocationTab: params.autoSelectLocationTab
+          }
+        }));
+        
+        // Animate to country view
+        setTimeout(() => {
+          Animated.timing(containerTranslateX, {
+            toValue: -screenWidth,
+            duration: ANIMATION_DURATIONS.lightning,
+            useNativeDriver: true,
+          }).start();
+        }, 100);
+        
+        // Set active tab
+        setActiveTab('Forum');
+        
+        // Clear the navigation context after a delay to prevent affecting future navigations
+        setTimeout(() => {
+          setNavigationState(prev => ({
+            ...prev,
+            navigationContext: undefined
+          }));
+        }, 1000);
+      }
+    }
+  }, [route.params, containerTranslateX]);
 
   // ULTRA-RESPONSIVE: Memoized theme config
   const podTheme: PodThemeConfig = useMemo(() => ({
@@ -233,6 +283,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
                 onLocationPress={handleLocationPress}
                 onBack={handleBackToMain}
                 theme={podTheme}
+                navigationContext={navigationState.navigationContext}
               />
             ) : (
               <View style={{ flex: 1, backgroundColor: themeColors.background }} />

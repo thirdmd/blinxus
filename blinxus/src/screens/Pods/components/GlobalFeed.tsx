@@ -21,6 +21,7 @@ import { useThemeColors } from '../../../hooks/useThemeColors';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, getCountryByLocationId, getLocationByName } from '../../../constants/placesData';
 import UserProfileNavigation from '../../../utils/userProfileNavigation';
+import LocationNavigation from '../../../utils/locationNavigation';
 
 export interface GlobalFeedRef {
   scrollToTop: () => void;
@@ -237,6 +238,11 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
     });
   }, [updateFilters]);
 
+  const handleLocationPress = useCallback((post: any, location: any) => {
+    const { handleForumPostLocation } = LocationNavigation.createHandlersForScreen(navigation as any, 'GlobalFeed');
+    handleForumPostLocation({ post, location });
+  }, [navigation]);
+
   const handleCreatePostSubmit = useCallback(async (postData: {
     content: string;
     category: any;
@@ -329,20 +335,19 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
 
   // Render functions
   const renderPost = useCallback(({ item }: { item: ForumPost }) => (
-    <View style={{ paddingHorizontal: 20 }}>
-      <ForumPostCard
-        post={item}
-        onLike={handleLike}
-        onBookmark={handleBookmark}
-        onReply={handleReply}
-        onShare={handleShare}
-        onMore={handleMore}
-        onAuthorPress={handleAuthorPress}
-        onTagPress={handleTagPress}
-        onCategoryPress={handleCategoryPress}
-      />
-    </View>
-  ), [handleLike, handleBookmark, handleReply, handleShare, handleMore, handleAuthorPress, handleTagPress, handleCategoryPress]);
+    <ForumPostCard
+      post={item}
+      onLike={handleLike}
+      onBookmark={handleBookmark}
+      onReply={handleReply}
+      onShare={handleShare}
+      onMore={handleMore}
+      onAuthorPress={handleAuthorPress}
+      onTagPress={handleTagPress}
+      onCategoryPress={handleCategoryPress}
+      onLocationPress={handleLocationPress}
+    />
+  ), [handleLike, handleBookmark, handleReply, handleShare, handleMore, handleAuthorPress, handleTagPress, handleCategoryPress, handleLocationPress]);
 
   const renderHeader = useCallback(() => (
     <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
@@ -365,7 +370,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
                   backgroundColor: FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
-                  borderRadius: 16,
+                  borderRadius: 8,
                   flexDirection: 'row',
                   alignItems: 'center',
                 }}
@@ -398,7 +403,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
                   backgroundColor: '#3B82F6',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
-                  borderRadius: 16,
+                  borderRadius: 8,
                   flexDirection: 'row',
                   alignItems: 'center',
                 }}
@@ -568,7 +573,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingTop: 16,
-          paddingBottom: 100, // Extra padding for create bar
+          paddingBottom: 50, // Reduced padding to align with "What's on your mind" bar
           flexGrow: 1,
         }}
         removeClippedSubviews={true}

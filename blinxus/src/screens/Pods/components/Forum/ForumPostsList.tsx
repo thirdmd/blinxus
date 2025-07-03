@@ -21,6 +21,7 @@ import { LocationFilter, FORUM_CATEGORIES } from './forumTypes';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { Country } from '../../../../constants/placesData';
 import UserProfileNavigation from '../../../../utils/userProfileNavigation';
+import LocationNavigation from '../../../../utils/locationNavigation';
 
 interface ForumPostsListProps {
   country: Country;
@@ -226,22 +227,26 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
     });
   }, [filters, actions.updateFilters]);
 
+  const handleLocationPress = useCallback((post: any, location: any) => {
+    const { handleForumPostLocation } = LocationNavigation.createHandlersForScreen(navigation as any, 'CountryForum');
+    handleForumPostLocation({ post, location });
+  }, [navigation]);
+
   // RADICAL: Memoized render functions for maximum performance
   const renderPost = useCallback(({ item }: { item: any }) => (
-    <View style={{ paddingHorizontal: 20 }}>
-      <ForumPostCard
-        post={item}
-        onLike={handleLike}
-        onBookmark={handleBookmark}
-        onReply={handleReply}
-        onShare={handleShare}
-        onMore={handleMore}
-        onAuthorPress={handleAuthorPress}
-        onTagPress={handleTagPress}
-        onCategoryPress={handleCategoryPress}
-      />
-    </View>
-  ), [handleLike, handleBookmark, handleReply, handleShare, handleMore, handleAuthorPress, handleTagPress, handleCategoryPress]);
+    <ForumPostCard
+      post={item}
+      onLike={handleLike}
+      onBookmark={handleBookmark}
+      onReply={handleReply}
+      onShare={handleShare}
+      onMore={handleMore}
+      onAuthorPress={handleAuthorPress}
+      onTagPress={handleTagPress}
+      onCategoryPress={handleCategoryPress}
+      onLocationPress={handleLocationPress}
+    />
+  ), [handleLike, handleBookmark, handleReply, handleShare, handleMore, handleAuthorPress, handleTagPress, handleCategoryPress, handleLocationPress]);
 
   const keyExtractor = useCallback((item: any, index: number) => `forum-post-${item.id}-${index}`, []);
 
@@ -272,7 +277,6 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   // RESTORED: Original discussion bar header
   const ListHeaderComponent = React.memo(() => (
     <View>
-
       {/* Active Filters Display */}
       {(filters.category !== 'All' || filters.activityTags.length > 0 || filters.searchQuery) && (
         <View style={{
@@ -293,7 +297,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
                   backgroundColor: FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
-                  borderRadius: 16,
+                  borderRadius: 8,
                   flexDirection: 'row',
                   alignItems: 'center',
                 }}
@@ -326,7 +330,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
                   backgroundColor: '#3B82F6',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
-                  borderRadius: 16,
+                  borderRadius: 8,
                   flexDirection: 'row',
                   alignItems: 'center',
                 }}
@@ -370,16 +374,70 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
 
   if (uiState.error && posts.length === 0) {
     return (
-      <ErrorState 
-        error={uiState.error} 
-        onRetry={actions.loadPosts} 
-        themeColors={themeColors} 
-      />
+      <View style={{ flex: 1 }}>
+        <ErrorState 
+          error={uiState.error} 
+          onRetry={actions.loadPosts} 
+          themeColors={themeColors} 
+        />
+        
+        {/* Floating Create Post Bar - Always present even on error */}
+        <FloatingCreatePostBar 
+          onPress={handleCreatePost}
+          placeholder={`What's on your mind about ${country.name}?`}
+        />
+
+        {/* RADICAL: Instant Modal - No delays, no state conflicts */}
+        <ForumPostModal
+          visible={uiState.showCreateModal}
+          onClose={() => actions.setShowCreateModal(false)}
+          onSubmit={(post) => {
+            // INSTANT: Submit happens immediately, UI updates instantly
+            actions.createPost({
+              content: post.content,
+              category: post.category,
+              activityTags: post.activityTags,
+              locationId: post.locationId,
+              countryId: country.id,
+            });
+          }}
+          country={country}
+          defaultLocation={selectedLocationFilter === 'All' ? 'All' : selectedLocationFilter}
+        />
+      </View>
     );
   }
 
   if (!uiState.isLoading && posts.length === 0) {
-    return <EmptyState themeColors={themeColors} />;
+    return (
+      <View style={{ flex: 1 }}>
+        <EmptyState themeColors={themeColors} />
+        
+        {/* Floating Create Post Bar - Always present even when no posts */}
+        <FloatingCreatePostBar 
+          onPress={handleCreatePost}
+          placeholder={`What's on your mind about ${country.name}?`}
+        />
+
+        {/* RADICAL: Instant Modal - No delays, no state conflicts */}
+        <ForumPostModal
+          visible={uiState.showCreateModal}
+          onClose={() => actions.setShowCreateModal(false)}
+          onSubmit={(post) => {
+            // INSTANT: Submit happens immediately, UI updates instantly
+            actions.createPost({
+              content: post.content,
+              category: post.category,
+              activityTags: post.activityTags,
+              locationId: post.locationId,
+              countryId: country.id,
+            });
+          }}
+          country={country}
+          defaultLocation={selectedLocationFilter === 'All' ? 'All' : selectedLocationFilter}
+        />
+      </View>
+    );
   }
 
   return (
@@ -428,7 +486,8 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
           backgroundColor: themeColors.background,
         }}
         contentContainerStyle={{
-          paddingBottom: 100, // Extra padding for create bar
+          paddingTop: 8,
+          paddingBottom: 50, // Reduced padding to align with "What's on your mind" bar
         }}
       />
 
