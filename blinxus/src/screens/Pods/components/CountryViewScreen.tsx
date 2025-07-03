@@ -106,21 +106,49 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
     const targetIndex = locationTabs.findIndex(tab => tab === targetFilter);
     
     if (targetIndex !== -1) {
-      // Calculate scroll position to center the target tab
-      const tabWidth = 100; // Approximate tab width including padding and gap
-      const screenWidth = width; // Screen width
-      const visibleAreaWidth = screenWidth - 40; // Account for padding (20px each side)
+      // Calculate more accurate tab width based on text length
+      const calculateTabWidth = (text: string) => {
+        // Base: paddingHorizontal (24px) + borderWidth (1px) + some buffer
+        const basePadding = 24;
+        const borderWidth = 1;
+        const buffer = 4;
+        
+        // Estimate text width: fontSize 14 with letterSpacing -0.2
+        // Average character width for System font at 14px is ~8.5px
+        const averageCharWidth = 8.5;
+        const textWidth = text.length * averageCharWidth;
+        
+        return basePadding + borderWidth + textWidth + buffer;
+      };
       
-      // Position to center the target tab in the visible area
-      const targetTabPosition = targetIndex * tabWidth;
-      const scrollPosition = Math.max(0, targetTabPosition - (visibleAreaWidth / 2) + (tabWidth / 2));
+      // Calculate cumulative position of target tab
+      let targetTabPosition = 0;
+      for (let i = 0; i < targetIndex; i++) {
+        targetTabPosition += calculateTabWidth(locationTabs[i]);
+        if (i < targetIndex - 1) {
+          targetTabPosition += 6; // gap between tabs
+        }
+      }
+      
+      // Calculate scroll position to make target tab visible
+      const screenWidth = width;
+      const visibleAreaWidth = screenWidth - 40; // Account for padding (20px each side)
+      const targetTabWidth = calculateTabWidth(locationTabs[targetIndex]);
+      
+      // Position to show the target tab with some left margin
+      const leftMargin = 20; // Show some space before the target tab
+      const scrollPosition = Math.max(0, targetTabPosition - leftMargin);
+      
+      // Ensure we don't scroll past the end
+      const maxScrollPosition = Math.max(0, targetTabPosition + targetTabWidth - visibleAreaWidth + 20);
+      const finalScrollPosition = Math.min(scrollPosition, maxScrollPosition);
       
       locationTabsScrollRef.current.scrollTo({
-        x: scrollPosition,
+        x: finalScrollPosition,
         animated: true
       });
     }
-  }, [country.subLocations]);
+  }, [country.subLocations, width]);
 
   // Handle automatic location tab selection from navigation context
   useEffect(() => {
@@ -600,7 +628,6 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       {/* PERFORMANCE: Ultra-fast tab navigation */}
       <View style={{ 
         marginHorizontal: 20,
-        marginBottom: 16,
         marginTop: 4,
       }}>
         <View style={{
@@ -652,11 +679,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
         </View>
         
         <View style={{
-          height: 0.5,
-          backgroundColor: themeColors.isDark 
-            ? 'rgba(255, 255, 255, 0.06)'
-            : 'rgba(0, 0, 0, 0.04)',
-          marginTop: 0,
+          marginBottom: 8,
         }} />
       </View>
 

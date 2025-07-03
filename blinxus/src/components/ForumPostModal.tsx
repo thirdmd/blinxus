@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, Search, Send } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
+import FilterPill from './FilterPill';
 import { Country, SubLocation } from '../constants/placesData';
 import { 
   FORUM_ACTIVITY_TAGS, 
@@ -423,36 +424,15 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   gap: 8,
                 }}>
                   {getCountryTags('activity').map((tag) => (
-                    <TouchableOpacity
+                    <FilterPill
                       key={tag.id}
+                      label={tag.label}
+                      emoji={tag.emoji}
+                      variant="tag"
+                      size="medium"
+                      isSelected={selectedActivityTags.includes(tag.id)}
                       onPress={() => toggleActivityTag(tag.id)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        backgroundColor: selectedActivityTags.includes(tag.id)
-                          ? '#3B82F6'
-                          : themeColors.isDark 
-                            ? 'rgba(255, 255, 255, 0.08)'
-                            : 'rgba(0, 0, 0, 0.05)',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, marginRight: 4 }}>
-                        {tag.emoji}
-                      </Text>
-                      <Text style={{
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: selectedActivityTags.includes(tag.id) 
-                          ? 'white' 
-                          : themeColors.text,
-                        fontFamily: 'System',
-                      }}>
-                        {tag.label}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ))}
                 </View>
               </View>
@@ -474,36 +454,15 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   gap: 8,
                 }}>
                   {getCountryTags('accommodation').map((tag) => (
-                    <TouchableOpacity
+                    <FilterPill
                       key={tag.id}
+                      label={tag.label}
+                      emoji={tag.emoji}
+                      variant="tag"
+                      size="medium"
+                      isSelected={selectedActivityTags.includes(tag.id)}
                       onPress={() => toggleActivityTag(tag.id)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        backgroundColor: selectedActivityTags.includes(tag.id)
-                          ? '#3B82F6'
-                          : themeColors.isDark 
-                            ? 'rgba(255, 255, 255, 0.08)'
-                            : 'rgba(0, 0, 0, 0.05)',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, marginRight: 4 }}>
-                        {tag.emoji}
-                      </Text>
-                      <Text style={{
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: selectedActivityTags.includes(tag.id) 
-                          ? 'white' 
-                          : themeColors.text,
-                        fontFamily: 'System',
-                      }}>
-                        {tag.label}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ))}
                 </View>
               </View>
@@ -525,36 +484,15 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   gap: 8,
                 }}>
                   {getCountryTags('transport').map((tag) => (
-                    <TouchableOpacity
+                    <FilterPill
                       key={tag.id}
+                      label={tag.label}
+                      emoji={tag.emoji}
+                      variant="tag"
+                      size="medium"
+                      isSelected={selectedActivityTags.includes(tag.id)}
                       onPress={() => toggleActivityTag(tag.id)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        backgroundColor: selectedActivityTags.includes(tag.id)
-                          ? '#3B82F6'
-                          : themeColors.isDark 
-                            ? 'rgba(255, 255, 255, 0.08)'
-                            : 'rgba(0, 0, 0, 0.05)',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, marginRight: 4 }}>
-                        {tag.emoji}
-                      </Text>
-                      <Text style={{
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: selectedActivityTags.includes(tag.id) 
-                          ? 'white' 
-                          : themeColors.text,
-                        fontFamily: 'System',
-                      }}>
-                        {tag.label}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ))}
                 </View>
               </View>
@@ -576,36 +514,15 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   gap: 8,
                 }}>
                   {getCountryTags('food').map((tag) => (
-                    <TouchableOpacity
+                    <FilterPill
                       key={tag.id}
+                      label={tag.label}
+                      emoji={tag.emoji}
+                      variant="tag"
+                      size="medium"
+                      isSelected={selectedActivityTags.includes(tag.id)}
                       onPress={() => toggleActivityTag(tag.id)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        backgroundColor: selectedActivityTags.includes(tag.id)
-                          ? '#3B82F6'
-                          : themeColors.isDark 
-                            ? 'rgba(255, 255, 255, 0.08)'
-                            : 'rgba(0, 0, 0, 0.05)',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, marginRight: 4 }}>
-                        {tag.emoji}
-                      </Text>
-                      <Text style={{
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: selectedActivityTags.includes(tag.id) 
-                          ? 'white' 
-                          : themeColors.text,
-                        fontFamily: 'System',
-                      }}>
-                        {tag.label}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ))}
                 </View>
               </View>
@@ -627,36 +544,15 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                   gap: 8,
                 }}>
                   {getCountryTags('culture').map((tag) => (
-                    <TouchableOpacity
+                    <FilterPill
                       key={tag.id}
+                      label={tag.label}
+                      emoji={tag.emoji}
+                      variant="tag"
+                      size="medium"
+                      isSelected={selectedActivityTags.includes(tag.id)}
                       onPress={() => toggleActivityTag(tag.id)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        backgroundColor: selectedActivityTags.includes(tag.id)
-                          ? '#3B82F6'
-                          : themeColors.isDark 
-                            ? 'rgba(255, 255, 255, 0.08)'
-                            : 'rgba(0, 0, 0, 0.05)',
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, marginRight: 4 }}>
-                        {tag.emoji}
-                      </Text>
-                      <Text style={{
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: selectedActivityTags.includes(tag.id) 
-                          ? 'white' 
-                          : themeColors.text,
-                        fontFamily: 'System',
-                      }}>
-                        {tag.label}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ))}
                 </View>
               </View>

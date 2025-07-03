@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ForumPostCard } from './Forum/ForumPostCard';
 import ForumPostModal from '../../../components/ForumPostModal';
 import FloatingCreatePostBar from '../../../components/FloatingCreatePostBar';
+import FilterPill from '../../../components/FilterPill';
 import { ForumAPI } from './Forum/forumAPI';
 import { ForumPost, FORUM_CATEGORIES } from './Forum/forumTypes';
 import { useThemeColors } from '../../../hooks/useThemeColors';
@@ -22,6 +23,7 @@ import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
 import { placesData, getCountryByLocationId, getLocationByName } from '../../../constants/placesData';
 import UserProfileNavigation from '../../../utils/userProfileNavigation';
 import LocationNavigation from '../../../utils/locationNavigation';
+import { SPACING } from '../../../constants/spacing';
 
 export interface GlobalFeedRef {
   scrollToTop: () => void;
@@ -350,10 +352,11 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
   ), [handleLike, handleBookmark, handleReply, handleShare, handleMore, handleAuthorPress, handleTagPress, handleCategoryPress, handleLocationPress]);
 
   const renderHeader = useCallback(() => (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
+    <View style={{ paddingHorizontal: 20 }}>
       {/* Active Filters Display (same as country forums) */}
       {(filters.category !== 'All' || filters.activityTags.length > 0 || filters.searchQuery) && (
         <View style={{
+          marginBottom: SPACING.FILTER_TAGS_TO_POSTS,
         }}>
           <ScrollView
             horizontal
@@ -363,62 +366,33 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
           >
             {/* Category Filter Pill */}
             {filters.category !== 'All' && (
-              <TouchableOpacity
+              <FilterPill
+                label={FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.label || filters.category}
+                emoji={FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.emoji || '💬'}
+                color={FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280'}
+                variant="category"
+                size="medium"
                 onPress={() => updateFilters({ category: 'All' })}
-                style={{
-                  backgroundColor: FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={{ fontSize: 12, marginRight: 4 }}>
-                  {FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.emoji || '💬'}
-                </Text>
-                <Text style={{
-                  color: 'white',
-                  fontSize: 12,
-                  fontWeight: '600',
-                  marginRight: 4,
-                  fontFamily: 'System',
-                }}>
-                  {FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.label || filters.category}
-                </Text>
-                <Text style={{ color: 'white', fontSize: 14 }}>×</Text>
-              </TouchableOpacity>
+                onRemove={() => updateFilters({ category: 'All' })}
+              />
             )}
 
             {/* Activity Tag Pills */}
             {filters.activityTags.map(tagId => (
-              <TouchableOpacity
+              <FilterPill
                 key={tagId}
+                label={tagId}
+                tagId={tagId}
+                variant="tag"
+                size="medium"
+                isSelected={true}
                 onPress={() => updateFilters({
                   activityTags: filters.activityTags.filter(t => t !== tagId)
                 })}
-                style={{
-                  backgroundColor: '#3B82F6',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={{
-                  color: 'white',
-                  fontSize: 12,
-                  fontWeight: '500',
-                  marginRight: 4,
-                  fontFamily: 'System',
-                }}>
-                  {tagId}
-                </Text>
-                <Text style={{ color: 'white', fontSize: 14 }}>×</Text>
-              </TouchableOpacity>
+                onRemove={() => updateFilters({
+                  activityTags: filters.activityTags.filter(t => t !== tagId)
+                })}
+              />
             ))}
           </ScrollView>
         </View>
@@ -572,7 +546,7 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingTop: 0,
-          paddingBottom: 50, // Reduced padding to align with "What's on your mind" bar
+          paddingBottom: SPACING.FLATLIST_BOTTOM_PADDING,
           flexGrow: 1,
         }}
         removeClippedSubviews={true}

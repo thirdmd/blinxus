@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ForumPostCard } from './ForumPostCard';
 import ForumPostModal from '../../../../components/ForumPostModal';
 import FloatingCreatePostBar from '../../../../components/FloatingCreatePostBar';
+import FilterPill from '../../../../components/FilterPill';
 import { useForumPosts } from './useForumPosts';
 import { ForumAPI } from './forumAPI';
 import { LocationFilter, FORUM_CATEGORIES } from './forumTypes';
@@ -22,6 +23,7 @@ import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { Country } from '../../../../constants/placesData';
 import UserProfileNavigation from '../../../../utils/userProfileNavigation';
 import LocationNavigation from '../../../../utils/locationNavigation';
+import { SPACING } from '../../../../constants/spacing';
 
 interface ForumPostsListProps {
   country: Country;
@@ -281,7 +283,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
       {(filters.category !== 'All' || filters.activityTags.length > 0 || filters.searchQuery) && (
         <View style={{
           paddingHorizontal: 20,
-          marginBottom: 16,
+          marginBottom: SPACING.FILTER_TAGS_TO_POSTS,
         }}>
           <ScrollView
             horizontal
@@ -291,62 +293,33 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
           >
             {/* Category Filter Pill */}
             {filters.category !== 'All' && (
-              <TouchableOpacity
+              <FilterPill
+                label={FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.label || filters.category}
+                emoji={FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.emoji || '💬'}
+                color={FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280'}
+                variant="category"
+                size="medium"
                 onPress={() => actions.updateFilters({ category: 'All' })}
-                style={{
-                  backgroundColor: FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.color || '#6B7280',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={{ fontSize: 12, marginRight: 4 }}>
-                  {FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.emoji || '💬'}
-                </Text>
-                <Text style={{
-                  color: 'white',
-                  fontSize: 12,
-                  fontWeight: '600',
-                  marginRight: 4,
-                  fontFamily: 'System',
-                }}>
-                  {FORUM_CATEGORIES.find(cat => cat.id === filters.category)?.label || filters.category}
-                </Text>
-                <Text style={{ color: 'white', fontSize: 14 }}>×</Text>
-              </TouchableOpacity>
+                onRemove={() => actions.updateFilters({ category: 'All' })}
+              />
             )}
 
             {/* Activity Tag Pills */}
             {filters.activityTags.map(tagId => (
-              <TouchableOpacity
+              <FilterPill
                 key={tagId}
+                label={tagId}
+                tagId={tagId}
+                variant="tag"
+                size="medium"
+                isSelected={true}
                 onPress={() => actions.updateFilters({
                   activityTags: filters.activityTags.filter(t => t !== tagId)
                 })}
-                style={{
-                  backgroundColor: '#3B82F6',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={{
-                  color: 'white',
-                  fontSize: 12,
-                  fontWeight: '500',
-                  marginRight: 4,
-                  fontFamily: 'System',
-                }}>
-                  {tagId}
-                </Text>
-                <Text style={{ color: 'white', fontSize: 14 }}>×</Text>
-              </TouchableOpacity>
+                onRemove={() => actions.updateFilters({
+                  activityTags: filters.activityTags.filter(t => t !== tagId)
+                })}
+              />
             ))}
           </ScrollView>
         </View>
@@ -487,7 +460,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
         }}
         contentContainerStyle={{
           paddingTop: 0,
-          paddingBottom: 50, // Reduced padding to align with "What's on your mind" bar
+          paddingBottom: SPACING.FLATLIST_BOTTOM_PADDING,
         }}
       />
 
