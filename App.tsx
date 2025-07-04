@@ -80,30 +80,37 @@ function ProfileTabIcon({ color, focused }: { color: string; focused: boolean })
   );
 }
 
-// Subtle Square Create Icon Component - Keep original thickness
-function SubtleCreateIcon({ color, size, focused }: { color: string; size: number; focused: boolean }) {
+// Subtle Square Create Icon Component - Conditional colors based on current screen
+function SubtleCreateIcon({ color, size, focused, isOnExploreScreen }: { color: string; size: number; focused: boolean; isOnExploreScreen: boolean }) {
+  // Use white colors only when on Explore screen (dark mode), otherwise use original blue theme
+  const borderColor = isOnExploreScreen ? '#FFFFFF' : '#0047AB';
+  const backgroundColor = isOnExploreScreen 
+    ? (focused ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)')
+    : (focused ? 'rgba(0, 71, 171, 0.12)' : 'rgba(0, 71, 171, 0.06)');
+  const iconColor = isOnExploreScreen ? '#FFFFFF' : '#0047AB';
+  
   return (
     <View style={{
       width: size,
       height: size,
       borderRadius: size * 0.25, // Subtle rounded square
       borderWidth: focused ? 1.9 : 2, // Keep original thickness for Create
-      borderColor: '#0047AB', // Always subtle cobalt blue
-      backgroundColor: focused ? 'rgba(0, 71, 171, 0.12)' : 'rgba(0, 71, 171, 0.06)', // Very subtle blue tint
+      borderColor: borderColor,
+      backgroundColor: backgroundColor,
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      {/* Minimal plus inside - Keep thin */}
+      {/* Minimal plus inside - Conditional color */}
       <View style={{
         width: size * 0.42,
         height: 1.5, // Keep thin
-        backgroundColor: '#0047AB',
+        backgroundColor: iconColor,
         borderRadius: 0.75,
       }} />
       <View style={{
         width: 1.5, // Keep thin
         height: size * 0.42,
-        backgroundColor: '#0047AB',
+        backgroundColor: iconColor,
         borderRadius: 0.75,
         position: 'absolute',
       }} />
@@ -112,7 +119,7 @@ function SubtleCreateIcon({ color, size, focused }: { color: string; size: numbe
 }
 
 // Tab Icons - Made 0.5px thicker except Create
-function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
+function TabIcon({ name, color, focused, isOnExploreScreen }: { name: string; color: string; focused: boolean; isOnExploreScreen?: boolean }) {
   const iconSize = ri(21.5); // ALL icons same size
   const strokeWidth = focused ? 2 : 1.8; // Made 0.5px thicker (was 2.0 : 1.5)
   
@@ -122,7 +129,7 @@ function TabIcon({ name, color, focused }: { name: string; color: string; focuse
     case 'Pods':
       return <Users2 size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Create':
-      return <SubtleCreateIcon color={color} size={iconSize} focused={focused} />;
+      return <SubtleCreateIcon color={color} size={iconSize} focused={focused} isOnExploreScreen={isOnExploreScreen || false} />;
     case 'Notifications':
       return <Bell size={iconSize} color={color} strokeWidth={strokeWidth} />;
     case 'Profile':
@@ -316,33 +323,54 @@ function TabNavigator() {
   return (
     <ScrollContext.Provider value={{ exploreScrollRef, podsScrollRef, profileScrollRef }}>
       <Tab.Navigator
-        screenOptions={({ route, navigation }) => ({
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => {
-            return <TabIcon name={route.name} color={color} focused={focused} />;
-          },
-          tabBarStyle: {
-            backgroundColor: themeColors.background,
-            borderTopColor: themeColors.border,
-            borderTopWidth: rs(1),
-            height: responsiveDimensions.tabBar.height,
-            paddingBottom: responsiveDimensions.tabBar.paddingBottom,
-            paddingTop: responsiveDimensions.tabBar.paddingTop,
-          },
-          tabBarLabelStyle: {
-            fontSize: rf(11),
-            fontWeight: '500',
-            marginTop: rs(2),
-          },
-          tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : themeColors.text,
-          tabBarInactiveTintColor: themeColors.textSecondary,
-          tabBarLabel: ({ focused }) => {
-            if (route.name === 'Create') {
-              return null; // Remove "Create" text
-            }
-            return !focused ? '' : undefined;
-          },
-        })}
+        screenOptions={({ route, navigation }) => {
+          // FORCE NIGHT MODE for Explore screen (Home tab) only
+          const isExploreScreen = route.name === 'Home';
+          const navState = navigation.getState();
+          const currentRoute = navState.routes[navState.index];
+          const isCurrentlyOnExplore = currentRoute.name === 'Home';
+          
+          // Use BLACK theme colors only when on Explore screen (same as app's night mode)
+          const navBarColors = isCurrentlyOnExplore ? {
+            background: '#000000', // Pure black (same as app's dark theme)
+            border: '#333333', // Dark gray borders (same as app's dark theme)
+            text: '#FFFFFF', // White text
+            textSecondary: '#B8B8B8', // Light gray text (same as app's dark theme)
+          } : {
+            background: themeColors.background,
+            border: themeColors.border,
+            text: themeColors.text,
+            textSecondary: themeColors.textSecondary,
+          };
+          
+          return {
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => {
+              return <TabIcon name={route.name} color={color} focused={focused} isOnExploreScreen={isCurrentlyOnExplore} />;
+            },
+            tabBarStyle: {
+              backgroundColor: navBarColors.background,
+              borderTopColor: navBarColors.border,
+              borderTopWidth: rs(1),
+              height: responsiveDimensions.tabBar.height,
+              paddingBottom: responsiveDimensions.tabBar.paddingBottom,
+              paddingTop: responsiveDimensions.tabBar.paddingTop,
+            },
+            tabBarLabelStyle: {
+              fontSize: rf(11),
+              fontWeight: '500',
+              marginTop: rs(2),
+            },
+            tabBarActiveTintColor: route.name === 'Create' ? '#0047AB' : navBarColors.text,
+            tabBarInactiveTintColor: navBarColors.textSecondary,
+            tabBarLabel: ({ focused }) => {
+              if (route.name === 'Create') {
+                return null; // Remove "Create" text
+              }
+              return !focused ? '' : undefined;
+            },
+          };
+        }}
         screenListeners={({ route, navigation }) => ({
           tabPress: (e) => {
             // FIXED: Prevent default for Create to handle navigation manually
@@ -418,7 +446,7 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
+    <ThemeProvider> 
       <SettingsProvider>
         <PostsProvider>
           <SavedPostsProvider>

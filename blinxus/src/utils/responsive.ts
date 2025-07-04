@@ -82,10 +82,10 @@ export const getResponsiveDimensions = () => {
   }[deviceType] || 1.0;
 
   return {
-    // Feed card dimensions
+    // Feed card dimensions - Exact immersive screen calculation
     feedCard: {
       width: SCREEN_WIDTH,
-      height: SCREEN_HEIGHT - rs(180),
+      height: SCREEN_HEIGHT - rs(70), // Exact: status bar top to bottom nav top (rs(70) = tabBar height)
     },
     
     // App bar
@@ -94,11 +94,11 @@ export const getResponsiveDimensions = () => {
       paddingHorizontal: rs(20),
     },
     
-    // Tab bar
+    // Tab bar - Slightly bigger with icons at the edge
     tabBar: {
-      height: rs(80),
-      paddingBottom: rs(20),
-      paddingTop: rs(10),
+      height: rs(70), // Increased slightly from rs(60) to rs(70)
+      paddingBottom: rs(16), // Increased from rs(12) to rs(16)
+      paddingTop: rs(2), // Reduced from rs(6) to rs(2) - icons closer to edge
     },
     
     // Profile picture sizes
@@ -359,6 +359,29 @@ export const getSafeAreaAdjustments = () => {
       (deviceType === 'phone' || deviceType === 'small-phone' ? rs(34) : rs(16)) : 
       rs(16),
     horizontal: rs(16),
+  };
+};
+
+// Exact immersive screen dimensions - from top edge of status bar to top edge of bottom nav
+export const getImmersiveScreenDimensions = () => {
+  const safeArea = getSafeAreaAdjustments();
+  const responsiveDims = getResponsiveDimensions();
+  
+  return {
+    // Full screen width
+    width: SCREEN_WIDTH,
+    
+    // Exact height: Full screen minus bottom nav bar height
+    // This gives us from status bar top edge to bottom nav top edge
+    height: SCREEN_HEIGHT - responsiveDims.tabBar.height,
+    
+    // Safe area offsets for overlay positioning
+    statusBarHeight: safeArea.top,
+    bottomNavHeight: responsiveDims.tabBar.height,
+    
+    // Calculated overlay positions
+    topOverlayPosition: safeArea.top + rs(10), // Status bar + small margin
+    bottomOverlayPosition: responsiveDims.tabBar.height + rs(20), // Above bottom nav + margin
   };
 };
 

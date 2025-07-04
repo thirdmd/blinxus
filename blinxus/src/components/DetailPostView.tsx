@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { activityTags, ActivityKey, type ActivityTag, activityColors } from '../constants/activityTags';
 import PillTag from './PillTag';
 import UserProfileNavigation from '../utils/userProfileNavigation';
+import { getImmersiveScreenDimensions } from '../utils/responsive';
 
 interface DetailPostViewProps {
   visible: boolean;
@@ -85,6 +86,14 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   }[]>([]);
   const [openCommentMenu, setOpenCommentMenu] = useState<string | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
+
+  // Get immersive dimensions for alignment with user name
+  const immersiveDimensions = getImmersiveScreenDimensions();
+  
+  // Align DetailPostView header with user name position (same logic as TravelFeedCard)
+  const getAlignedHeaderPosition = () => {
+    return immersiveDimensions.topOverlayPosition + 25; // Same as user name positioning
+  };
 
   // INSTANT SYNC: Get fresh post data from context to ensure immediate updates
   const { posts } = usePosts();
@@ -529,17 +538,17 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
         <ReanimatedAnimated.View
           style={[{
             position: 'absolute',
-            top: 0,
+            top: getAlignedHeaderPosition(), // ALIGNED with user name position
             left: 0,
             width: screenWidth,
-            height: screenHeight - 180,
+            height: screenHeight - getAlignedHeaderPosition() - 70, // EXTENDED to reach bottom nav bar edge
             zIndex: 1000,
           }, animatedStyle]}
         >
-          {/* Frosted Glass Background Layer */}
+          {/* Frosted Glass Background Layer - STARTS BELOW HEADER to show curved edges */}
           <View style={{
             position: 'absolute',
-            top: 0,
+            top: 84, // START BELOW HEADER to show curved edges
             left: 0,
             right: 0,
             bottom: 0,
@@ -555,20 +564,20 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
             elevation: 8,
           }} />
           
-          {/* Subtle gradient overlay for extra frosted effect */}
+          {/* Subtle gradient overlay for extra frosted effect - STARTS BELOW HEADER */}
           <View style={{
             position: 'absolute',
-            top: 0,
+            top: 84, // START BELOW HEADER to show curved edges
             left: 0,
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(40, 40, 40, 0.15)',
           }} />
           
-          {/* Additional frosted layer for depth */}
+          {/* Additional frosted layer for depth - POSITIONED BELOW HEADER */}
           <View style={{
             position: 'absolute',
-            top: 0,
+            top: 84, // START BELOW HEADER to show curved edges
             left: 0,
             right: 0,
             height: 1,

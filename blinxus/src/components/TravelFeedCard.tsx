@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { activityTags, ActivityKey, type ActivityTag, activityColors, activityNames } from '../constants/activityTags';
 import PillTag from './PillTag';
 import DetailPostView from './DetailPostView';
-import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../utils/responsive';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getImmersiveScreenDimensions, getSafeAreaAdjustments } from '../utils/responsive';
 import { useOrientation, Orientation } from '../hooks/useOrientation';
 import UserProfileNavigation from '../utils/userProfileNavigation';
 import { placesData, getLocationByName, getCountryByLocationId, resolveLocationForNavigation } from '../constants/placesData';
@@ -23,12 +23,16 @@ interface TravelFeedCardProps extends PostCardProps {
   onReset?: () => void;
   isVisible?: boolean;
   onLucidPress?: () => void;
+  appBarElementsVisible?: boolean; // NEW: Whether app bar elements (logo, grid) are visible
+  cardIndex?: number; // NEW: Card index for alignment logic
 }
 
 const { width: screenWidth, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
 const typography = getTypographyScale();
 const spacing = getSpacingScale();
+const immersiveDimensions = getImmersiveScreenDimensions();
+const safeArea = getSafeAreaAdjustments();
 
 // Immersive Swipeable Image Carousel Component
 const ImmersiveImageCarousel: React.FC<{
@@ -385,28 +389,6 @@ const ImmersiveImageCarousel: React.FC<{
           />
         </Animated.View>
       )}
-      
-              {/* Image counter - Only show for regular posts, not for Lucids */}
-        {images.length > 1 && !isLucid && (
-          <View style={{
-            position: 'absolute',
-            top: rs(20),
-            right: rs(16),
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            paddingHorizontal: rs(8),
-            paddingVertical: rs(4),
-            borderRadius: rs(12)
-          }}>
-            <Text style={{
-              color: 'white',
-              fontSize: typography.caption,
-              fontWeight: '500',
-              fontFamily: 'System'
-            }}>
-              {currentIndex + 1}/{images.length}
-            </Text>
-          </View>
-        )}
 
     </View>
   );
@@ -439,7 +421,9 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   timestamp,
   onReset,
   isVisible,
-  onLucidPress
+  onLucidPress,
+  appBarElementsVisible = false, // NEW: Default to false (app bar elements hidden)
+  cardIndex = 0 // NEW: Default to 0
 }) => {
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
@@ -465,6 +449,24 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
   // Check if this is a Lucid post
   const isLucid = type === 'lucid';
+
+  // CENTRALIZED LOGIC: ALL names and counters positioned below app bar
+  const getDynamicTopPosition = () => {
+    // ALL posts have names/counters positioned below app bar for consistency
+    // This maximizes content space and ensures uniform positioning
+    if (appBarElementsVisible === true) {
+      // ALL posts: ALWAYS position below app bar - MOVED HIGHER for more space
+      return immersiveDimensions.topOverlayPosition + rs(25); // Much closer to app bar
+    } else {
+      // Media mode: use standard position
+      return immersiveDimensions.topOverlayPosition;
+    }
+  };
+
+  // Ensure name and image counter are always aligned
+  const getAlignedTopPosition = () => {
+    return getDynamicTopPosition(); // Both use same position for perfect alignment
+  };
 
   // Handle rotation to fullscreen image - only when TravelFeedCard is visible
   const handleOrientationChange = useCallback((newOrientation: Orientation) => {
@@ -819,7 +821,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                     style={{
                       width: '100%',
                       height: '100%',
-                      resizeMode: 'contain' // Show full image without cropping
+                      resizeMode: 'cover' // Fill entire screen for immersive experience
                     }}
                   />
                 </View>
@@ -830,7 +832,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
             {images.length > 1 && (
               <View style={{
                 position: 'absolute',
-                top: rs(60), // Account for status bar in landscape
+                top: immersiveDimensions.topOverlayPosition, // Use standard position for landscape
                 right: rs(20),
                 backgroundColor: 'rgba(0, 0, 0, 0.7)',
                 paddingHorizontal: rs(12),
@@ -894,11 +896,11 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         </View>
       )}
 
-      {/* Top Left Overlay - User Info */}
+      {/* Top Left Overlay - User Info - MOVED CLOSER TO LEFT EDGE */}
       <View style={{
         position: 'absolute',
-        top: rs(20),
-        left: rs(16),
+        top: getAlignedTopPosition(), // Aligned position for consistency
+        left: rs(8), // MOVED CLOSER to left edge (was 16)
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1000 // Ensure profile area is above image overlay
@@ -1004,10 +1006,36 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         </View>
       </View>
 
+      {/* Top Right Image Counter - MOVED TO RIGHT EDGE */}
+      {images && images.length > 1 && !isLucid && (
+        <View style={{
+          position: 'absolute',
+          top: getAlignedTopPosition(), // Always aligned with user name
+          right: rs(8), // MOVED TO RIGHT EDGE (was 16)
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          paddingHorizontal: rs(8),
+          paddingVertical: rs(4),
+          borderRadius: rs(12),
+          zIndex: 1000 // Ensure it's above image overlay
+        }}>
+          <Text style={{
+            color: 'white',
+            fontSize: typography.caption,
+            fontWeight: '500',
+            fontFamily: 'System',
+            textShadowColor: 'rgba(0,0,0,0.7)',
+            textShadowOffset: { width: 0, height: rs(1) },
+            textShadowRadius: rs(3)
+          }}>
+            {currentImageIndex + 1}/{images.length}
+          </Text>
+        </View>
+      )}
+
       {/* Bottom Right Action Buttons - Stacked vertically with better positioning */}
       <View style={{
         position: 'absolute',
-        bottom: rs(40),
+        bottom: immersiveDimensions.bottomOverlayPosition, // Exact calculated position for all screen sizes
         right: rs(20),
         flexDirection: 'column',
         alignItems: 'center',

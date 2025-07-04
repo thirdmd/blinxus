@@ -17,7 +17,7 @@ import {
 import { Country, placesData, getLocationByName, getLocationById } from '../../../../constants/placesData';
 import { usersDatabase, getCurrentUser } from '../../../../types/userData/users_data';
 
-// Mock users database - includes current user integration
+// Mock users database - includes current user integration + 40 diverse users
 const MOCK_USERS: ForumUser[] = [
   // Current user - Third Camacho
   {
@@ -239,6 +239,238 @@ const MOCK_USERS: ForumUser[] = [
     nationalityFlag: '🇯🇵',
     isVerified: true,
     memberSince: '2022-04-25'
+  },
+  // NEW USERS 20-40 - More diversity!
+  {
+    id: 'user-20',
+    username: 'budget_explorer_hassan',
+    displayName: 'Hassan Al-Rashid',
+    avatarUrl: 'https://images.pexels.com/photos/1121796/pexels-photo-1121796.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'HR',
+    color: '#0891B2',
+    nationalityFlag: '🇦🇪',
+    isVerified: false,
+    memberSince: '2023-10-12'
+  },
+  {
+    id: 'user-21',
+    username: 'wildlife_photographer_lea',
+    displayName: 'Lea Andersson',
+    avatarUrl: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'LA',
+    color: '#15803D',
+    nationalityFlag: '🇸🇪',
+    isVerified: true,
+    memberSince: '2022-06-14'
+  },
+  {
+    id: 'user-22',
+    username: 'festival_chaser_carlos',
+    displayName: 'Carlos Mendoza',
+    avatarUrl: 'https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'CM',
+    color: '#DC2626',
+    nationalityFlag: '🇦🇷',
+    isVerified: false,
+    memberSince: '2023-03-22'
+  },
+  {
+    id: 'user-23',
+    username: 'temple_seeker_priya',
+    displayName: 'Priya Gupta',
+    avatarUrl: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'PG',
+    color: '#7C3AED',
+    nationalityFlag: '🇮🇳',
+    isVerified: true,
+    memberSince: '2022-09-08'
+  },
+  {
+    id: 'user-24',
+    username: 'mountain_climber_erik',
+    displayName: 'Erik Hansen',
+    avatarUrl: 'https://images.pexels.com/photos/1484794/pexels-photo-1484794.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'EH',
+    color: '#059669',
+    nationalityFlag: '🇩🇰',
+    isVerified: false,
+    memberSince: '2023-05-18'
+  },
+  {
+    id: 'user-25',
+    username: 'coffee_connoisseur_mia',
+    displayName: 'Mia Rodriguez',
+    avatarUrl: 'https://images.pexels.com/photos/1310522/pexels-photo-1310522.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'MR',
+    color: '#92400E',
+    nationalityFlag: '🇨🇴',
+    isVerified: true,
+    memberSince: '2022-11-03'
+  },
+  {
+    id: 'user-26',
+    username: 'backpacker_olaf',
+    displayName: 'Olaf Johansson',
+    avatarUrl: 'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'OJ',
+    color: '#1E40AF',
+    nationalityFlag: '🇫🇮',
+    isVerified: false,
+    memberSince: '2023-07-25'
+  },
+  {
+    id: 'user-27',
+    username: 'diving_expert_marina',
+    displayName: 'Marina Popović',
+    avatarUrl: 'https://images.pexels.com/photos/1024311/pexels-photo-1024311.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'MP',
+    color: '#0369A1',
+    nationalityFlag: '🇭🇷',
+    isVerified: true,
+    memberSince: '2022-04-17'
+  },
+  {
+    id: 'user-28',
+    username: 'history_buff_ahmed',
+    displayName: 'Ahmed Hassan',
+    avatarUrl: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'AH',
+    color: '#B45309',
+    nationalityFlag: '🇹🇳',
+    isVerified: false,
+    memberSince: '2023-01-09'
+  },
+  {
+    id: 'user-29',
+    username: 'yoga_teacher_sage',
+    displayName: 'Sage Martinez',
+    avatarUrl: 'https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'SM',
+    color: '#059669',
+    nationalityFlag: '🇺🇸',
+    isVerified: true,
+    memberSince: '2022-08-12'
+  },
+  {
+    id: 'user-30',
+    username: 'night_owl_viktor',
+    displayName: 'Viktor Petrov',
+    avatarUrl: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'VP',
+    color: '#7C2D12',
+    nationalityFlag: '🇧🇬',
+    isVerified: false,
+    memberSince: '2023-09-14'
+  },
+  {
+    id: 'user-31',
+    username: 'surf_instructor_kaia',
+    displayName: 'Kaia Silva',
+    avatarUrl: 'https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'KS',
+    color: '#0891B2',
+    nationalityFlag: '🇧🇷',
+    isVerified: true,
+    memberSince: '2022-12-20'
+  },
+  {
+    id: 'user-32',
+    username: 'architect_giovanni',
+    displayName: 'Giovanni Bianchi',
+    avatarUrl: 'https://images.pexels.com/photos/1212984/pexels-photo-1212984.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'GB',
+    color: '#DC2626',
+    nationalityFlag: '🇮🇹',
+    isVerified: false,
+    memberSince: '2023-02-28'
+  },
+  {
+    id: 'user-33',
+    username: 'chef_camille',
+    displayName: 'Camille Dubois',
+    avatarUrl: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'CD',
+    color: '#B45309',
+    nationalityFlag: '🇫🇷',
+    isVerified: true,
+    memberSince: '2022-05-11'
+  },
+  {
+    id: 'user-34',
+    username: 'trekking_guide_pemba',
+    displayName: 'Pemba Sherpa',
+    avatarUrl: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'PS',
+    color: '#059669',
+    nationalityFlag: '🇳🇵',
+    isVerified: true,
+    memberSince: '2022-03-15'
+  },
+  {
+    id: 'user-35',
+    username: 'wine_enthusiast_lucia',
+    displayName: 'Lucia Fernandez',
+    avatarUrl: 'https://images.pexels.com/photos/1542085/pexels-photo-1542085.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'LF',
+    color: '#7C2D12',
+    nationalityFlag: '🇪🇸',
+    isVerified: false,
+    memberSince: '2023-06-07'
+  },
+  {
+    id: 'user-36',
+    username: 'tech_nomad_jin',
+    displayName: 'Jin Watanabe',
+    avatarUrl: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'JW',
+    color: '#1E40AF',
+    nationalityFlag: '🇯🇵',
+    isVerified: true,
+    memberSince: '2022-10-30'
+  },
+  {
+    id: 'user-37',
+    username: 'cultural_dancer_aisha',
+    displayName: 'Aisha Okafor',
+    avatarUrl: 'https://images.pexels.com/photos/1382731/pexels-photo-1382731.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'AO',
+    color: '#DC2626',
+    nationalityFlag: '🇳🇬',
+    isVerified: false,
+    memberSince: '2023-08-23'
+  },
+  {
+    id: 'user-38',
+    username: 'wellness_coach_david',
+    displayName: 'David Kim',
+    avatarUrl: 'https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'DK',
+    color: '#059669',
+    nationalityFlag: '🇰🇷',
+    isVerified: true,
+    memberSince: '2022-07-19'
+  },
+  {
+    id: 'user-39',
+    username: 'foodie_blogger_elena',
+    displayName: 'Elena Kozlov',
+    avatarUrl: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'EK',
+    color: '#F59E0B',
+    nationalityFlag: '🇷🇺',
+    isVerified: false,
+    memberSince: '2023-04-02'
+  },
+  {
+    id: 'user-40',
+    username: 'adventure_seeker_max',
+    displayName: 'Max O\'Connor',
+    avatarUrl: 'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=400',
+    initials: 'MO',
+    color: '#7C3AED',
+    nationalityFlag: '🇮🇪',
+    isVerified: true,
+    memberSince: '2022-09-26'
   }
 ];
 
@@ -269,312 +501,148 @@ const generateLocationsForCountry = (country: Country): ForumLocation[] => {
 // Simple counter for unique IDs
 let postIdCounter = 1;
 
-// Stable mock posts generator - no randomness for consistent UI
+// MASSIVE collection of 80+ UNIQUE post templates - NO DUPLICATES!
+const createUniquePostTemplates = () => {
+  return [
+    // TIP CATEGORY - Budget & Money Saving
+    { content: "Pro tip: Download the local transport app in {location} and get a weekly pass! Saved me 40% compared to daily tickets 🚇💰", category: 'tip' as const, tags: ['local-transport', 'buses', 'trains'], daysAgo: 1, likes: 167, replies: 41 },
+    { content: "Budget hack for {location}: Shop at local markets in the morning for fresh produce at half the price! Meet friendly vendors too 🥕🛒", category: 'tip' as const, tags: ['food-markets', 'local-markets', 'local-cuisine'], daysAgo: 2, likes: 89, replies: 23 },
+    { content: "Free walking tours in {location} are incredible! Book online the night before and don't forget to tip your guide 🚶‍♀️✨", category: 'tip' as const, tags: ['attractions', 'city', 'architecture'], daysAgo: 3, likes: 134, replies: 28 },
+    { content: "Coworking spaces in {location} often have day passes for $10-15! Way better than cafe hopping all day ☕💻", category: 'tip' as const, tags: ['cafes', 'local-transport', 'city'], daysAgo: 4, likes: 76, replies: 19 },
+    { content: "Hostel kitchens in {location} are perfect for cooking! Bring spices from home to make budget meals tasty 🍳🧄", category: 'tip' as const, tags: ['hostels', 'local-cuisine', 'food-markets'], daysAgo: 5, likes: 92, replies: 31 },
+
+    // MEETUP CATEGORY - Events & Social
+    { content: "Bungee jumping adventure in {location} this Saturday! Who's brave enough to take the 150m plunge with me? 🪂😱", category: 'meetup' as const, tags: ['outdoors', 'sports', 'attractions'], daysAgo: 1, likes: 78, replies: 29 },
+    { content: "Traditional festival happening in {location} next weekend! Let's experience authentic culture, music and dance together 🎭🎪", category: 'meetup' as const, tags: ['music', 'traditions', 'theater'], daysAgo: 2, likes: 112, replies: 45 },
+    { content: "Karaoke night at the best spot in {location}! Private rooms, unlimited songs, who wants to sing their heart out? 🎤🎵", category: 'meetup' as const, tags: ['music', 'nightlife', 'partying'], daysAgo: 3, likes: 56, replies: 24 },
+    { content: "Beach cleanup volunteer event in {location} tomorrow morning! Let's protect this beautiful coastline together 🏖️♻️", category: 'meetup' as const, tags: ['beaches', 'outdoors', 'plants'], daysAgo: 4, likes: 134, replies: 52 },
+    { content: "Sunset photography walk in {location} this evening! Bring your camera and let's capture golden hour magic 📸🌅", category: 'meetup' as const, tags: ['photography', 'views', 'city'], daysAgo: 5, likes: 89, replies: 33 },
+
+    // QUESTION CATEGORY - Seeking Advice
+    { content: "Best authentic street food spots in {location}? Looking for places where locals actually eat, not tourist traps! 🌮🍜", category: 'question' as const, tags: ['street-food', 'local-cuisine', 'restaurants'], daysAgo: 1, likes: 45, replies: 67 },
+    { content: "Rock climbing routes for intermediate level in {location}? Need good rental gear nearby too 🧗‍♂️⛰️", category: 'question' as const, tags: ['sports', 'outdoors', 'attractions'], daysAgo: 2, likes: 34, replies: 18 },
+    { content: "Night photography spots in {location}? Want those epic cityscape shots with neon lights and urban vibes 🌃📷", category: 'question' as const, tags: ['photography', 'nightlife', 'city'], daysAgo: 3, likes: 67, replies: 22 },
+    { content: "Safe neighborhoods for solo female travelers in {location}? First time here and want local insights 👩‍🦰🛡️", category: 'question' as const, tags: ['city', 'local-transport', 'hostels'], daysAgo: 4, likes: 156, replies: 89 },
+    { content: "Coffee shops with reliable WiFi in {location}? Digital nomad needing productive workspace with good pastries ☕💻", category: 'question' as const, tags: ['cafes', 'city', 'desserts'], daysAgo: 5, likes: 38, replies: 14 },
+
+    // GENERAL CATEGORY - Experiences & Stories
+    { content: "Conquered the epic hiking trail in {location} today! 8 hours through jungle, waterfalls, and stunning viewpoints 🥾🌿", category: 'general' as const, tags: ['hiking', 'waterfalls', 'views'], daysAgo: 1, likes: 156, replies: 42 },
+    { content: "Golden hour photography session in {location} was absolutely magical! The light painted everything in warm gold ✨📸", category: 'general' as const, tags: ['photography', 'views', 'city'], daysAgo: 2, likes: 203, replies: 37 },
+    { content: "Temple ceremony experience in {location} left me speechless! Monks shared ancient wisdom and peaceful energy 🙏⛩️", category: 'general' as const, tags: ['traditions', 'architecture', 'museums'], daysAgo: 3, likes: 134, replies: 28 },
+    { content: "Underground nightclub in {location} was insane! Best DJs, incredible crowd, danced until sunrise 🎵🕺", category: 'general' as const, tags: ['nightlife', 'music', 'partying'], daysAgo: 4, likes: 98, replies: 31 },
+    { content: "Surfing lessons in {location} exceeded expectations! Caught my first wave and the instructor was amazing 🏄‍♂️🌊", category: 'general' as const, tags: ['surfing', 'beaches', 'sports'], daysAgo: 5, likes: 87, replies: 26 },
+
+    // RECOMMENDATION CATEGORY - Must-Visit Places
+    { content: "Hidden ramen shop in {location} serves the most incredible tonkotsu broth! Only $4 and worth every penny 🍜💫", category: 'recommendation' as const, tags: ['restaurants', 'local-cuisine', 'street-food'], daysAgo: 1, likes: 127, replies: 34 },
+    { content: "Street art district in {location} is absolutely mind-blowing! Every wall tells a story through vibrant murals 🎨🖼️", category: 'recommendation' as const, tags: ['city', 'architecture', 'traditions'], daysAgo: 2, likes: 91, replies: 22 },
+    { content: "Archaeological museum in {location} houses incredible ancient artifacts! Spent entire afternoon learning history 🏛️📚", category: 'recommendation' as const, tags: ['museums', 'architecture', 'traditions'], daysAgo: 3, likes: 73, replies: 15 },
+    { content: "Traditional spa treatments in {location} are life-changing! Ancient healing techniques in serene environment 💆‍♀️🌸", category: 'recommendation' as const, tags: ['wellness', 'traditions', 'attractions'], daysAgo: 4, likes: 93, replies: 17 },
+    { content: "Yoga retreat center in {location} offers perfect spiritual escape! Meditation, healthy food, nature immersion 🧘‍♀️🍃", category: 'recommendation' as const, tags: ['wellness', 'outdoors', 'plants'], daysAgo: 5, likes: 108, replies: 25 },
+
+    // ALERT CATEGORY - Important Updates
+    { content: "🚨 Heavy monsoon warning for {location} this week! Flash floods possible, avoid low-lying areas ⛈️🌧️", category: 'alert' as const, tags: ['outdoors', 'local-transport', 'city'], daysAgo: 1, likes: 234, replies: 67 },
+    { content: "⚠️ Transport strike in {location} tomorrow! No buses or trains running, plan alternative routes 🚌❌", category: 'alert' as const, tags: ['local-transport', 'buses', 'trains'], daysAgo: 2, likes: 189, replies: 45 },
+    { content: "🎪 Major festival crowds expected in {location} this weekend! Book accommodation now, watch belongings 👥🎭", category: 'alert' as const, tags: ['traditions', 'music', 'hotels'], daysAgo: 3, likes: 156, replies: 38 },
+    { content: "⚡ Power outages scheduled in {location} Thursday 2-6pm! Charge devices, plan indoor activities 🔌💡", category: 'alert' as const, tags: ['city', 'cafes', 'hotels'], daysAgo: 4, likes: 98, replies: 23 },
+    { content: "🌡️ Extreme heat wave hitting {location}! Stay hydrated, seek shade, avoid midday outdoor activities ☀️💧", category: 'alert' as const, tags: ['outdoors', 'beaches', 'wellness'], daysAgo: 5, likes: 167, replies: 42 },
+
+    // MORE UNIQUE CONTENT - Different Activities
+    { content: "Scuba diving certification in {location} opens underwater paradise! Coral reefs teeming with tropical fish 🤿🐠", category: 'general' as const, tags: ['diving', 'marine-life', 'beaches'], daysAgo: 1, likes: 145, replies: 29 },
+    { content: "Traditional cooking class with grandmother in {location}! 50 years of secret recipes shared with love 👵🍳", category: 'recommendation' as const, tags: ['local-cuisine', 'traditions', 'restaurants'], daysAgo: 2, likes: 124, replies: 33 },
+    { content: "Mountain biking trails in {location}? Looking for challenging routes through scenic countryside 🚵‍♂️🏔️", category: 'question' as const, tags: ['sports', 'outdoors', 'hiking'], daysAgo: 3, likes: 52, replies: 19 },
+    { content: "Language exchange café in {location} every Tuesday! Practice English while learning local language 🗣️📚", category: 'meetup' as const, tags: ['cafes', 'traditions', 'city'], daysAgo: 4, likes: 87, replies: 24 },
+    { content: "Download offline maps before exploring {location}! Cell service spotty in remote areas 📱🗺️", category: 'tip' as const, tags: ['outdoors', 'hiking', 'backpacking'], daysAgo: 5, likes: 78, replies: 16 },
+
+    // WILDLIFE & NATURE
+    { content: "Wildlife sanctuary in {location} protects endangered species! Educational tour supports conservation efforts 🐘🌿", category: 'recommendation' as const, tags: ['animals', 'plants', 'attractions'], daysAgo: 1, likes: 142, replies: 35 },
+    { content: "Bird watching tours at dawn in {location}? Want to spot rare tropical species in natural habitat 🦜🌅", category: 'question' as const, tags: ['animals', 'outdoors', 'photography'], daysAgo: 2, likes: 63, replies: 17 },
+    { content: "National park camping permits for {location}? Planning multi-day trek through pristine wilderness 🏕️🥾", category: 'question' as const, tags: ['camping-acc', 'hiking', 'outdoors'], daysAgo: 3, likes: 71, replies: 22 },
+    { content: "Butterfly sanctuary in {location} houses hundreds of colorful species! Kids love the interactive experience 🦋👶", category: 'recommendation' as const, tags: ['animals', 'attractions', 'plants'], daysAgo: 4, likes: 89, replies: 18 },
+    { content: "Eco-lodge stays in {location} offer sustainable luxury! Solar power, organic food, carbon-neutral travel 🌱🏨", category: 'recommendation' as const, tags: ['resorts', 'plants', 'wellness'], daysAgo: 5, likes: 113, replies: 26 },
+
+    // WATER ACTIVITIES
+    { content: "Whitewater rafting season begins in {location}! Grade 4 rapids for experienced adventurers only 🚣‍♂️💨", category: 'alert' as const, tags: ['sports', 'outdoors', 'waterfalls'], daysAgo: 1, likes: 156, replies: 41 },
+    { content: "Kayaking through mangroves in {location} reveals hidden ecosystem! Guided tours include snorkeling 🛶🐟", category: 'recommendation' as const, tags: ['marine-life', 'outdoors', 'plants'], daysAgo: 2, likes: 98, replies: 27 },
+    { content: "Best beaches for swimming in {location}? Avoiding strong currents and looking for calm waters 🏊‍♀️🌊", category: 'question' as const, tags: ['beaches', 'marine-life', 'surfing'], daysAgo: 3, likes: 67, replies: 34 },
+    { content: "Fishing charter trips from {location}? Want to catch dinner and learn local techniques 🎣🐠", category: 'question' as const, tags: ['marine-life', 'local-cuisine', 'beaches'], daysAgo: 4, likes: 45, replies: 21 },
+    { content: "Sunset sailing cruise in {location} includes dinner and live music! Romantic evening on calm waters ⛵🌅", category: 'recommendation' as const, tags: ['marine-life', 'music', 'restaurants'], daysAgo: 5, likes: 134, replies: 39 },
+
+    // URBAN EXPLORATION
+    { content: "Rooftop bars in {location} offer stunning city views! Happy hour prices make sunset drinks affordable 🍸🏙️", category: 'recommendation' as const, tags: ['bars', 'city', 'views'], daysAgo: 1, likes: 112, replies: 28 },
+    { content: "Underground tunnels tour in {location} reveals hidden city history! Advance booking required 🚇📜", category: 'tip' as const, tags: ['museums', 'architecture', 'local-transport'], daysAgo: 2, likes: 87, replies: 19 },
+    { content: "Food truck festivals in {location} happen every Friday! Local chefs serve fusion cuisine 🚚🍜", category: 'meetup' as const, tags: ['street-food', 'local-cuisine', 'music'], daysAgo: 3, likes: 93, replies: 31 },
+    { content: "Architecture walking tours in {location} showcase colonial and modern buildings! Free on weekends 🏛️🚶‍♂️", category: 'tip' as const, tags: ['architecture', 'museums', 'city'], daysAgo: 4, likes: 76, replies: 15 },
+    { content: "Public transportation tips for {location}? Rush hour schedules and payment methods confusing 🚌⏰", category: 'question' as const, tags: ['local-transport', 'buses', 'trains'], daysAgo: 5, likes: 54, replies: 43 },
+
+    // CULTURAL EXPERIENCES
+    { content: "Traditional textile workshop in {location} teaches ancient weaving techniques! Take home handmade souvenirs 🧵🎨", category: 'recommendation' as const, tags: ['traditions', 'shopping', 'local-markets'], daysAgo: 1, likes: 89, replies: 22 },
+    { content: "Religious ceremony etiquette in {location}? Want to participate respectfully in local traditions 🙏⛩️", category: 'question' as const, tags: ['traditions', 'architecture', 'museums'], daysAgo: 2, likes: 123, replies: 56 },
+    { content: "Folk dance performances in {location} every Saturday evening! Community center hosts cultural shows 💃🎭", category: 'meetup' as const, tags: ['music', 'traditions', 'theater'], daysAgo: 3, likes: 67, replies: 18 },
+    { content: "Local artisan markets in {location} support indigenous communities! Unique handcrafted jewelry and pottery 🏺💍", category: 'recommendation' as const, tags: ['local-markets', 'shopping', 'traditions'], daysAgo: 4, likes: 145, replies: 37 },
+    { content: "Traditional music lessons available in {location}? Want to learn indigenous instruments during visit 🎵🥁", category: 'question' as const, tags: ['music', 'traditions', 'theater'], daysAgo: 5, likes: 78, replies: 24 },
+
+    // FOOD & CULINARY
+    { content: "Midnight food markets in {location} come alive after 11pm! Best street food when locals finish work 🌙🍢", category: 'tip' as const, tags: ['street-food', 'food-markets', 'nightlife'], daysAgo: 1, likes: 167, replies: 45 },
+    { content: "Spice plantation tours in {location} include tasting sessions! Learn how cardamom and cinnamon grow 🌿🧄", category: 'recommendation' as const, tags: ['plants', 'local-cuisine', 'attractions'], daysAgo: 2, likes: 92, replies: 26 },
+    { content: "Vegetarian-friendly restaurants in {location}? Plant-based traveler seeking delicious local options 🥬🍽️", category: 'question' as const, tags: ['restaurants', 'local-cuisine', 'wellness'], daysAgo: 3, likes: 56, replies: 38 },
+    { content: "Wine tasting tours through vineyards near {location}! Transportation included in full-day package 🍷🍇", category: 'recommendation' as const, tags: ['bars', 'local-transport', 'attractions'], daysAgo: 4, likes: 134, replies: 29 },
+    { content: "Cooking competition for travelers in {location} next month! Teams prepare traditional dishes for judges 👨‍🍳🏆", category: 'meetup' as const, tags: ['local-cuisine', 'traditions', 'restaurants'], daysAgo: 5, likes: 89, replies: 33 },
+
+    // WELLNESS & HEALTH
+    { content: "Meditation retreats in mountain temples near {location} offer 7-day programs! Digital detox included 🧘‍♂️📵", category: 'recommendation' as const, tags: ['wellness', 'traditions', 'architecture'], daysAgo: 1, likes: 156, replies: 41 },
+    { content: "Traditional healing practices in {location}? Interested in acupuncture and herbal medicine treatments 💉🌿", category: 'question' as const, tags: ['wellness', 'traditions', 'plants'], daysAgo: 2, likes: 78, replies: 27 },
+    { content: "Hot springs locations near {location}? Perfect for relaxing sore muscles after long hikes ♨️🏔️", category: 'question' as const, tags: ['wellness', 'hiking', 'attractions'], daysAgo: 3, likes: 112, replies: 35 },
+    { content: "Fitness classes on the beach in {location} every morning! Yoga, pilates, and cardio with ocean views 🏋️‍♀️🏖️", category: 'meetup' as const, tags: ['wellness', 'beaches', 'gym'], daysAgo: 4, likes: 93, replies: 22 },
+    { content: "Thermal baths in {location} use natural mineral water! Ancient Romans built first facilities here ♨️🏛️", category: 'recommendation' as const, tags: ['wellness', 'architecture', 'museums'], daysAgo: 5, likes: 134, replies: 28 },
+
+    // BUDGET TRAVEL
+    { content: "Couchsurfing hosts in {location} offer local insights! Better than hotels for cultural immersion 🛏️🌍", category: 'tip' as const, tags: ['airbnb', 'traditions', 'city'], daysAgo: 1, likes: 89, replies: 34 },
+    { content: "Free museum days in {location} happen first Sunday monthly! Save money while exploring culture 🏛️💰", category: 'tip' as const, tags: ['museums', 'architecture', 'traditions'], daysAgo: 2, likes: 76, replies: 18 },
+    { content: "Hitchhiking safety tips for {location}? Planning overland adventure on shoestring budget 👍🚗", category: 'question' as const, tags: ['car-rental', 'backpacking', 'outdoors'], daysAgo: 3, likes: 45, replies: 52 },
+    { content: "Work exchange programs in {location}? Teaching English or farm work for accommodation 🏫🚜", category: 'question' as const, tags: ['hostels', 'plants', 'traditions'], daysAgo: 4, likes: 67, replies: 29 },
+    { content: "Camping equipment rental in {location} much cheaper than buying! Tents, sleeping bags, cooking gear 🏕️⛺", category: 'tip' as const, tags: ['camping-acc', 'outdoors', 'hiking'], daysAgo: 5, likes: 92, replies: 21 }
+  ];
+};
+
+// Generate posts with GUARANTEED unique content per country and location
 const generateMockPosts = (country: Country, count: number = 15): ForumPost[] => {
   const locations = generateLocationsForCountry(country);
   const posts: ForumPost[] = [];
-
-  // Much more diverse and interesting posts!
-  const stablePosts = [
-    // FOOD & DINING
-    {
-      content: "Just discovered this incredible hole-in-the-wall ramen shop in {location}! The broth is so rich and flavorful, and it's only $3! Line was crazy but totally worth the wait 🍜✨",
-      category: 'recommendation' as const,
-      tags: ['restaurants', 'local-cuisine', 'street-food', 'budget-friendly'],
-      daysAgo: 1,
-      likes: 127,
-      replies: 34
-    },
-    {
-      content: "Foodie alert! Found the best local market in {location} with the most amazing fresh produce and spices. The vendors are so friendly and will let you try everything! 🥭🌶️",
-      category: 'tip' as const,
-      tags: ['food-markets', 'local-cuisine', 'shopping'],
-      daysAgo: 3,
-      likes: 89,
-      replies: 18
-    },
-    {
-      content: "Anyone know where to get authentic street food in {location}? Looking for those places only locals know about, not the touristy spots! 🌮",
-      category: 'question' as const,
-      tags: ['street-food', 'locals', 'authentic'],
-      daysAgo: 2,
-      likes: 45,
-      replies: 23
-    },
-
-    // ADVENTURE & OUTDOORS
-    {
-      content: "Just finished the most epic hiking trail near {location}! 6 hours of pure adventure with waterfalls, caves, and breathtaking views. Bring good boots and lots of water! 🥾⛰️",
-      category: 'general' as const,
-      tags: ['hiking', 'outdoors', 'adventure', 'views'],
-      daysAgo: 1,
-      likes: 156,
-      replies: 42
-    },
-    {
-      content: "Adrenaline junkies! Who wants to go bungee jumping in {location} this weekend? Found this sick spot with a 200m drop over a canyon! 🪂",
-      category: 'meetup' as const,
-      tags: ['extreme-sports', 'adrenaline', 'meetup'],
-      daysAgo: 4,
-      likes: 78,
-      replies: 29
-    },
-    {
-      content: "Rock climbing spots in {location}? I'm intermediate level looking for some challenging routes with good safety equipment rental nearby 🧗‍♂️",
-      category: 'question' as const,
-      tags: ['rock-climbing', 'outdoors', 'sports'],
-      daysAgo: 5,
-      likes: 34,
-      replies: 16
-    },
-
-    // PHOTOGRAPHY & ARTS
-    {
-      content: "Golden hour magic in {location}! Spent 3 hours at this viewpoint and got the most incredible shots. The light here is absolutely unreal! 📸🌅",
-      category: 'general' as const,
-      tags: ['photography', 'sunrise', 'views', 'golden-hour'],
-      daysAgo: 2,
-      likes: 203,
-      replies: 37
-    },
-    {
-      content: "Street art scene in {location} is insane! Found this amazing mural district with the most creative graffiti and local artists selling their work 🎨",
-      category: 'recommendation' as const,
-      tags: ['street-art', 'culture', 'art', 'creative'],
-      daysAgo: 6,
-      likes: 91,
-      replies: 22
-    },
-    {
-      content: "Photographers! Best spots for night photography in {location}? Looking for cityscapes, neon lights, and those moody urban vibes 🌃📷",
-      category: 'question' as const,
-      tags: ['photography', 'night-photography', 'cityscape'],
-      daysAgo: 3,
-      likes: 67,
-      replies: 19
-    },
-
-    // CULTURE & HERITAGE
-    {
-      content: "Mind blown by the traditional temple ceremony in {location} today! The monks were so welcoming and explained the whole ritual. Such a spiritual experience 🙏",
-      category: 'general' as const,
-      tags: ['culture', 'temples', 'spiritual', 'traditions'],
-      daysAgo: 1,
-      likes: 134,
-      replies: 28
-    },
-    {
-      content: "Local festival happening in {location} next weekend! Traditional music, dance, and food. Anyone want to experience authentic culture together? 🎭🎪",
-      category: 'meetup' as const,
-      tags: ['festivals', 'culture', 'music', 'dance'],
-      daysAgo: 7,
-      likes: 112,
-      replies: 45
-    },
-    {
-      content: "History buffs! The museum in {location} has the most incredible artifacts and the stories behind them are fascinating. Spent 4 hours there! 🏛️",
-      category: 'recommendation' as const,
-      tags: ['museums', 'history', 'culture', 'artifacts'],
-      daysAgo: 4,
-      likes: 73,
-      replies: 15
-    },
-
-    // NIGHTLIFE & ENTERTAINMENT
-    {
-      content: "The nightlife in {location} is absolutely wild! Found this underground club with the best DJs and the most welcoming crowd. Dancing until 5am! 🎵🕺",
-      category: 'general' as const,
-      tags: ['nightlife', 'clubs', 'music', 'dancing'],
-      daysAgo: 2,
-      likes: 98,
-      replies: 31
-    },
-    {
-      content: "Karaoke night anyone? Found this amazing spot in {location} with private rooms and an incredible song selection. Let's sing our hearts out! 🎤",
-      category: 'meetup' as const,
-      tags: ['karaoke', 'entertainment', 'meetup', 'music'],
-      daysAgo: 5,
-      likes: 56,
-      replies: 24
-    },
-
-    // SPORTS & FITNESS
-    {
-      content: "Basketball courts in {location}? Looking to join some pickup games and meet local players. I'm decent at shooting but need to work on defense! 🏀",
-      category: 'question' as const,
-      tags: ['basketball', 'sports', 'locals', 'fitness'],
-      daysAgo: 3,
-      likes: 42,
-      replies: 18
-    },
-    {
-      content: "Surf's up in {location}! Waves are perfect today and there's a great surf school that rents boards. Beginners welcome! 🏄‍♂️🌊",
-      category: 'general' as const,
-      tags: ['surfing', 'water-sports', 'lessons', 'beach'],
-      daysAgo: 1,
-      likes: 87,
-      replies: 26
-    },
-
-    // BUDGET TRAVEL & TIPS
-    {
-      content: "Budget hack for {location}: buy groceries at the local market and cook at your hostel. Saved like $20/day and met so many cool people in the kitchen! 💰",
-      category: 'tip' as const,
-      tags: ['budget-travel', 'money-saving', 'hostels', 'cooking'],
-      daysAgo: 4,
-      likes: 145,
-      replies: 33
-    },
-    {
-      content: "Free walking tour in {location} was incredible! The guide knew all the hidden spots and local stories. Tip: bring water and comfortable shoes! 🚶‍♀️",
-      category: 'tip' as const,
-      tags: ['free-activities', 'walking-tours', 'budget-friendly'],
-      daysAgo: 6,
-      likes: 79,
-      replies: 21
-    },
-
-    // LUXURY & WELLNESS
-    {
-      content: "Treating myself to the spa in {location} and OMG! The traditional massage technique here is life-changing. Expensive but so worth it for the experience ✨💆‍♀️",
-      category: 'recommendation' as const,
-      tags: ['spa', 'wellness', 'massage', 'luxury'],
-      daysAgo: 2,
-      likes: 93,
-      replies: 17
-    },
-    {
-      content: "Yoga retreat in {location} was exactly what my soul needed. Amazing instructors, healthy food, and the most peaceful setting. Highly recommend! 🧘‍♀️",
-      category: 'recommendation' as const,
-      tags: ['yoga', 'wellness', 'retreat', 'meditation'],
-      daysAgo: 8,
-      likes: 108,
-      replies: 25
-    },
-
-    // DIGITAL NOMAD & WORK
-    {
-      content: "Digital nomads! Found the perfect coworking space in {location} with super fast wifi, great coffee, and a community of remote workers. Productivity level 💯",
-      category: 'tip' as const,
-      tags: ['coworking', 'wifi', 'digital-nomad', 'productivity'],
-      daysAgo: 3,
-      likes: 76,
-      replies: 22
-    },
-    {
-      content: "Coffee shop with the best wifi in {location}? Need a quiet spot to work on my laptop for a few hours. Bonus points if they have good pastries! ☕💻",
-      category: 'question' as const,
-      tags: ['coffee-shops', 'wifi', 'work-friendly'],
-      daysAgo: 2,
-      likes: 38,
-      replies: 14
-    },
-
-    // TRANSPORTATION & LOGISTICS
-    {
-      content: "Pro tip for {location}: download the local transport app and get a weekly pass. Way cheaper than daily tickets and works on buses, trains, and metro! 🚇",
-      category: 'tip' as const,
-      tags: ['local-transport', 'money-saving', 'apps'],
-      daysAgo: 5,
-      likes: 167,
-      replies: 41
-    },
-    {
-      content: "Motorbike rental in {location}? Looking for a reliable place with good bikes and fair prices. Want to explore the countryside this weekend! 🏍️",
-      category: 'question' as const,
-      tags: ['motorbike-rental', 'transportation', 'countryside'],
-      daysAgo: 4,
-      likes: 52,
-      replies: 19
-    },
-
-    // ACCOMMODATION & STAYS
-    {
-      content: "Staying at this incredible boutique hotel in {location}! The design is so unique and the staff treats you like family. Worth every penny! 🏨✨",
-      category: 'recommendation' as const,
-      tags: ['hotels', 'boutique', 'design', 'service'],
-      daysAgo: 1,
-      likes: 84,
-      replies: 16
-    },
-    {
-      content: "Hostel recommendations in {location}? Looking for clean, safe, and social vibes. Want to meet other travelers and make new friends! 🎒",
-      category: 'question' as const,
-      tags: ['hostels', 'budget-friendly', 'social'],
-      daysAgo: 6,
-      likes: 47,
-      replies: 28
-    },
-
-    // SHOPPING & MARKETS
-    {
-      content: "Vintage shopping paradise in {location}! Found this district with amazing thrift stores and local designers. Got the coolest jacket ever! 👕🛍️",
-      category: 'recommendation' as const,
-      tags: ['shopping', 'vintage', 'thrift', 'fashion'],
-      daysAgo: 3,
-      likes: 71,
-      replies: 20
-    },
-    {
-      content: "Night market in {location} is absolutely incredible! The energy, the food, the handmade crafts - it's like a festival every night! 🌃🛒",
-      category: 'general' as const,
-      tags: ['night-markets', 'crafts', 'atmosphere'],
-      daysAgo: 2,
-      likes: 119,
-      replies: 35
-    },
-
-    // SOLO TRAVEL & SAFETY
-    {
-      content: "Solo female traveler here! {location} feels super safe and the locals are incredibly helpful. Had amazing conversations with strangers everywhere! 👩‍🦰",
-      category: 'general' as const,
-      tags: ['solo-travel', 'safety', 'female-travel', 'locals'],
-      daysAgo: 4,
-      likes: 156,
-      replies: 43
-    },
-    {
-      content: "Safety tips for {location}? First time traveling alone here and want to make sure I'm being smart about it. Any areas to avoid at night? 🛡️",
-      category: 'question' as const,
-      tags: ['safety', 'solo-travel', 'travel-tips'],
-      daysAgo: 7,
-      likes: 89,
-      replies: 52
-    }
-  ];
-
+  const allTemplates = createUniquePostTemplates();
+  
   // Get non-current users
   const nonCurrentUsers = MOCK_USERS.filter(user => user.id !== 'current_user');
   
-  for (let i = 0; i < Math.min(count, stablePosts.length); i++) {
-    const template = stablePosts[i];
+  // STEP 1: Ensure EVERY location gets AT LEAST 1 post
+  const usedTemplateIndices = new Set<number>();
+  
+  locations.forEach((location, locationIndex) => {
+    // Use different template for each location
+    const templateIndex = (country.id.charCodeAt(0) + locationIndex * 13) % allTemplates.length;
+    const template = allTemplates[templateIndex];
+    usedTemplateIndices.add(templateIndex);
     
-    // DIVERSE USERS: Use country ID to create different user patterns per country
-    // This way same post index gets different users in different countries
-    const userSeed = country.id.charCodeAt(0) + i * 7; // Different seed per country + post
-    const selectedUser = nonCurrentUsers[userSeed % nonCurrentUsers.length];
-    
-    // DIVERSE LOCATIONS: Also vary location selection per country
-    const locationSeed = country.id.charCodeAt(country.id.length - 1) + i * 3;
-    const selectedLocation = locations[locationSeed % locations.length];
+    // Different user for each location
+    const userIndex = (country.id.charCodeAt(1) + locationIndex * 7) % nonCurrentUsers.length;
+    const selectedUser = nonCurrentUsers[userIndex];
 
     posts.push({
-      id: `stable-post-${country.id}-${i + 1}-${postIdCounter++}`,
+      id: `location-post-${country.id}-${location.id}-${postIdCounter++}`,
       authorId: selectedUser.id,
       author: selectedUser,
-      content: template.content.replace('{location}', selectedLocation.name),
+      content: template.content.replace('{location}', location.name),
       
-      locationId: selectedLocation.id,
-      location: selectedLocation,
+      locationId: location.id,
+      location: location,
       countryId: country.id,
       category: template.category,
       activityTags: template.tags,
       
-      likes: template.likes,
+      likes: template.likes + (locationIndex * 5), // Slight variation
       dislikes: 0,
-      replyCount: template.replies,
-      viewCount: template.likes * 3 + 25,
-      bookmarkCount: Math.floor(template.likes / 4),
+      replyCount: template.replies + (locationIndex * 2),
+      viewCount: (template.likes + (locationIndex * 5)) * 3 + 25,
+      bookmarkCount: Math.floor((template.likes + (locationIndex * 5)) / 4),
       
       isLiked: false,
       isDisliked: false,
@@ -594,102 +662,108 @@ const generateMockPosts = (country: Country, count: number = 15): ForumPost[] =>
         reportCount: 0
       }
     });
+  });
+
+  // STEP 2: Fill remaining posts with unused templates for variety
+  const remainingCount = count - locations.length;
+  if (remainingCount > 0) {
+    // Get unused templates
+    const unusedTemplates = allTemplates.filter((_, index) => !usedTemplateIndices.has(index));
+    
+    for (let i = 0; i < remainingCount && i < unusedTemplates.length; i++) {
+      const template = unusedTemplates[i];
+      
+      // Random location selection for variety
+      const randomLocationIndex = (country.id.charCodeAt(0) + i * 11) % locations.length;
+      const selectedLocation = locations[randomLocationIndex];
+      
+      // Different user selection
+      const userIndex = (country.id.charCodeAt(1) + i * 17) % nonCurrentUsers.length;
+      const selectedUser = nonCurrentUsers[userIndex];
+
+      posts.push({
+        id: `extra-post-${country.id}-${i + 1}-${postIdCounter++}`,
+        authorId: selectedUser.id,
+        author: selectedUser,
+        content: template.content.replace('{location}', selectedLocation.name),
+        
+        locationId: selectedLocation.id,
+        location: selectedLocation,
+        countryId: country.id,
+        category: template.category,
+        activityTags: template.tags,
+        
+        likes: template.likes,
+        dislikes: 0,
+        replyCount: template.replies,
+        viewCount: template.likes * 3 + 25,
+        bookmarkCount: Math.floor(template.likes / 4),
+        
+        isLiked: false,
+        isDisliked: false,
+        isBookmarked: false,
+        isFollowing: false,
+        
+        createdAt: new Date(Date.now() - (template.daysAgo * 24 * 60 * 60 * 1000)).toISOString(),
+        updatedAt: new Date(Date.now() - (template.daysAgo * 24 * 60 * 60 * 1000)).toISOString(),
+        lastActivityAt: new Date(Date.now() - (template.daysAgo * 12 * 60 * 60 * 1000)).toISOString(),
+        
+        status: 'active',
+        isPinned: false,
+        isLocked: false,
+        
+        metadata: {
+          editCount: 0,
+          reportCount: 0
+        }
+      });
+    }
   }
 
   return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
-// Generate extra diverse posts for global feed
+// Generate extra diverse posts for global feed with COMPLETELY different templates
 const generateDiverseGlobalPosts = (country: Country, count: number = 5): ForumPost[] => {
   const posts: ForumPost[] = [];
   const locations = generateLocationsForCountry(country);
   
-  // Extra diverse post templates with different categories
-  const extraDiversePosts = [
-    {
-      content: "Street art scene in {location} is absolutely mind-blowing! Found this incredible mural district that tells the whole city's history through art 🎨",
-      category: 'general' as const,
-      tags: ['street-art', 'murals', 'culture', 'history'],
-      daysAgo: 2,
-      likes: 134,
-      replies: 28
-    },
-    {
-      content: "Coworking spaces in {location}? Digital nomad looking for reliable WiFi and good coffee. Bonus points for rooftop views! ☕💻",
-      category: 'question' as const,
-      tags: ['coworking', 'digital-nomad', 'wifi', 'coffee'],
-      daysAgo: 1,
-      likes: 67,
-      replies: 15
-    },
-    {
-      content: "Volunteering opportunity in {location}! Teaching English to local kids, such a rewarding experience. They taught me more than I taught them! 🌟",
-      category: 'general' as const,
-      tags: ['volunteering', 'teaching', 'community', 'kids'],
-      daysAgo: 4,
-      likes: 203,
-      replies: 45
-    },
-    {
-      content: "Sustainable travel tips for {location}? Want to minimize my environmental impact while exploring this beautiful place 🌱",
-      category: 'question' as const,
-      tags: ['sustainable-travel', 'eco-friendly', 'environment'],
-      daysAgo: 3,
-      likes: 89,
-      replies: 31
-    },
-    {
-      content: "Music festival in {location} was INCREDIBLE! The lineup, the vibes, the local bands - everything was perfect. Can't wait for next year! 🎵🎪",
-      category: 'general' as const,
-      tags: ['music-festival', 'concerts', 'local-bands', 'vibes'],
-      daysAgo: 6,
-      likes: 178,
-      replies: 52
-    },
-    {
-      content: "Learning the local language in {location}! Any good language exchange meetups or conversation groups? Want to practice with natives 🗣️",
-      category: 'question' as const,
-      tags: ['language-learning', 'meetups', 'conversation', 'locals'],
-      daysAgo: 5,
-      likes: 92,
-      replies: 38
-    },
-    {
-      content: "Sunrise hike in {location} - absolutely magical! The view from the top made the 4AM wake-up call totally worth it 🌅⛰️",
-      category: 'recommendation' as const,
-      tags: ['hiking', 'sunrise', 'mountains', 'early-morning'],
-      daysAgo: 1,
-      likes: 156,
-      replies: 24
-    },
-    {
-      content: "Local cooking class in {location}! Learned to make traditional dishes from a grandmother who's been cooking for 50 years 👵🍳",
-      category: 'recommendation' as const,
-      tags: ['cooking-class', 'traditional-food', 'grandmother', 'authentic'],
-      daysAgo: 7,
-      likes: 124,
-      replies: 33
-    }
+  // COMPLETELY DIFFERENT templates from main collection - NO overlap!
+  const globalOnlyTemplates = [
+    { content: "Drone photography session over {location} captured stunning aerial views! Need special permits but worth the paperwork 🚁📸", category: 'general' as const, tags: ['photography', 'views', 'city'], daysAgo: 1, likes: 145, replies: 32 },
+    { content: "Cryptocurrency payments accepted in {location}? Looking for bitcoin-friendly businesses and ATMs 💰₿", category: 'question' as const, tags: ['shopping', 'city', 'cafes'], daysAgo: 2, likes: 78, replies: 19 },
+    { content: "Medical tourism options in {location}? Researching dental work and surgery procedures here 🦷🏥", category: 'question' as const, tags: ['wellness', 'city', 'hotels'], daysAgo: 3, likes: 67, replies: 28 },
+    { content: "Expat community meetup in {location} every third Thursday! Networking, job opportunities, and local insights 👥💼", category: 'meetup' as const, tags: ['city', 'cafes', 'traditions'], daysAgo: 4, likes: 89, replies: 41 },
+    { content: "Seasonal fruit harvesting jobs in {location}! Work visa sponsorship available for backpackers 🍓👷‍♂️", category: 'tip' as const, tags: ['plants', 'backpacking', 'local-cuisine'], daysAgo: 5, likes: 134, replies: 55 },
+    { content: "⚠️ Jellyfish season warning for {location} beaches! Purple flags posted, swim at designated safe areas only 🪼🏊‍♀️", category: 'alert' as const, tags: ['beaches', 'marine-life', 'surfing'], daysAgo: 1, likes: 234, replies: 67 },
+    { content: "Retirement planning seminars in {location} for digital nomads! Tax optimization and residency advice 📊🏖️", category: 'recommendation' as const, tags: ['beaches', 'city', 'cafes'], daysAgo: 2, likes: 92, replies: 24 },
+    { content: "Underground cave exploration in {location} requires advanced booking! Helmet and gear provided by guides 🕳️⛑️", category: 'recommendation' as const, tags: ['outdoors', 'attractions', 'hiking'], daysAgo: 3, likes: 123, replies: 35 },
+    { content: "Traditional medicine workshops in {location}? Want to learn about herbal remedies and ancient healing 🌿💊", category: 'question' as const, tags: ['wellness', 'traditions', 'plants'], daysAgo: 4, likes: 76, replies: 22 },
+    { content: "Motorcycle touring routes through {location} mountains! Epic scenery but challenging for beginners 🏍️⛰️", category: 'general' as const, tags: ['motorcycles', 'views', 'outdoors'], daysAgo: 5, likes: 156, replies: 38 }
   ];
-
+  
   // Get non-current users
   const nonCurrentUsers = MOCK_USERS.filter(user => user.id !== 'current_user');
   
-  // GLOBAL FEED SPECIAL: Use pure randomization for maximum diversity
-  for (let i = 0; i < Math.min(count, extraDiversePosts.length); i++) {
-    const template = extraDiversePosts[i];
+  // Use different starting point for global posts to ensure variety
+  const globalOffset = country.id.charCodeAt(0) + country.id.charCodeAt(country.id.length - 1);
+  
+  for (let i = 0; i < Math.min(count, globalOnlyTemplates.length); i++) {
+    const template = globalOnlyTemplates[i];
     
-    // COMPLETELY RANDOM user selection for global feed
-    const randomUser = nonCurrentUsers[Math.floor(Math.random() * nonCurrentUsers.length)];
+    // COMPLETELY DIFFERENT user selection pattern for global posts
+    const randomUserIndex = (globalOffset + i * 19) % nonCurrentUsers.length;
+    const randomUser = nonCurrentUsers[randomUserIndex];
     
-    // COMPLETELY RANDOM location selection
-    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+    // RANDOM location selection with different seed
+    const randomLocationIndex = (globalOffset + i * 23) % locations.length;
+    const randomLocation = locations[randomLocationIndex];
     
-    // RANDOM time variation for more natural spread
-    const randomDaysAgo = Math.floor(Math.random() * 7) + 1;
+    // RANDOM time variation for natural spread
+    const randomDaysAgo = ((globalOffset + i * 7) % 7) + 1;
 
     posts.push({
-      id: `global-diverse-${country.id}-${i + 1}-${postIdCounter++}`,
+      id: `global-unique-${country.id}-${i + 1}-${postIdCounter++}`,
       authorId: randomUser.id,
       author: randomUser,
       content: template.content.replace('{location}', randomLocation.name),
@@ -700,11 +774,11 @@ const generateDiverseGlobalPosts = (country: Country, count: number = 5): ForumP
       category: template.category,
       activityTags: template.tags,
       
-      likes: template.likes + Math.floor(Math.random() * 50), // Random like variation
+      likes: template.likes + ((globalOffset + i * 3) % 50), // Varied engagement
       dislikes: 0,
-      replyCount: template.replies + Math.floor(Math.random() * 20), // Random reply variation
-      viewCount: (template.likes + Math.floor(Math.random() * 50)) * 3 + 25,
-      bookmarkCount: Math.floor((template.likes + Math.floor(Math.random() * 50)) / 4),
+      replyCount: template.replies + ((globalOffset + i * 5) % 20),
+      viewCount: (template.likes + ((globalOffset + i * 3) % 50)) * 3 + 25,
+      bookmarkCount: Math.floor((template.likes + ((globalOffset + i * 3) % 50)) / 4),
       
       isLiked: false,
       isDisliked: false,
@@ -784,20 +858,65 @@ export class ForumAPI {
       this.globalFeed.push(...regularPosts, ...diversePosts);
     });
     
-    // SHUFFLE THE GLOBAL FEED TO MIX EVERYTHING UP!
-    // This ensures diverse categories and users are mixed together
-    for (let i = this.globalFeed.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [this.globalFeed[i], this.globalFeed[j]] = [this.globalFeed[j], this.globalFeed[i]];
+    // SUPER AGGRESSIVE SHUFFLING FOR BALANCED CONTENT!
+    // Shuffle multiple times to completely randomize categories
+    for (let round = 0; round < 5; round++) {
+      for (let i = this.globalFeed.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [this.globalFeed[i], this.globalFeed[j]] = [this.globalFeed[j], this.globalFeed[i]];
+      }
     }
     
-    // Sort global feed by creation date (most recent first) - but keep some randomness
-    this.globalFeed.sort((a, b) => {
-      // Add some randomness to the sorting to mix things up more
-      const randomFactor = (Math.random() - 0.5) * 0.1; // Small random factor
-      const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      return timeDiff + (randomFactor * 86400000); // Add up to 2.4 hours of randomness
+    // CATEGORY BALANCING: Manually redistribute to ensure variety every 10 posts
+    const balancedFeed: ForumPost[] = [];
+    const categories = ['general', 'recommendation', 'tip', 'question', 'meetup', 'alert'];
+    const postsByCategory = new Map<string, ForumPost[]>();
+    
+    // Group posts by category
+    categories.forEach(cat => postsByCategory.set(cat, []));
+    this.globalFeed.forEach(post => {
+      const category = post.category;
+      if (postsByCategory.has(category)) {
+        postsByCategory.get(category)!.push(post);
+      } else {
+        postsByCategory.get('general')!.push(post); // fallback
+      }
     });
+    
+    // Shuffle each category separately
+    postsByCategory.forEach(posts => {
+      for (let i = posts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [posts[i], posts[j]] = [posts[j], posts[i]];
+      }
+    });
+    
+    // BALANCED DISTRIBUTION: Take turns from each category
+    const maxLength = Math.max(...Array.from(postsByCategory.values()).map(arr => arr.length));
+    for (let i = 0; i < maxLength; i++) {
+      categories.forEach(category => {
+        const categoryPosts = postsByCategory.get(category)!;
+        if (categoryPosts.length > i) {
+          balancedFeed.push(categoryPosts[i]);
+        }
+      });
+    }
+    
+    // Final shuffle to avoid predictable patterns but keep distribution
+    const chunks: ForumPost[][] = [];
+    for (let i = 0; i < balancedFeed.length; i += 12) {
+      chunks.push(balancedFeed.slice(i, i + 12));
+    }
+    
+    // Shuffle within each chunk to maintain variety
+    chunks.forEach(chunk => {
+      for (let i = chunk.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chunk[i], chunk[j]] = [chunk[j], chunk[i]];
+      }
+    });
+    
+    this.globalFeed = chunks.flat();
     
     this.isGlobalFeedInitialized = true;
   }
@@ -1378,4 +1497,4 @@ export class ForumAPI {
     
     return filters;
   }
-} 
+}

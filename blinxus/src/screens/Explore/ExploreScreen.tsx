@@ -13,7 +13,7 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { useSettings } from '../../contexts/SettingsContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import FullscreenView from '../../components/FullscreenView';
-import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN } from '../../utils/responsive';
+import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getImmersiveScreenDimensions } from '../../utils/responsive';
 import { 
   createAnimationValues, 
   FEED_ANIMATIONS, 
@@ -29,6 +29,7 @@ const { width, height: screenHeight } = RESPONSIVE_SCREEN;
 const responsiveDimensions = getResponsiveDimensions();
 const typography = getTypographyScale();
 const spacing = getSpacingScale();
+const immersiveDimensions = getImmersiveScreenDimensions();
 
 export interface ExploreScreenRef {
   resetToAll: () => void;
@@ -45,6 +46,19 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
   const { isImmersiveFeedEnabled } = useSettings();
+  
+  // CENTRALIZED DARK MODE LOGIC: Always use dark mode for entire Explore screen
+  const exploreThemeColors = {
+    background: '#000000',        // Pure black
+    backgroundSecondary: '#1A1A1A', // Dark gray
+    backgroundTertiary: '#2A2A2A',  // Medium gray
+    text: '#FFFFFF',              // White text
+    textSecondary: '#B8B8B8',     // Light gray text
+    textTertiary: '#8A8A8A',      // Muted gray text
+    border: '#333333',            // Dark gray borders
+    subtle: '#1F1F1F',           // Subtle dark gray
+    isDark: true                  // Always dark mode
+  };
   const [headerVisible, setHeaderVisible] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<ActivityKey | 'all'>('all');
   const [isMediaMode, setIsMediaMode] = useState(false);
@@ -493,7 +507,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Handle travel details popup
   const handleShowTravelDetails = useCallback((post: PostCardProps) => {
     // Travel details are now handled within TravelFeedCard component
-          // Show travel details
+    // Show travel details
   }, []);
 
   // Create activity key mapping for filter functionality
@@ -535,119 +549,102 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   
   return (
     <PanGestureHandler onGestureEvent={onGestureEvent}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+      <View style={{ flex: 1, backgroundColor: exploreThemeColors.background }}> {/* CENTRALIZED: Always dark mode */}
+        {/* Translucent Status Bar - Content flows underneath */}
         <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={themeColors.background} 
+          barStyle="light-content" 
+          backgroundColor="transparent" 
+          translucent={true}
         />
         
-        {/* Fixed Minimal App Bar with Search - Back button always visible */}
-        <View style={{
-          height: responsiveDimensions.appBar.height,
-          backgroundColor: scrollY > 50 
-            ? 'transparent' 
-            : themeColors.background,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingLeft: rs(8),
-          paddingRight: rs(8),
-          borderBottomWidth: scrollY > 20 && scrollY < 50 ? rs(0.5) : 0,
-          borderBottomColor: `${themeColors.border}20`,
-        }}>
-          {isMediaMode ? (
-            <>
-              {/* Back button - ALWAYS VISIBLE */}
-              <TouchableOpacity 
-                onPress={exitMediaMode}
-                style={{ 
-                  width: rs(32), 
-                  height: rs(32), 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  borderRadius: rs(8),
-                  backgroundColor: 'transparent',
-                  opacity: 1.0, // ALWAYS VISIBLE - no fade on scroll
-                  marginRight: rs(12),
-                }}
-                activeOpacity={0.7}
-              >
-                <ChevronLeft size={ri(20)} color={themeColors.text} strokeWidth={2} />
-              </TouchableOpacity>
-              
-              {/* Search Bar - Full width in media mode with improved design */}
-              <TouchableOpacity 
-                style={{ flex: 1, position: 'relative', marginRight: rs(12) }}
-                onPress={openSearchModal}
-                activeOpacity={0.8}
-              >
-                <View style={{
-                  backgroundColor: themeColors.isDark 
-                    ? 'rgba(45, 45, 45, 1)' 
-                    : 'rgba(240, 240, 240, 1)',
-                  borderRadius: rs(8), // Soft rectangle edges - matching dropdown
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: rs(10),
-                  height: rs(32), // Thinner search bar - matching dropdown
-                }}>
-                  <Search size={ri(16)} color={themeColors.textSecondary} strokeWidth={2} />
-                  <Text style={{
-                    flex: 1,
-                    marginLeft: rs(8),
-                    fontSize: rf(14),
-                    color: themeColors.textSecondary,
-                    fontWeight: '400',
-                    fontFamily: 'System',
-                  }}>
-                    Search
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              {/* Blinxus logo - RESTORED to original position and behavior */}
-              <Image 
-                source={require('../../../../assets/blinxus-logo.png')} 
-                style={{ 
-                  position: 'absolute',
-                  left: rs(-1), // Move more to the left
-                  top: rs(-65), // Move up
-                  width: ri(120), // Keep same size
-                  height: ri(180), // Keep same size
-                  opacity: scrollY > 50 ? 0 : (scrollY > 20 ? 0.7 : 1.0),
-                  zIndex: 10, // Make sure it's visible on top
-                }}
-                resizeMode="contain" // Maintains aspect ratio
-              />
-              
-              {/* Grid icon - positioned on the right */}
-              <TouchableOpacity
-                onPress={enterMediaMode}
-                style={{ 
-                  position: 'absolute',
-                  right: rs(8),
-                  width: responsiveDimensions.button.large.width, 
-                  height: responsiveDimensions.button.large.height, 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  borderRadius: rs(16),
-                  backgroundColor: scrollY > 20 
-                    ? `${themeColors.backgroundSecondary}40` 
-                    : `${themeColors.backgroundSecondary}20`,
-                  opacity: scrollY > 50 ? 0 : 1,
-                }}
-                activeOpacity={0.7}
-              >
-                <Grid3X3 
-                  size={ri(28)} 
-                  color={themeColors.text} 
-                  strokeWidth={2} 
-                />
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+        {/* Floating App Bar Overlays - Positioned absolutely over content */}
+        {isMediaMode ? (
+          <>
+                         {/* Back button when in media mode - Floating overlay */}
+             <TouchableOpacity 
+               onPress={exitMediaMode}
+               style={{ 
+                 position: 'absolute',
+                 top: immersiveDimensions.topOverlayPosition, // Exact calculated position for all screen sizes
+                 left: rs(16),
+                width: rs(32), 
+                height: rs(32), 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(8),
+                backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent background for visibility
+                opacity: 1.0, // ALWAYS VISIBLE - no fade on scroll
+                zIndex: 1000, // High z-index to float over content
+              }}
+              activeOpacity={0.7}
+            >
+              <ChevronLeft size={ri(20)} color="white" strokeWidth={2} />
+            </TouchableOpacity>
+            
+                         {/* Search Icon - Circular with black background at right corner */}
+             <TouchableOpacity 
+               onPress={openSearchModal}
+               style={{
+                 position: 'absolute',
+                 top: immersiveDimensions.topOverlayPosition, // Same position as back button
+                 right: rs(16), // Right corner (opposite of back button)
+                width: rs(32), // Same size as back button
+                height: rs(32), // Same size as back button
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(16), // CIRCULAR background
+                backgroundColor: 'rgba(0, 0, 0, 0.3)', // Same black background as back button
+                opacity: 1.0, // ALWAYS VISIBLE
+                zIndex: 1000, // High z-index to float over content
+              }}
+              activeOpacity={0.7}
+            >
+              <Search size={ri(20)} color="white" strokeWidth={2} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            {/* Blinxus logo - Floating overlay - MOVED HIGHER */}
+            <Image 
+              source={require('../../../../assets/blinxus-logo.png')} 
+              style={{ 
+                position: 'absolute',
+                left: rs(-35), // Move more to the left
+                top: rs(22), // MOVED HIGHER for more space (was -15)
+                width: ri(120), // Keep same size
+                height: ri(70), // Keep same size
+                opacity: scrollY > 30 ? 0 : (scrollY > 10 ? 0.7 : 1.0),
+                zIndex: 1000, // High z-index to float over content
+              }}
+              resizeMode="contain" // Maintains aspect ratio
+            />
+            
+                         {/* Grid icon - Floating overlay - MOVED HIGHER */}
+             <TouchableOpacity
+               onPress={enterMediaMode}
+               style={{ 
+                 position: 'absolute',
+                 top: rs(46), // Fixed: Use whole number instead of 45.5
+                 right: rs(8), // Fixed: Use whole number instead of 9
+                 width: rs(32), // Smaller size
+                 height: rs(32), // Smaller size
+                 alignItems: 'center', 
+                 justifyContent: 'center',
+                 borderRadius: rs(8), // Smaller border radius
+                 // Remove backgroundColor - no black border/background
+                 opacity: scrollY > 30 ? 0 : 1,
+                 zIndex: 1000, // High z-index to float over content
+               }}
+               activeOpacity={0.7}
+             >
+               <Grid3X3 
+                 size={ri(24)} // Smaller icon
+                 color="white" 
+                 strokeWidth={2} 
+               />
+             </TouchableOpacity>
+          </>
+        )}
 
 
 
@@ -659,16 +656,16 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: themeColors.background,
+            backgroundColor: exploreThemeColors.background,
             zIndex: 2000,
             opacity: searchModalOpacity,
             transform: [{ translateX: searchModalTranslateX }],
           }}>
             {/* Safe Area for Status Bar - No content blocking */}
-            <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: exploreThemeColors.background }}>
               <StatusBar 
-                barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-                backgroundColor={themeColors.background} 
+                barStyle="light-content" 
+                backgroundColor={exploreThemeColors.background} 
               />
               
               <TouchableWithoutFeedback onPress={dismissKeyboard}>
@@ -679,15 +676,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingHorizontal: rs(16),
-                    backgroundColor: themeColors.background,
+                    backgroundColor: exploreThemeColors.background,
                   }}>
                                 {/* Search Bar - Rectangle with soft edges */}
                   <TouchableWithoutFeedback>
                     <View style={{
                       flex: 1,
-                      backgroundColor: themeColors.isDark 
-                        ? 'rgba(45, 45, 45, 1)' 
-                        : 'rgba(240, 240, 240, 1)',
+                      backgroundColor: exploreThemeColors.backgroundSecondary,
                       borderRadius: rs(8), // Soft rectangle edges - matching grid view
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -695,17 +690,17 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                       height: rs(32), // Thinner search bar - matching grid view
                       marginRight: rs(12),
                     }}>
-                      <Search size={ri(16)} color={themeColors.textSecondary} strokeWidth={2} />
+                      <Search size={ri(16)} color={exploreThemeColors.textSecondary} strokeWidth={2} />
                       <TextInput
                         value={searchQuery}
                         onChangeText={handleSearchChange}
                         placeholder="Search"
-                        placeholderTextColor={themeColors.textSecondary}
+                        placeholderTextColor={exploreThemeColors.textSecondary}
                         style={{
                           flex: 1,
                           marginLeft: rs(8),
                           fontSize: rf(14),
-                          color: themeColors.text,
+                          color: exploreThemeColors.text,
                           fontWeight: '400',
                           fontFamily: 'System',
                         }}
@@ -731,7 +726,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                       >
                         <Text style={{
                           fontSize: rf(16),
-                          color: themeColors.text,
+                          color: exploreThemeColors.text,
                           fontWeight: '400',
                           fontFamily: 'System',
                         }}>
@@ -766,16 +761,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                         paddingHorizontal: rs(20),
                         paddingVertical: rs(16),
                         borderBottomWidth: rs(0.5),
-                        borderBottomColor: themeColors.isDark 
-                          ? 'rgba(255, 255, 255, 0.06)' 
-                          : 'rgba(0, 0, 0, 0.06)',
+                        borderBottomColor: exploreThemeColors.border,
                       }}
                       activeOpacity={0.7}
                     >
                       {/* Recent icon */}
                       <Clock 
                         size={ri(20)} 
-                        color={themeColors.textSecondary} 
+                        color={exploreThemeColors.textSecondary} 
                         strokeWidth={1.5}
                         style={{ marginRight: rs(16) }}
                       />
@@ -784,7 +777,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                       <Text style={{
                         flex: 1,
                         fontSize: rf(14),
-                        color: themeColors.text,
+                        color: exploreThemeColors.text,
                         fontWeight: '400',
                         fontFamily: 'System',
                       }}>
@@ -801,9 +794,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                           width: rs(24),
                           height: rs(24),
                           borderRadius: rs(12),
-                          backgroundColor: themeColors.isDark 
-                            ? 'rgba(255, 255, 255, 0.1)' 
-                            : 'rgba(0, 0, 0, 0.1)',
+                                                  backgroundColor: exploreThemeColors.backgroundSecondary,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -811,7 +802,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                       >
                         <Text style={{
                           fontSize: rf(14),
-                          color: themeColors.textSecondary,
+                          color: exploreThemeColors.textSecondary,
                           fontWeight: '500',
                           fontFamily: 'System',
                         }}>
@@ -829,7 +820,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                     <Text style={{
                       fontSize: rf(20),
                       fontWeight: '600',
-                      color: themeColors.text,
+                      color: exploreThemeColors.text,
                       fontFamily: 'System',
                       paddingHorizontal: rs(20),
                       marginBottom: rs(20),
@@ -855,9 +846,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                           width: rs(60),
                           height: rs(60),
                           borderRadius: rs(8),
-                          backgroundColor: themeColors.isDark 
-                            ? 'rgba(45, 45, 45, 1)' 
-                            : 'rgba(240, 240, 240, 1)',
+                          backgroundColor: exploreThemeColors.backgroundSecondary,
                           marginRight: rs(12),
                           overflow: 'hidden',
                         }}>
@@ -874,13 +863,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                             <View style={{
                               width: '100%',
                               height: '100%',
-                              backgroundColor: themeColors.backgroundSecondary,
+                              backgroundColor: exploreThemeColors.backgroundSecondary,
                               alignItems: 'center',
                               justifyContent: 'center',
                             }}>
                               <Text style={{
                                 fontSize: rf(12),
-                                color: themeColors.textSecondary,
+                                color: exploreThemeColors.textSecondary,
                                 fontWeight: '500',
                                 fontFamily: 'System',
                               }}>
@@ -904,13 +893,16 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                           <Text 
                             style={{
                               fontSize: rf(14),
-                              color: themeColors.textSecondary,
+                              color: exploreThemeColors.textSecondary,
                               fontWeight: '400',
                               fontFamily: 'System',
                             }}
                             numberOfLines={2}
                           >
-                            {post.content && post.content.length > 60 ? `${post.content.substring(0, 60)}...` : (post.content || 'Trending content')}
+                            {post.content && post.content.length > 60 
+                              ? post.content.substring(0, 60) + '...' 
+                              : (post.content || 'Trending content')
+                            }
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -934,21 +926,19 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                         paddingHorizontal: rs(20),
                         paddingVertical: rs(12),
                         borderBottomWidth: index < searchSuggestions.length - 1 ? rs(0.5) : 0,
-                        borderBottomColor: themeColors.isDark 
-                          ? 'rgba(255, 255, 255, 0.06)' 
-                          : 'rgba(0, 0, 0, 0.03)',
+                        borderBottomColor: exploreThemeColors.border,
                       }}
                       activeOpacity={0.7}
                     >
                       <Search 
                         size={ri(16)} 
-                        color={themeColors.textSecondary} 
+                        color={exploreThemeColors.textSecondary} 
                         strokeWidth={1.5} 
                       />
                       <Text style={{
                         marginLeft: rs(12),
                         fontSize: rf(14),
-                        color: themeColors.text,
+                        color: exploreThemeColors.text,
                         fontWeight: '400',
                         fontFamily: 'System',
                       }}>
@@ -967,14 +957,14 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
         {/* Pills Layer - HIDDEN FOR NOW (keeping logic intact for future use) */}
         {false && (
-          <View style={{ backgroundColor: themeColors.background, paddingBottom: 16 }}>
+          <View style={{ backgroundColor: exploreThemeColors.background, paddingBottom: 16 }}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
               <View style={{ flexDirection: 'row' }}>
                 {/* All Filter Pill */}
                 <View style={{ marginRight: 6 }}>
                   <PillTag
                     label="All"
-                    color={themeColors.isDark ? themeColors.backgroundSecondary : "#E5E7EB"} // Adapt to theme
+                    color={exploreThemeColors.backgroundSecondary} // Always dark mode
                     selected={selectedFilter === 'all'}
                     onPress={() => handleFilterSelect('all')}
                     alwaysFullColor={true}
@@ -1003,7 +993,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         
         {/* Content Area */}
         {isMediaMode ? (
-          // Media Grid View - EXACT COPY of Library Recent Tab Structure
+          // Media Grid View - BLACK BACKGROUND for night mode
           <ScrollView 
             ref={mediaScrollRef}
             showsVerticalScrollIndicator={false}
@@ -1018,11 +1008,13 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             bounces={true}
             removeClippedSubviews={false}
             keyboardShouldPersistTaps="handled"
+            style={{ backgroundColor: exploreThemeColors.background }} // CENTRALIZED: Always dark mode
           >
             <View style={{ 
               flexDirection: 'row', 
               flexWrap: 'wrap', 
-              paddingBottom: 32 
+              paddingBottom: 32,
+              backgroundColor: exploreThemeColors.background // CENTRALIZED: Always dark mode
             }}>
               {postsWithImages.map((post) => (
                 <MediaGridItem
@@ -1042,19 +1034,28 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             keyExtractor={(item) => item.id}
             renderItem={({ item, index }) => {
               if (isImmersiveFeedEnabled) {
-                return (
-                  <TravelFeedCard
-                    {...item}
-                    onDetailsPress={() => handleShowTravelDetails(item)}
-                    isVisible={index >= currentVisibleIndex - 1 && index <= currentVisibleIndex + 1} // INSTANT: Pre-render adjacent cards
-                  />
-                );
+                // CENTRALIZED LOGIC: ALL names and counters positioned below app bar
+                const isCurrentlyVisible = index >= currentVisibleIndex - 1 && index <= currentVisibleIndex + 1;
+                
+                // SIMPLE RULE: ALL posts should have names/counters positioned below app bar
+                // This ensures consistency and maximizes content space
+                const alwaysPositionBelowAppBar = !isMediaMode;
+                
+                                  return (
+                    <TravelFeedCard
+                      {...item}
+                      onDetailsPress={() => handleShowTravelDetails(item)}
+                      isVisible={isCurrentlyVisible} // INSTANT: Pre-render adjacent cards
+                      appBarElementsVisible={alwaysPositionBelowAppBar} // ALL posts positioned below app bar
+                      cardIndex={index} // Pass card index for alignment logic
+                    />
+                  );
               } else {
                 // Fallback to regular cards - though this shouldn't be reached in normal usage
                 return <TravelFeedCard {...item} onDetailsPress={() => {}} isVisible={true} />;
               }
             }}
-            style={{ flex: 1, backgroundColor: themeColors.background }}
+            style={{ flex: 1, backgroundColor: exploreThemeColors.background }} // CENTRALIZED: Always dark mode
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={1} // ULTRA FAST: Maximum responsiveness
@@ -1085,7 +1086,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
           />
         )}
 
-      </SafeAreaView>
+      </View>
     </PanGestureHandler>
   );
 });
