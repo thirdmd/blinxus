@@ -30,7 +30,6 @@ import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, formatUsername } from '../../utils/responsive';
 import { 
   createAnimationValues, 
-  FEED_ANIMATIONS, 
   runAnimation,
   ANIMATION_DURATIONS,
   createLibrarySlideInAnimation,
@@ -303,8 +302,8 @@ export default function ProfileStructure({
     );
   };
 
-  // RADICAL FIX: Only show fullscreen when phase is 'active' - prevents render conflicts
-  if (fullscreenManager.phase === 'active' && fullscreenManager.currentConfig) {
+  // Show fullscreen modal when active
+  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
     return (
       <FullscreenView
         visible={fullscreenManager.isFullscreen}

@@ -8,7 +8,7 @@ import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useLikedPosts } from '../store/LikedPostsContext';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
 import { activityTags, ActivityKey, type ActivityTag, activityColors, activityNames } from '../constants/activityTags';
 import PillTag from './PillTag';
 import DetailPostView from './DetailPostView';
@@ -25,6 +25,9 @@ interface TravelFeedCardProps extends PostCardProps {
   onLucidPress?: () => void;
   appBarElementsVisible?: boolean; // NEW: Whether app bar elements (logo, grid) are visible
   cardIndex?: number; // NEW: Card index for alignment logic
+  isInModal?: boolean; // NEW: Whether card is displayed in modal context
+  navigation?: NavigationProp<ParamListBase>; // NEW: Optional navigation prop for modal context
+  onModalDismiss?: () => void; // NEW: Callback to dismiss modal
 }
 
 const { width: screenWidth, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -423,12 +426,30 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   isVisible,
   onLucidPress,
   appBarElementsVisible = false, // NEW: Default to false (app bar elements hidden)
-  cardIndex = 0 // NEW: Default to 0
+  cardIndex = 0, // NEW: Default to 0
+  isInModal = false, // NEW: Default to false (not in modal)
+  navigation,
+  onModalDismiss
 }) => {
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
   const { likePost: userLikePost, unlikePost: userUnlikePost, isPostLiked } = useLikedPosts();
-  const navigation = useNavigation();
+  
+  // RADICAL FIX: Use prop navigation if available, otherwise use hook with error handling
+  let finalNavigation;
+  if (navigation) {
+    // Use passed navigation prop (for modal context)
+    finalNavigation = navigation;
+  } else {
+    // Use hook navigation (for normal context)
+    try {
+      finalNavigation = useNavigation();
+    } catch (error) {
+      console.warn('Navigation hook failed in TravelFeedCard:', error);
+      finalNavigation = null;
+    }
+  }
+  
   const themeColors = useThemeColors();
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -583,28 +604,83 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
   // CENTRALIZED: Use unified profile navigation
   const handleProfilePress = useCallback(() => {
-    const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'Explore');
-    handleTravelFeedProfile({
-      authorId,
-      authorName
-    });
-  }, [authorName, authorId, navigation]);
+    if (!finalNavigation) {
+      console.warn('Navigation not available for profile press');
+      return;
+    }
+    
+    try {
+      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
+      // so navigation happens on top instead of underneath the modal
+      if (isInModal && onModalDismiss) {
+        // Close the modal first, then navigate
+        onModalDismiss(); // This properly closes the modal
+        
+        // Wait for modal to close, then navigate to profile
+        setTimeout(() => {
+          try {
+            const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'Explore');
+            handleTravelFeedProfile({
+              authorId,
+              authorName
+            });
+          } catch (error) {
+            console.warn('Delayed profile navigation failed:', error);
+          }
+        }, 300); // Wait for modal close animation
+      } else {
+        // Normal context - navigate directly
+        const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'Explore');
+        handleTravelFeedProfile({
+          authorId,
+          authorName
+        });
+      }
+    } catch (error) {
+      console.warn('Profile navigation failed:', error);
+    }
+  }, [authorName, authorId, finalNavigation, isInModal, onModalDismiss]);
 
   // CENTRALIZED: Location navigation to Pods Forum - UNIVERSAL SYSTEM
   const handleLocationPress = useCallback(() => {
     if (!location) return;
+    if (!finalNavigation) {
+      console.warn('Navigation not available for location press');
+      return;
+    }
     
-    // DEBUG: Log the location to understand what's happening
-    console.log(`[DEBUG] Attempting to navigate to location: "${location}"`);
-    
-    // Test location resolution
-    const resolved = resolveLocationForNavigation(location);
-    console.log(`[DEBUG] Location resolved:`, resolved);
-    
-    // Use centralized navigation system - handles everything automatically
-    const success = LocationNavigation.navigateToForum(navigation, location);
-    console.log(`[DEBUG] Navigation success:`, success);
-  }, [location, navigation]);
+    try {
+      // DEBUG: Log the location to understand what's happening
+      console.log(`[DEBUG] Attempting to navigate to location: "${location}"`);
+      
+      // Test location resolution
+      const resolved = resolveLocationForNavigation(location);
+      console.log(`[DEBUG] Location resolved:`, resolved);
+      
+      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
+      // so navigation happens on top instead of underneath the modal
+      if (isInModal && onModalDismiss) {
+        // Close the modal first, then navigate
+        onModalDismiss(); // This properly closes the modal
+        
+        // Wait for modal to close, then navigate to location
+        setTimeout(() => {
+          try {
+            const success = LocationNavigation.navigateToForum(finalNavigation, location);
+            console.log(`[DEBUG] Delayed navigation success:`, success);
+          } catch (error) {
+            console.warn('Delayed location navigation failed:', error);
+          }
+        }, 300); // Wait for modal close animation
+      } else {
+        // Normal context - navigate directly
+        const success = LocationNavigation.navigateToForum(finalNavigation, location);
+        console.log(`[DEBUG] Navigation success:`, success);
+      }
+    } catch (error) {
+      console.warn('Location navigation failed:', error);
+    }
+  }, [location, finalNavigation, isInModal, onModalDismiss]);
 
   // Add ref for debouncing likes
   const lastLikeTime = useRef(0);
@@ -759,12 +835,21 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         onLucidPress();
       } else {
         // Fallback to navigation (for screens that don't handle lucid album in-screen)
-        (navigation as any).navigate('LucidFullscreen', {
-          post: postData
-        });
+        if (!finalNavigation) {
+          console.warn('Navigation not available for lucid press');
+          return;
+        }
+        
+        try {
+          (finalNavigation as any).navigate('LucidFullscreen', {
+            post: postData
+          });
+        } catch (error) {
+          console.warn('Lucid navigation failed:', error);
+        }
       }
     }
-  }, [isLucid, onLucidPress, navigation, postData]);
+  }, [isLucid, onLucidPress, finalNavigation, postData]);
 
   // Handle zoom toggle from carousel
   const handleZoomToggle = useCallback((toggleFn: () => void, zoomedOut: boolean) => {
@@ -867,7 +952,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     <View 
       style={{ 
         width: responsiveDimensions.feedCard.width, 
-        height: responsiveDimensions.feedCard.height,
+        height: responsiveDimensions.feedCard.height, // Keep normal height
         backgroundColor: themeColors.background 
       }}
     >
@@ -1006,46 +1091,18 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         </View>
       </View>
 
-      {/* Top Right Image Counter - MOVED TO RIGHT EDGE */}
-      {images && images.length > 1 && !isLucid && (
-        <View style={{
-          position: 'absolute',
-          top: getAlignedTopPosition(), // Always aligned with user name
-          right: rs(8), // MOVED TO RIGHT EDGE (was 16)
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          paddingHorizontal: rs(8),
-          paddingVertical: rs(4),
-          borderRadius: rs(12),
-          zIndex: 1000 // Ensure it's above image overlay
-        }}>
-          <Text style={{
-            color: 'white',
-            fontSize: typography.caption,
-            fontWeight: '500',
-            fontFamily: 'System',
-            textShadowColor: 'rgba(0,0,0,0.7)',
-            textShadowOffset: { width: 0, height: rs(1) },
-            textShadowRadius: rs(3)
-          }}>
-            {currentImageIndex + 1}/{images.length}
-          </Text>
-        </View>
-      )}
-
-      {/* Bottom Right Action Buttons - Stacked vertically with better positioning */}
+      {/* Top Right Area - Image Counter and Lucid Button */}
       <View style={{
         position: 'absolute',
-        bottom: immersiveDimensions.bottomOverlayPosition, // Exact calculated position for all screen sizes
-        right: rs(20),
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: isLucid ? rs(300) : rs(260)
+        top: getAlignedTopPosition(),
+        right: rs(8),
+        alignItems: 'flex-end',
+        zIndex: 1000
       }}>
-        {/* Lucid Album Indicator - Only show for Lucids */}
+        {/* Lucid Album Button - Top positioned for Lucids */}
         {isLucid && (
           <TouchableOpacity
-            onPress={handleLucidPress}
+            onPress={onLucidPress}
             style={{
               alignItems: 'center',
               marginBottom: rs(8)
@@ -1066,7 +1123,40 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           </TouchableOpacity>
         )}
         
-        {/* Zoom Toggle Button - Above heart react */}
+        {/* Image Counter - Below Lucid button if present */}
+        {images && images.length > 1 && !isLucid && (
+          <View style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            paddingHorizontal: rs(8),
+            paddingVertical: rs(4),
+            borderRadius: rs(12),
+          }}>
+            <Text style={{
+              color: 'white',
+              fontSize: typography.caption,
+              fontWeight: '500',
+              fontFamily: 'System',
+              textShadowColor: 'rgba(0,0,0,0.7)',
+              textShadowOffset: { width: 0, height: rs(1) },
+              textShadowRadius: rs(3)
+            }}>
+              {currentImageIndex + 1}/{images.length}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Bottom Right Action Buttons - Stacked vertically with better positioning */}
+      <View style={{
+        position: 'absolute',
+        bottom: immersiveDimensions.bottomOverlayPosition, // Exact calculated position for all screen sizes
+        right: rs(20),
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: rs(260) // Reduced height since Lucid button moved to top
+      }}>
+        {/* Zoom Toggle Button - Top of bottom buttons */}
         <TouchableOpacity
           onPress={zoomToggleFn || (() => {})}
           style={{
@@ -1083,7 +1173,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           )}
         </TouchableOpacity>
         
-        {/* Like Button - Moved higher */}
+        {/* Like Button */}
         <TouchableOpacity
           onPress={handleLike}
           style={{
@@ -1146,7 +1236,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           <Send size={ri(26)} color="white" />
         </TouchableOpacity>
 
-        {/* Save Button - Moved lower */}
+        {/* Save Button */}
         <TouchableOpacity
           onPress={handleSave}
           style={{
@@ -1189,6 +1279,9 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         onShare={handleShare}
         onSave={handleSave}
         onLike={handleLike}
+        isInModal={isInModal} // Pass modal context
+        navigation={finalNavigation as any} // Cast to any to handle type complexity
+        onModalDismiss={onModalDismiss} // Pass modal dismiss callback
       />
 
       {/* Fullscreen Image Modal - Triggered by rotation */}

@@ -1,13 +1,13 @@
 import React, { useRef, useEffect } from 'react';
 import { 
   View, 
-  SafeAreaView, 
   StatusBar, 
-  TouchableOpacity, 
   FlatList, 
-  Animated 
+  Modal,
+  TouchableOpacity
 } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { PostCardProps } from '../types/structures/posts_structure';
 import TravelFeedCard from './TravelFeedCard';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -24,6 +24,7 @@ interface FullscreenViewProps {
   config: FullscreenConfig;
   onBack: () => void;
   onLucidPress?: (post: PostCardProps) => void;
+  navigation?: NavigationProp<ParamListBase>;
 }
 
 const FullscreenView: React.FC<FullscreenViewProps> = ({
@@ -33,7 +34,8 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
   animationValues,
   config,
   onBack,
-  onLucidPress
+  onLucidPress,
+  navigation
 }) => {
   const themeColors = useThemeColors();
   const flatListRef = useRef<FlatList>(null);
@@ -60,65 +62,40 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
     }
   }, [visible, selectedPostIndex]);
 
-  if (!visible) return null;
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-      <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.background} 
-      />
-      
-      {/* Animated Background Overlay */}
-      <Animated.View
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: themeColors.background,
-          opacity: animationValues.backgroundOpacity,
-        }}
-      />
-      
-      {/* Animated Content Container */}
-      <Animated.View
-        style={{
-          flex: 1,
-          transform: [{ scale: animationValues.scale }],
-          opacity: animationValues.opacity,
-        }}
-      >
-        {/* Fixed App Bar - Back button moved to far left corner */}
-        <View style={{
-          height: responsiveDimensions.appBar.height,
-          backgroundColor: themeColors.background,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingLeft: rs(8), // Minimal left padding to reach corner
-          paddingRight: responsiveDimensions.appBar.paddingHorizontal,
-        }}>
-          {/* Back button - Far left corner */}
-          <TouchableOpacity 
-            onPress={onBack}
-            style={{ 
-              width: responsiveDimensions.button.small.width, 
-              height: responsiveDimensions.button.small.height, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: rs(16),
-              backgroundColor: 'transparent',
-            }}
-            activeOpacity={0.95}
-            delayPressIn={0}
-            delayPressOut={0}
-          >
-            <ChevronLeft size={ri(18)} color={themeColors.text} strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
-
-        {/* TravelFeedCard FlatList */}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onBack}
+    >
+      <View style={{ flex: 1, backgroundColor: themeColors.background }}>
+        <StatusBar 
+          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+          backgroundColor={themeColors.background} 
+        />
+        
+        {/* Back Button - Floating Over Content */}
+        <TouchableOpacity 
+          onPress={onBack}
+          style={{ 
+            position: 'absolute',
+            top: rs(8),
+            left: rs(8),
+            width: rs(32), 
+            height: rs(32), 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            borderRadius: rs(16),
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            zIndex: 1000,
+          }}
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={ri(20)} color="white" strokeWidth={2} />
+        </TouchableOpacity>
+        
+        {/* TravelFeedCard FlatList - Clean, No Padding */}
         <FlatList
           ref={flatListRef}
           data={posts}
@@ -128,6 +105,9 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
               onDetailsPress={() => {}}
               onLucidPress={item.type === 'lucid' ? () => onLucidPress?.(item) : undefined}
               isVisible={true}
+              isInModal={true}
+              navigation={navigation}
+              onModalDismiss={onBack}
             />
           )}
           keyExtractor={(item) => item.id}
@@ -159,8 +139,8 @@ const FullscreenView: React.FC<FullscreenViewProps> = ({
             });
           }}
         />
-      </Animated.View>
-    </SafeAreaView>
+      </View>
+    </Modal>
   );
 };
 

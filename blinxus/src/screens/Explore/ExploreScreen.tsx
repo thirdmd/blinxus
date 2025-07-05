@@ -16,7 +16,6 @@ import FullscreenView from '../../components/FullscreenView';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getImmersiveScreenDimensions } from '../../utils/responsive';
 import { 
   createAnimationValues, 
-  FEED_ANIMATIONS, 
   runAnimation,
   ANIMATION_DURATIONS,
   createPageSlideInAnimation,
@@ -41,7 +40,15 @@ export interface ExploreScreenRef {
 }
 
 const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
-  const navigation = useNavigation();
+  // RADICAL FIX: Safe navigation hook with error handling
+  let navigation;
+  try {
+    navigation = useNavigation();
+  } catch (error) {
+    // Silently handle navigation hook failure to prevent text rendering errors
+    navigation = null;
+  }
+  
   const themeColors = useThemeColors();
   const { posts } = usePosts();
   const { exploreScrollRef } = useScrollContext();
@@ -114,8 +121,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Expose reset function for double-tap
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
-      // RADICAL FIX: Exit fullscreen mode if active - using phase check
-      if (fullscreenManager.phase === 'active') {
+      // Exit fullscreen mode if active
+      if (fullscreenManager.isFullscreen) {
         fullscreenManager.exitFullscreen();
       }
       
@@ -164,11 +171,11 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
       return isMediaMode;
     },
     isInFullscreenMode: () => {
-      return fullscreenManager.phase === 'active';
+      return fullscreenManager.isFullscreen;
     },
     exitFullscreenOnly: () => {
-      // RADICAL FIX: Only exit fullscreen mode using phase check
-      if (fullscreenManager.phase === 'active') {
+      // Only exit fullscreen mode
+      if (fullscreenManager.isFullscreen) {
         fullscreenManager.exitFullscreen();
       }
     },
@@ -197,7 +204,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
       mediaScrollPositions.current = {};
       
       // Step 4: INSTANT EXIT - No animation, direct transition
-      if (fullscreenManager.phase === 'active') {
+      if (fullscreenManager.isFullscreen) {
         // Use instant exit instead of animated exit for buttery smooth transition
         fullscreenManager.instantExit();
       }
@@ -507,7 +514,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Handle travel details popup
   const handleShowTravelDetails = useCallback((post: PostCardProps) => {
     // Travel details are now handled within TravelFeedCard component
-    // Show travel details
+    // This function is kept for compatibility but doesn't need to do anything
+    // since TravelFeedCard handles its own detail view internally
   }, []);
 
   // Create activity key mapping for filter functionality
@@ -530,8 +538,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // RADICAL FIX: Only show fullscreen when phase is 'active' - prevents render conflicts
-  if (fullscreenManager.phase === 'active' && fullscreenManager.currentConfig) {
+  // Show fullscreen modal when active
+  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
     return (
       <FullscreenView
         visible={fullscreenManager.isFullscreen}
@@ -541,6 +549,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         config={fullscreenManager.currentConfig}
         onBack={fullscreenManager.exitFullscreen}
         onLucidPress={fullscreenManager.handleLucidPress}
+        navigation={navigation as any}
       />
     );
   }
@@ -1041,15 +1050,15 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                 // This ensures consistency and maximizes content space
                 const alwaysPositionBelowAppBar = !isMediaMode;
                 
-                                  return (
-                    <TravelFeedCard
-                      {...item}
-                      onDetailsPress={() => handleShowTravelDetails(item)}
-                      isVisible={isCurrentlyVisible} // INSTANT: Pre-render adjacent cards
-                      appBarElementsVisible={alwaysPositionBelowAppBar} // ALL posts positioned below app bar
-                      cardIndex={index} // Pass card index for alignment logic
-                    />
-                  );
+                return (
+                  <TravelFeedCard
+                    {...item}
+                    onDetailsPress={() => handleShowTravelDetails(item)}
+                    isVisible={isCurrentlyVisible} // INSTANT: Pre-render adjacent cards
+                    appBarElementsVisible={alwaysPositionBelowAppBar} // ALL posts positioned below app bar
+                    cardIndex={index} // Pass card index for alignment logic
+                  />
+                );
               } else {
                 // Fallback to regular cards - though this shouldn't be reached in normal usage
                 return <TravelFeedCard {...item} onDetailsPress={() => {}} isVisible={true} />;

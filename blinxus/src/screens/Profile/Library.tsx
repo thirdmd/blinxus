@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,18 +13,19 @@ import {
   NativeScrollEvent,
   Animated,
 } from 'react-native';
-import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album, Clock, Activity } from 'lucide-react-native';
+import { ChevronLeft, Heart, Bookmark, Grid3X3, Map, Album, Clock, Activity, MoreHorizontal, MessageCircle, Send, MapPin, Calendar, User, Zap, Eye, Shuffle, TrendingUp, Star, Users, Camera, Image as ImageIcon } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
-import { activityTags } from '../../constants/activityTags';
+import { activityTags, activityColors, ActivityKey } from '../../constants/activityTags';
 import { usePosts } from '../../store/PostsContext';
 import { useSavedPosts } from '../../store/SavedPostsContext';
+import { useLikedPosts } from '../../store/LikedPostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_structure';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 
 import FullscreenView from '../../components/FullscreenView';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getTextStyles } from '../../utils/responsive';
 import useFullscreenManager from '../../hooks/useFullscreenManager';
 import NavigationManager from '../../utils/navigationManager';
@@ -42,7 +43,7 @@ interface LibraryProps {
 
 export default function Library({ onBackPress }: LibraryProps = {}) {
   const themeColors = useThemeColors();
-  const navigation = useNavigation();
+  const navigation = useNavigation() as NavigationProp<ParamListBase>;
   const textStyles = getTextStyles();
   
   // State for active tab
@@ -74,6 +75,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   // Get posts and saved posts
   const { posts } = usePosts();
   const { savedPostIds, savedPosts: savedPostsData } = useSavedPosts();
+  const { likedPosts } = useLikedPosts();
   
   // Filter to only saved posts and convert to PostCard props
   const savedPosts = posts.filter(post => savedPostIds.includes(post.id));
@@ -440,8 +442,8 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     );
   };
 
-  // RADICAL FIX: Only show fullscreen when phase is 'active' - prevents render conflicts
-  if (fullscreenManager.phase === 'active' && fullscreenManager.currentConfig) {
+  // Show fullscreen modal when active
+  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
     let postsToShow: PostCardProps[];
     
     if (feedContext === 'recent') {
@@ -463,6 +465,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
         config={fullscreenManager.currentConfig}
         onBack={fullscreenManager.exitFullscreen}
         onLucidPress={fullscreenManager.handleLucidPress}
+        navigation={navigation}
       />
     );
   }

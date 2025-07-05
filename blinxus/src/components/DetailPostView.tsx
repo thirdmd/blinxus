@@ -8,10 +8,11 @@ import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useLikedPosts } from '../store/LikedPostsContext';
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
 import { activityTags, ActivityKey, type ActivityTag, activityColors } from '../constants/activityTags';
 import PillTag from './PillTag';
 import UserProfileNavigation from '../utils/userProfileNavigation';
+import { LocationNavigation } from '../utils/locationNavigation';
 import { getImmersiveScreenDimensions } from '../utils/responsive';
 
 interface DetailPostViewProps {
@@ -32,6 +33,9 @@ interface DetailPostViewProps {
   onShare: () => void;
   onSave: () => void;
   onLike: () => void;
+  isInModal?: boolean; // NEW: Whether parent is in modal context
+  navigation?: NavigationProp<ParamListBase>; // NEW: Optional navigation prop for modal context
+  onModalDismiss?: () => void; // NEW: Callback to dismiss modal
 }
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -53,7 +57,10 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   savedCount, 
   onShare,
   onSave,
-  onLike 
+  onLike,
+  isInModal = false, // NEW: Default to false
+  navigation,
+  onModalDismiss
 }) => {
   // Fixed dark mode colors
   const darkColors = {
@@ -67,7 +74,22 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost } = useSavedPosts();
   const { likePost: userLikePost, unlikePost: userUnlikePost, isPostLiked } = useLikedPosts();
-  const navigation = useNavigation();
+  
+  // RADICAL FIX: Use prop navigation if available, otherwise use hook with error handling
+  let finalNavigation;
+  if (navigation) {
+    // Use passed navigation prop (for modal context)
+    finalNavigation = navigation;
+  } else {
+    // Use hook navigation (for normal context)
+    try {
+      finalNavigation = useNavigation();
+    } catch (error) {
+      console.warn('Navigation hook failed in DetailPostView:', error);
+      finalNavigation = null;
+    }
+  }
+  
   const [openMenu, setOpenMenu] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editContent, setEditContent] = useState('');
@@ -119,11 +141,41 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   const saveButtonScale = useRef(new Animated.Value(1)).current;
 
   const handleProfilePress = () => {
-    const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(navigation as any, 'PostDetail');
-    handleTravelFeedProfile({
-      authorId: currentPost.authorId,
-      authorName: currentPost.authorName
-    });
+    if (!finalNavigation) {
+      console.warn('Navigation not available for profile press in DetailPostView');
+      return;
+    }
+    
+    try {
+      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
+      // so navigation happens on top instead of underneath the modal
+      if (isInModal && onModalDismiss) {
+        // Close the modal first, then navigate
+        onModalDismiss(); // This properly closes the modal
+        
+        // Wait for modal to close, then navigate to profile
+        setTimeout(() => {
+          try {
+            const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'PostDetail');
+            handleTravelFeedProfile({
+              authorId: currentPost.authorId,
+              authorName: currentPost.authorName
+            });
+          } catch (error) {
+            console.warn('Delayed profile navigation failed in DetailPostView:', error);
+          }
+        }, 300); // Wait for modal close animation
+      } else {
+        // Normal context - navigate directly
+        const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'PostDetail');
+        handleTravelFeedProfile({
+          authorId: currentPost.authorId,
+          authorName: currentPost.authorName
+        });
+      }
+    } catch (error) {
+      console.warn('Profile navigation failed in DetailPostView:', error);
+    }
   };
 
   const handleDelete = () => {
@@ -538,10 +590,10 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
         <ReanimatedAnimated.View
           style={[{
             position: 'absolute',
-            top: getAlignedHeaderPosition(), // ALIGNED with user name position
+            top: isInModal ? 0 : getAlignedHeaderPosition(), // Full screen in modal
             left: 0,
             width: screenWidth,
-            height: screenHeight - getAlignedHeaderPosition() - 70, // EXTENDED to reach bottom nav bar edge
+            height: isInModal ? screenHeight : (screenHeight - getAlignedHeaderPosition() - 70), // Full height in modal
             zIndex: 1000,
           }, animatedStyle]}
         >
@@ -933,12 +985,45 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     {currentPost.location}
                   </Text>
                 </View>
-                <TouchableOpacity style={{
-                  backgroundColor: darkColors.cobalt,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 20
-                }}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    if (!finalNavigation) {
+                      console.warn('Navigation not available for location press in DetailPostView');
+                      return;
+                    }
+                    
+                    try {
+                      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
+                      // so navigation happens on top instead of underneath the modal
+                      if (isInModal && onModalDismiss) {
+                        // Close the modal first, then navigate
+                        onModalDismiss(); // This properly closes the modal
+                        
+                        // Wait for modal to close, then navigate to location
+                        setTimeout(() => {
+                          try {
+                            const success = LocationNavigation.navigateToForum(finalNavigation, currentPost.location);
+                            console.log(`[DEBUG] Delayed location navigation success from DetailPostView:`, success);
+                          } catch (error) {
+                            console.warn('Delayed location navigation failed in DetailPostView:', error);
+                          }
+                        }, 300); // Wait for modal close animation
+                      } else {
+                        // Normal context - navigate directly
+                        const success = LocationNavigation.navigateToForum(finalNavigation, currentPost.location);
+                        console.log(`[DEBUG] Location navigation success from DetailPostView:`, success);
+                      }
+                    } catch (error) {
+                      console.warn('Location navigation failed in DetailPostView:', error);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: darkColors.cobalt,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 20
+                  }}
+                >
                   <Text style={{
                     color: 'white',
                     fontSize: 13,

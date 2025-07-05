@@ -14,6 +14,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { Camera } from 'lucide-react-native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { usePosts } from '../../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../../types/structures/posts_structure';
@@ -29,11 +30,13 @@ const responsiveDimensions = getResponsiveDimensions();
 interface PhotoFeedProps {
   country: Country;
   selectedLocationFilter: LocationFilter;
+  navigation?: NavigationProp<ParamListBase>;
 }
 
 const PhotoFeed: React.FC<PhotoFeedProps> = ({
   country,
   selectedLocationFilter,
+  navigation,
 }) => {
   const themeColors = useThemeColors();
   const { posts } = usePosts();
@@ -141,8 +144,8 @@ const PhotoFeed: React.FC<PhotoFeedProps> = ({
     });
   }, [filteredPosts, fullscreenManager]);
 
-  // RADICAL FIX: Only show fullscreen when phase is 'active' - prevents render conflicts
-  if (fullscreenManager.phase === 'active' && fullscreenManager.currentConfig) {
+  // Show fullscreen modal when active
+  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
     return (
       <FullscreenView
         visible={fullscreenManager.isFullscreen}
@@ -152,6 +155,7 @@ const PhotoFeed: React.FC<PhotoFeedProps> = ({
         config={fullscreenManager.currentConfig}
         onBack={fullscreenManager.exitFullscreen}
         onLucidPress={fullscreenManager.handleLucidPress}
+        navigation={navigation}
       />
     );
   }
