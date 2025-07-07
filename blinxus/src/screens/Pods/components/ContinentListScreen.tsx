@@ -11,6 +11,7 @@ import {
   Modal,
   StatusBar,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
@@ -966,8 +967,10 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
-      StatusBar.setBackgroundColor(themeColors.background);
-      StatusBar.setTranslucent(false);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(themeColors.background);
+        StatusBar.setTranslucent(false);
+      }
     }, [themeColors.isDark, themeColors.background])
   );
 
@@ -975,7 +978,7 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     <PanGestureHandler onGestureEvent={onSwipeGesture} onHandlerStateChange={onSwipeGesture}>
       <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background}
       />
       {/* Fixed Header Section - No animation to keep it fixed */}

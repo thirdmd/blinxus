@@ -1,6 +1,6 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo, useEffect } from 'react';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView, StatusBar, View, ScrollView, Animated, Dimensions } from 'react-native';
+import { SafeAreaView, StatusBar, View, ScrollView, Animated, Dimensions, Platform } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
 import { useThemeColors } from '../../hooks/useThemeColors';
@@ -339,8 +339,10 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
-      StatusBar.setBackgroundColor(themeColors.background);
-      StatusBar.setTranslucent(false);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(themeColors.background);
+        StatusBar.setTranslucent(false);
+      }
     }, [themeColors.isDark, themeColors.background])
   );
 
@@ -350,7 +352,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
       backgroundColor: themeColors.background
     }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background}
       />
       {renderCurrentScreen()}

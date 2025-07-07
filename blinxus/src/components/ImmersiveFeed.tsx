@@ -131,37 +131,37 @@ const ImmersiveFeed: React.FC<ImmersiveFeedProps> = ({
 
       {/* Ensure the image extends to the top */}
       <View style={{ flex: 1 }}>
-        <FlatList
-          ref={flatListRef}
-          data={posts}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          style={{ flex: 1, backgroundColor: immersiveThemeColors.background }}
-          showsVerticalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={1} // Ultra fast responsiveness
-          bounces={true}
-          pagingEnabled={true} // TikTok-style snapping
-          snapToInterval={responsiveDimensions.feedCard.height} // Snap to card height
-          snapToAlignment="end"
-          decelerationRate="fast"
-          scrollsToTop={false}
-          disableIntervalMomentum={true}
-          // Performance optimizations (same as ExploreScreen)
-          removeClippedSubviews={false}
-          maxToRenderPerBatch={15}
-          windowSize={21}
-          initialNumToRender={8}
-          updateCellsBatchingPeriod={1}
-          legacyImplementation={false}
-          maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-            autoscrollToTopThreshold: 100
-          }}
-          getItemLayout={getItemLayout}
-          // Start at initial index if provided
-          initialScrollIndex={initialIndex}
-        />
+      <FlatList
+        ref={flatListRef}
+        data={posts}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        style={{ flex: 1, backgroundColor: immersiveThemeColors.background }}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={1} // Ultra fast responsiveness
+        bounces={true}
+        pagingEnabled={true} // TikTok-style snapping
+        snapToInterval={responsiveDimensions.feedCard.height} // Snap to card height
+        snapToAlignment="end"
+        decelerationRate="fast"
+        scrollsToTop={false}
+        disableIntervalMomentum={true}
+        // Performance optimizations (same as ExploreScreen)
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={15}
+        windowSize={21}
+        initialNumToRender={8}
+        updateCellsBatchingPeriod={1}
+        legacyImplementation={false}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 0,
+          autoscrollToTopThreshold: 100
+        }}
+        getItemLayout={getItemLayout}
+        // Start at initial index if provided
+        initialScrollIndex={initialIndex}
+      />
       </View>
 
       {/* Placeholder bottom bar matching navigation bar height */}

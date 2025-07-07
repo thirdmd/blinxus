@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { Bell, Heart, MessageCircle, UserPlus, Camera, Settings } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getTextStyles } from '../utils/responsive';
@@ -65,8 +65,10 @@ export default function NotificationsScreen() {
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
-      StatusBar.setBackgroundColor(themeColors.background);
-      StatusBar.setTranslucent(false);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(themeColors.background);
+        StatusBar.setTranslucent(false);
+      }
     }, [themeColors.isDark, themeColors.background])
   );
 

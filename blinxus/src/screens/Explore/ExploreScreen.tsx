@@ -1,5 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground, Animated, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, FlatList, NativeSyntheticEvent, NativeScrollEvent, StatusBar, TextInput, Dimensions, ImageBackground, Animated, Image, Keyboard, TouchableWithoutFeedback, Platform } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Search, ChevronLeft, Grid3X3, Clock } from 'lucide-react-native';
 import { activityTags, ActivityKey, activityNames } from '../../constants/activityTags';
@@ -524,8 +524,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle("light-content");
-      StatusBar.setBackgroundColor(exploreThemeColors.background);
-      StatusBar.setTranslucent(false);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(exploreThemeColors.background);
+        StatusBar.setTranslucent(false);
+      }
     }, [exploreThemeColors.background])
   );
 

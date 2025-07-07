@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Animated, StatusBar, SafeAreaView } from 'react-native';
+import { View, Animated, StatusBar, SafeAreaView, Platform } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import CountryViewScreen from './components/CountryViewScreen';
@@ -83,15 +83,17 @@ const LocationViewScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
-      StatusBar.setBackgroundColor(themeColors.background);
-      StatusBar.setTranslucent(false);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(themeColors.background);
+        StatusBar.setTranslucent(false);
+      }
     }, [themeColors.isDark, themeColors.background])
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
         backgroundColor={themeColors.background}
         translucent={false}
       />

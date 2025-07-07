@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
-import { View, Animated, Dimensions, StatusBar } from 'react-native';
+import { View, Animated, Dimensions, StatusBar, Platform } from 'react-native';
 import ProfileStructure from '../../types/structures/profile_structure';
 import { profileData } from '../../types/userData/profile_data';
 import { usePosts } from '../../store/PostsContext';
@@ -123,8 +123,10 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
-      StatusBar.setBackgroundColor(themeColors.background);
-      StatusBar.setTranslucent(false);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(themeColors.background);
+        StatusBar.setTranslucent(false);
+      }
     }, [themeColors.isDark, themeColors.background])
   );
 
