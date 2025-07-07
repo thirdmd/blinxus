@@ -22,13 +22,14 @@ import { LocationFilter, FORUM_CATEGORIES } from './forumTypes';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { Country } from '../../../../constants/placesData';
 import UserProfileNavigation from '../../../../utils/userProfileNavigation';
-import LocationNavigation from '../../../../utils/locationNavigation';
 import { SPACING } from '../../../../constants/spacing';
+import { PodTabType } from '../../../../types/structures/podsUIStructure';
 
 interface ForumPostsListProps {
   country: Country;
   selectedLocationFilter: LocationFilter;
   onLocationFilterChange: (filter: LocationFilter) => void;
+  onTabChange: (tab: PodTabType) => void;
 }
 
 export interface ForumPostsListRef {
@@ -138,6 +139,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   country,
   selectedLocationFilter,
   onLocationFilterChange,
+  onTabChange,
 }, ref) => {
   const themeColors = useThemeColors();
   const navigation = useNavigation();
@@ -230,9 +232,10 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   }, [filters, actions.updateFilters]);
 
   const handleLocationPress = useCallback((post: any, location: any) => {
-    const { handleForumPostLocation } = LocationNavigation.createHandlersForScreen(navigation as any, 'CountryForum');
-    handleForumPostLocation({ post, location });
-  }, [navigation]);
+    // Switch filter tab and select sublocation without navigating away
+    onLocationFilterChange(location.name);
+    onTabChange('Forum');
+  }, [onLocationFilterChange, onTabChange]);
 
   // RADICAL: Memoized render functions for maximum performance
   const renderPost = useCallback(({ item }: { item: any }) => (

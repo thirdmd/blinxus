@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   FlatList,
+  StatusBar,
 } from 'react-native';
 import { X, Search, Send } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -182,6 +183,11 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
           flex: 1,
           backgroundColor: themeColors.background,
         }}>
+          <StatusBar 
+            barStyle="light-content"
+            backgroundColor={themeColors.background}
+            translucent={false}
+          />
           {/* Header */}
           <View style={{
             flexDirection: 'row',

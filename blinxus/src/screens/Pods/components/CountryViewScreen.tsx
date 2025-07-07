@@ -101,6 +101,8 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   const isJoined = isPodJoined(country.id);
   const hasNotifications = isPodNotificationsEnabled(country.id);
 
+  const hasAutoSelectedRef = useRef(false);
+
   // Function to scroll to the selected location tab
   const scrollToSelectedTab = useCallback((targetFilter: string) => {
     if (!locationTabsScrollRef.current) return;
@@ -156,7 +158,8 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
 
   // Handle automatic location tab selection from navigation context
   useEffect(() => {
-    if (navigationContext?.autoSelectLocationTab && navigationContext?.targetLocationFilter) {
+    if (!hasAutoSelectedRef.current && navigationContext?.autoSelectLocationTab && navigationContext?.targetLocationFilter) {
+      hasAutoSelectedRef.current = true;
       const targetFilter = navigationContext.targetLocationFilter;
       
       // Check if the target filter exists in the country's locations
@@ -294,7 +297,9 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
     if (isSearchExpanded) {
       collapseSearch();
     }
-  }, [isSearchExpanded, collapseSearch]);
+    // AUTO-SCROLL: Scroll the tabs to make the selected filter visible
+    scrollToSelectedTab(filter);
+  }, [isSearchExpanded, collapseSearch, scrollToSelectedTab]);
 
   // PERFORMANCE: INSTANT tab switching - no delays
   const handleTabChange = useCallback((tab: PodTabType) => {
@@ -696,6 +701,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
               country={country}
               selectedLocationFilter={selectedLocationFilter}
               onLocationFilterChange={handleLocationFilterChange}
+              onTabChange={handleTabChange}
             />
           </View>
 

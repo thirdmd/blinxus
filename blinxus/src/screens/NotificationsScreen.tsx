@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { Bell, Heart, MessageCircle, UserPlus, Camera, Settings } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getTextStyles } from '../utils/responsive';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Notification {
   id: string;
@@ -60,6 +61,14 @@ export default function NotificationsScreen() {
   const themeColors = useThemeColors();
   const textStyles = getTextStyles();
   const [notifications, setNotifications] = useState(mockNotifications);
+
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
+      StatusBar.setBackgroundColor(themeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [themeColors.isDark, themeColors.background])
+  );
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

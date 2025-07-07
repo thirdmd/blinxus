@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo, useEffect } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, StatusBar, View, ScrollView, Animated, Dimensions } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -336,13 +336,21 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     navigation
   ]);
 
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
+      StatusBar.setBackgroundColor(themeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [themeColors.isDark, themeColors.background])
+  );
+
   return (
     <SafeAreaView style={{ 
       flex: 1, 
       backgroundColor: themeColors.background
     }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
         backgroundColor={themeColors.background}
       />
       {renderCurrentScreen()}

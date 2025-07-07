@@ -128,8 +128,8 @@ export default function CreatePost() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-        backgroundColor={themeColors.background} 
+        barStyle="light-content"
+        backgroundColor={themeColors.background}
       />
       
       {/* Header */}

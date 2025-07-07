@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useImperativeHandle } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useImperativeHandle, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { Search, Globe, ChevronRight, TrendingUp, Users, Plus, X, ArrowLeft, Bell, BellOff } from 'lucide-react-native';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
@@ -962,11 +963,19 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
+      StatusBar.setBackgroundColor(themeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [themeColors.isDark, themeColors.background])
+  );
+
   return (
     <PanGestureHandler onGestureEvent={onSwipeGesture} onHandlerStateChange={onSwipeGesture}>
       <View style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
         backgroundColor={themeColors.background}
       />
       {/* Fixed Header Section - No animation to keep it fixed */}

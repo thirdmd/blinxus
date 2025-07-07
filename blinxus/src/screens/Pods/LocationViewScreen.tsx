@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, Animated, StatusBar, SafeAreaView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import CountryViewScreen from './components/CountryViewScreen';
 import { PodTabType } from '../../types/structures/podsUIStructure';
@@ -80,10 +80,18 @@ const LocationViewScreen: React.FC = () => {
     setActiveTab(tab);
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
+      StatusBar.setBackgroundColor(themeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [themeColors.isDark, themeColors.background])
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <StatusBar 
-        barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
         backgroundColor={themeColors.background}
         translucent={false}
       />

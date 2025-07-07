@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { View, Animated, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { View, Animated, Dimensions, StatusBar } from 'react-native';
 import ProfileStructure from '../../types/structures/profile_structure';
 import { profileData } from '../../types/userData/profile_data';
 import { usePosts } from '../../store/PostsContext';
@@ -119,6 +119,15 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
     }, [])
   );
 
+  // Update status bar style based on theme when this screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
+      StatusBar.setBackgroundColor(themeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [themeColors.isDark, themeColors.background])
+  );
+
   // Clear feed params when navigating away from Profile
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {
@@ -139,6 +148,11 @@ const ProfileScreen = forwardRef<ProfileScreenRef>((props, ref) => {
 
   return (
     <View style={{ flex: 1 }}>
+      <StatusBar
+        barStyle={themeColors.isDark ? "light-content" : "dark-content"}
+        backgroundColor={themeColors.background}
+        translucent={false}
+      />
       <Animated.View 
         style={{ 
           flex: 1,

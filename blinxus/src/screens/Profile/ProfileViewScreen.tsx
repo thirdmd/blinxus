@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, Animated, Dimensions, StatusBar } from 'react-native';
 import ProfileStructure from '../../types/structures/profile_structure';
 import { profileData } from '../../types/userData/profile_data';
 import { usePosts } from '../../store/PostsContext';
 import ProfileSettings from '../Settings/profile_settings';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { createSettingsSlideInAnimation, createSettingsSlideOutAnimation } from '../../utils/animations';
 import NavigationManager from '../../utils/navigationManager';
@@ -67,6 +67,14 @@ const ProfileViewScreen: React.FC = () => {
       scrollRef: undefined // Scroll restoration will be handled by the previous screen
     });
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(themeColors.isDark ? "light-content" : "dark-content");
+      StatusBar.setBackgroundColor(themeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [themeColors.isDark, themeColors.background])
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.background }}>

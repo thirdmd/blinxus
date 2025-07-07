@@ -520,18 +520,23 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
+  // Ensure status bar always uses white text on black background when this screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle("light-content");
+      StatusBar.setBackgroundColor(exploreThemeColors.background);
+      StatusBar.setTranslucent(false);
+    }, [exploreThemeColors.background])
+  );
 
-
-  // Clean Grid Icon using Lucide
-  
   return (
     <PanGestureHandler onGestureEvent={onGestureEvent}>
       <View style={{ flex: 1, backgroundColor: exploreThemeColors.background }}> {/* CENTRALIZED: Always dark mode */}
-        {/* Translucent Status Bar - Content flows underneath */}
-        <StatusBar 
-          barStyle="light-content" 
-          backgroundColor="transparent" 
-          translucent={true}
+        {/* Status Bar - always visible white text on black background */}
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={exploreThemeColors.background}
+          translucent={false}
         />
         
         {/* Floating App Bar Overlays - Positioned absolutely over content */}
@@ -586,7 +591,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               source={require('../../../../assets/blinxus-logo.png')} 
               style={{ 
                 position: 'absolute',
-                left: rs(-35), // Move more to the left
+                left: rs(-30), // Move more to the left
                 top: rs(22), // MOVED HIGHER for more space (was -15)
                 width: ri(120), // Keep same size
                 height: ri(70), // Keep same size
