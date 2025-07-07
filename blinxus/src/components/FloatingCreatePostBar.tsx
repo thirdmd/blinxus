@@ -21,7 +21,7 @@ const FloatingCreatePostBar: React.FC<FloatingCreatePostBarProps> = ({
   return (
     <View style={{
       position: 'absolute',
-      bottom: insets.bottom + 16, // Proper spacing from bottom edge
+      bottom: 0, // Adjusted to make it flush with the bottom navigation bar
       left: 0,
       right: 0,
       backgroundColor: themeColors.background,

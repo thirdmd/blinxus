@@ -22,6 +22,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X, MessageCircle, Grid3X3, ShoppingBag, Calendar, HelpCircle } from 'lucide-react-native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { 
   PodThemeConfig, 
   PodTabType, 
@@ -42,6 +43,7 @@ interface CountryViewScreenProps {
   onLocationPress: (location: SubLocation) => void;
   onBack: () => void;
   theme: PodThemeConfig;
+  navigation?: NavigationProp<ParamListBase>;
   navigationContext?: {
     targetLocationFilter?: string;
     autoSelectLocationTab?: boolean;
@@ -61,6 +63,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   onLocationPress,
   onBack,
   theme,
+  navigation,
   navigationContext,
 }, ref) => {
   const themeColors = useThemeColors();
@@ -701,6 +704,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
             <PhotoFeed
               country={country}
               selectedLocationFilter={selectedLocationFilter}
+              navigation={navigation}
             />
           </View>
 

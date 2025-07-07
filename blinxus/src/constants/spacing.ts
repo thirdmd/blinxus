@@ -4,7 +4,7 @@ export const SPACING = {
   FILTER_TAGS_TO_POSTS: 8, // Space between filter tags and forum posts
   
   // FloatingCreatePostBar spacing
-  FLATLIST_BOTTOM_PADDING: 60, // Bottom padding for FlatLists to accommodate FloatingCreatePostBar
+  FLATLIST_BOTTOM_PADDING: 10, // Bottom padding for FlatLists to accommodate FloatingCreatePostBar height (paddingVertical 24 + input height 32 + border 0.5)
   
   // Other common spacings
   SECTION_MARGIN: 16,

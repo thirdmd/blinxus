@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo, useEffect } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, StatusBar, View, ScrollView, Animated, Dimensions } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -36,6 +36,7 @@ export interface PodsMainScreenRef {
 const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
   const themeColors = useThemeColors();
   const route = useRoute();
+  const navigation = useNavigation();
   const [navigationState, setNavigationState] = useState<PodsNavigationState>(createInitialPodsState());
   const [activeTab, setActiveTab] = useState<PodTabType>('Forum');
   
@@ -284,6 +285,7 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
                 onLocationPress={handleLocationPress}
                 onBack={handleBackToMain}
                 theme={podTheme}
+                navigation={navigation as any}
                 navigationContext={navigationState.navigationContext}
               />
             ) : (
@@ -330,7 +332,8 @@ const PodsMainScreen = forwardRef<PodsMainScreenRef>((props, ref) => {
     scrollKey,
     handleBackToCountry,
     containerTranslateX,
-    themeColors.background
+    themeColors.background,
+    navigation
   ]);
 
   return (
