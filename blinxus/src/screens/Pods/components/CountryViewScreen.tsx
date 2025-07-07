@@ -342,12 +342,6 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
             : 'rgba(0, 0, 0, 0.05)',
         }}
       >
-        <StatusBar 
-          barStyle={themeColors.isDark ? "light-content" : "dark-content"} 
-          backgroundColor={headerColor}
-          translucent={false}
-        />
-        
         {/* Navigation Bar */}
         <View 
           style={{

@@ -164,13 +164,16 @@ export class LocationNavigation {
 
         // Navigate to Pods with specific parameters
         // This will trigger the pods navigation system to show the country view
-        navigation.navigate('Pods', {
-          initialCountry: targetCountry.id,
-          initialLocation: targetLocation?.id || 'All',
-          navigationContext,
-          autoNavigateToCountry: true,
-          targetLocationFilter: targetLocation?.name || 'All',
-          autoSelectLocationTab: true // Flag to auto-select the specific location tab
+        navigation.navigate('MainTabs', {
+          screen: 'Pods',
+          params: {
+            initialCountry: targetCountry.id,
+            initialLocation: targetLocation?.id || 'All',
+            navigationContext,
+            autoNavigateToCountry: true,
+            targetLocationFilter: targetLocation?.name || 'All',
+            autoSelectLocationTab: true // Flag to auto-select the specific location tab
+          }
         });
 
       } catch (error) {
@@ -229,13 +232,16 @@ export class LocationNavigation {
     
     if (resolved.type === 'sublocation' && resolved.location && resolved.country) {
       // Navigate to specific sublocation
-      navigation.navigate('Pods', {
-        initialCountry: resolved.country.id,
-        initialLocation: resolved.location.id,
-        autoNavigateToCountry: true,
-        targetLocationFilter: resolved.location.name,
-        autoSelectLocationTab: true,
-        initialTab: initialTab
+      navigation.navigate('MainTabs', {
+        screen: 'Pods',
+        params: {
+          initialCountry: resolved.country.id,
+          initialLocation: resolved.location.id,
+          autoNavigateToCountry: true,
+          targetLocationFilter: resolved.location.name,
+          autoSelectLocationTab: true,
+          initialTab: initialTab
+        }
       });
       
       if (debugMode) {
@@ -245,13 +251,16 @@ export class LocationNavigation {
       
     } else if (resolved.type === 'country' && resolved.country) {
       // Navigate to country-level
-      navigation.navigate('Pods', {
-        initialCountry: resolved.country.id,
-        initialLocation: 'All',
-        autoNavigateToCountry: true,
-        targetLocationFilter: 'All',
-        autoSelectLocationTab: true,
-        initialTab: initialTab
+      navigation.navigate('MainTabs', {
+        screen: 'Pods',
+        params: {
+          initialCountry: resolved.country.id,
+          initialLocation: 'All',
+          autoNavigateToCountry: true,
+          targetLocationFilter: 'All',
+          autoSelectLocationTab: true,
+          initialTab: initialTab
+        }
       });
       
       if (debugMode) {
@@ -291,11 +300,28 @@ export class LocationNavigation {
    * Navigate to Forum for a specific location
    * @param navigation - React Navigation instance
    * @param locationName - Name of the location
+   * @param fromScreen - The screen navigating from (for proper back navigation)
    */
-  static navigateToForum(navigation: any, locationName: string): boolean {
-    return this.navigateToLocation(navigation, locationName, {
-      initialTab: 'Forum'
-    });
+  static navigateToForum(navigation: any, locationName: string, fromScreen: string = 'Unknown'): boolean {
+    if (!locationName) {
+      console.warn('[LOCATION NAVIGATION] No location name provided');
+      return false;
+    }
+
+    try {
+      // Navigate to LocationViewScreen for proper stack navigation
+      navigation.navigate('LocationView', {
+        location: locationName,
+        fromScreen: fromScreen,
+        scrollPosition: 0
+      });
+      
+      console.log(`[LOCATION NAVIGATION] Navigated to LocationView with location: ${locationName}`);
+      return true;
+    } catch (error) {
+      console.warn('Failed to navigate to location view:', error);
+      return false;
+    }
   }
 
   /**

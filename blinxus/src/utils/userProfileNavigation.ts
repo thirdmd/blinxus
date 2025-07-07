@@ -45,8 +45,11 @@ export class UserProfileNavigation {
       const slideInAnimation = new Animated.Value(100); // Start slightly off-screen
       const fadeInAnimation = new Animated.Value(0.8); // Start slightly faded
       
-      // Navigate to current user's Profile screen with animations
-      (navigation as any).navigate('Profile', {
+      // Navigate to ProfileViewScreen for proper stack navigation
+      // This ensures back navigation works correctly
+      (navigation as any).navigate('ProfileView', {
+        userId: userId,
+        username: username,
         fromFeed: true,
         previousScreen: fromScreen,
         scrollPosition: scrollPosition,

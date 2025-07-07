@@ -12,7 +12,7 @@ import { useScrollContext } from '../../contexts/ScrollContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useSettings } from '../../contexts/SettingsContext';
 import TravelFeedCard from '../../components/TravelFeedCard';
-import FullscreenView from '../../components/FullscreenView';
+
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getImmersiveScreenDimensions } from '../../utils/responsive';
 import { 
   createAnimationValues, 
@@ -21,7 +21,8 @@ import {
   createPageSlideInAnimation,
   createPageSlideOutAnimation
 } from '../../utils/animations';
-import useFullscreenManager from '../../hooks/useFullscreenManager';
+
+import { ImmersiveNavigation } from '../../utils/immersiveNavigation';
 
 
 const { width, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -82,8 +83,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // TextInput ref for programmatic focus
   const searchInputRef = useRef<TextInput>(null);
   
-  // Centralized fullscreen management
-  const fullscreenManager = useFullscreenManager();
+
   
   const lastScrollY = useRef(0);
   
@@ -121,11 +121,6 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
   // Expose reset function for double-tap
   useImperativeHandle(ref, () => ({
     resetToAll: () => {
-      // Exit fullscreen mode if active
-      if (fullscreenManager.isFullscreen) {
-        fullscreenManager.exitFullscreen();
-      }
-      
       // Exit media mode and reset to normal view
       setIsMediaMode(false);
       setSelectedFilter('all');
@@ -171,13 +166,10 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
       return isMediaMode;
     },
     isInFullscreenMode: () => {
-      return fullscreenManager.isFullscreen;
+      return false; // No longer using fullscreen manager
     },
     exitFullscreenOnly: () => {
-      // Only exit fullscreen mode
-      if (fullscreenManager.isFullscreen) {
-        fullscreenManager.exitFullscreen();
-      }
+      // No longer using fullscreen manager
     },
     directResetFromFullscreen: () => {
       // 🚀 RADICAL DIRECT TRANSITION: Skip grid view completely
@@ -204,10 +196,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
       mediaScrollPositions.current = {};
       
       // Step 4: INSTANT EXIT - No animation, direct transition
-      if (fullscreenManager.isFullscreen) {
-        // Use instant exit instead of animated exit for buttery smooth transition
-        fullscreenManager.instantExit();
-      }
+      // No longer using fullscreen manager
       
       // Step 5: Ensure scroll position is at top immediately
       setTimeout(() => {
@@ -495,28 +484,21 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
     }
   };
 
-  // MEMORY OPTIMIZATION: Memoize handlers - ULTRA SMOOTH like Profile with animation
+  // MEMORY OPTIMIZATION: Memoize handlers - Using immersive navigation
   const handleMediaItemPress = useCallback((post: PostCardProps) => {
-    // Store current scroll position before entering fullscreen - DIRECT like Profile
-    const currentOffset = mediaScrollPositionRef.current;
-    setMediaScrollPosition(currentOffset);
-    
-    // Use centralized fullscreen manager
-    fullscreenManager.handlePostPress(post, postsWithImages, {
-      screenName: 'Explore',
-      feedContext: 'explore',
-      scrollPosition: currentOffset,
-      setScrollPosition: setMediaScrollPosition,
-      scrollRef: mediaScrollRef
-    });
-  }, [postsWithImages, fullscreenManager]);
+    if (navigation) {
+      // Use immersive navigation for TikTok-style experience
+      ImmersiveNavigation.navigateFromPostInList(navigation as any, postsWithImages, post, 'Explore');
+    }
+  }, [postsWithImages, navigation]);
 
-  // Handle travel details popup
+  // Handle travel details popup - Using immersive navigation
   const handleShowTravelDetails = useCallback((post: PostCardProps) => {
-    // Travel details are now handled within TravelFeedCard component
-    // This function is kept for compatibility but doesn't need to do anything
-    // since TravelFeedCard handles its own detail view internally
-  }, []);
+    if (navigation) {
+      // Use immersive navigation for TikTok-style experience
+      ImmersiveNavigation.navigateFromPostInList(navigation as any, filteredPosts, post, 'Feed');
+    }
+  }, [filteredPosts, navigation]);
 
   // Create activity key mapping for filter functionality
   const createActivityKeyMap = () => {
@@ -538,21 +520,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
 
   const activityKeyMap = createActivityKeyMap();
 
-  // Show fullscreen modal when active
-  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
-    return (
-      <FullscreenView
-        visible={fullscreenManager.isFullscreen}
-        posts={fullscreenManager.currentConfig.posts}
-        selectedPostIndex={fullscreenManager.selectedPostIndex}
-        animationValues={fullscreenManager.animationValues}
-        config={fullscreenManager.currentConfig}
-        onBack={fullscreenManager.exitFullscreen}
-        onLucidPress={fullscreenManager.handleLucidPress}
-        navigation={navigation as any}
-      />
-    );
-  }
+
 
   // Clean Grid Icon using Lucide
   
@@ -569,8 +537,8 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
         {/* Floating App Bar Overlays - Positioned absolutely over content */}
         {isMediaMode ? (
           <>
-                         {/* Back button when in media mode - Floating overlay */}
-             <TouchableOpacity 
+            {/* Back button when in media mode - Floating overlay */}
+            <TouchableOpacity 
                onPress={exitMediaMode}
                style={{ 
                  position: 'absolute',
@@ -590,26 +558,26 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               <ChevronLeft size={ri(20)} color="white" strokeWidth={2} />
             </TouchableOpacity>
             
-                         {/* Search Icon - Circular with black background at right corner */}
-             <TouchableOpacity 
-               onPress={openSearchModal}
-               style={{
-                 position: 'absolute',
-                 top: immersiveDimensions.topOverlayPosition, // Same position as back button
-                 right: rs(16), // Right corner (opposite of back button)
-                width: rs(32), // Same size as back button
-                height: rs(32), // Same size as back button
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: rs(16), // CIRCULAR background
-                backgroundColor: 'rgba(0, 0, 0, 0.3)', // Same black background as back button
-                opacity: 1.0, // ALWAYS VISIBLE
-                zIndex: 1000, // High z-index to float over content
-              }}
-              activeOpacity={0.7}
-            >
-              <Search size={ri(20)} color="white" strokeWidth={2} />
-            </TouchableOpacity>
+            {/* Search Icon - Circular with black background at right corner */}
+            <TouchableOpacity 
+              onPress={openSearchModal}
+              style={{
+                position: 'absolute',
+                top: immersiveDimensions.topOverlayPosition, // Same position as back button
+                right: rs(16), // Right corner (opposite of back button)
+               width: rs(32), // Same size as back button
+               height: rs(32), // Same size as back button
+               alignItems: 'center', 
+               justifyContent: 'center',
+               borderRadius: rs(16), // CIRCULAR background
+               backgroundColor: 'rgba(0, 0, 0, 0.3)', // Same black background as back button
+               opacity: 1.0, // ALWAYS VISIBLE
+               zIndex: 1000, // High z-index to float over content
+             }}
+             activeOpacity={0.7}
+           >
+             <Search size={ri(20)} color="white" strokeWidth={2} />
+           </TouchableOpacity>
           </>
         ) : (
           <>
@@ -628,30 +596,30 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
               resizeMode="contain" // Maintains aspect ratio
             />
             
-                         {/* Grid icon - Floating overlay - MOVED HIGHER */}
-             <TouchableOpacity
-               onPress={enterMediaMode}
-               style={{ 
-                 position: 'absolute',
-                 top: rs(46), // Fixed: Use whole number instead of 45.5
-                 right: rs(8), // Fixed: Use whole number instead of 9
-                 width: rs(32), // Smaller size
-                 height: rs(32), // Smaller size
-                 alignItems: 'center', 
-                 justifyContent: 'center',
-                 borderRadius: rs(8), // Smaller border radius
-                 // Remove backgroundColor - no black border/background
-                 opacity: scrollY > 30 ? 0 : 1,
-                 zIndex: 1000, // High z-index to float over content
-               }}
-               activeOpacity={0.7}
-             >
-               <Grid3X3 
-                 size={ri(24)} // Smaller icon
-                 color="white" 
-                 strokeWidth={2} 
-               />
-             </TouchableOpacity>
+            {/* Grid icon - Floating overlay - MOVED HIGHER */}
+            <TouchableOpacity
+              onPress={enterMediaMode}
+              style={{ 
+                position: 'absolute',
+                top: rs(46), // Fixed: Use whole number instead of 45.5
+                right: rs(8), // Fixed: Use whole number instead of 9
+                width: rs(32), // Smaller size
+                height: rs(32), // Smaller size
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderRadius: rs(8), // Smaller border radius
+                // Remove backgroundColor - no black border/background
+                opacity: scrollY > 30 ? 0 : 1,
+                zIndex: 1000, // High z-index to float over content
+              }}
+              activeOpacity={0.7}
+            >
+              <Grid3X3 
+                size={ri(24)} // Smaller icon
+                color="white" 
+                strokeWidth={2} 
+              />
+            </TouchableOpacity>
           </>
         )}
 
@@ -687,276 +655,276 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                     paddingHorizontal: rs(16),
                     backgroundColor: exploreThemeColors.background,
                   }}>
-                                {/* Search Bar - Rectangle with soft edges */}
-                  <TouchableWithoutFeedback>
-                    <View style={{
-                      flex: 1,
-                      backgroundColor: exploreThemeColors.backgroundSecondary,
-                      borderRadius: rs(8), // Soft rectangle edges - matching grid view
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: rs(10),
-                      height: rs(32), // Thinner search bar - matching grid view
-                      marginRight: rs(12),
-                    }}>
-                      <Search size={ri(16)} color={exploreThemeColors.textSecondary} strokeWidth={2} />
-                      <TextInput
-                        value={searchQuery}
-                        onChangeText={handleSearchChange}
-                        placeholder="Search"
-                        placeholderTextColor={exploreThemeColors.textSecondary}
-                        style={{
-                          flex: 1,
-                          marginLeft: rs(8),
-                          fontSize: rf(14),
-                          color: exploreThemeColors.text,
-                          fontWeight: '400',
-                          fontFamily: 'System',
-                        }}
-                        returnKeyType="search"
-                        autoFocus={false}
-                        clearButtonMode="while-editing"
-                        ref={searchInputRef}
-                        blurOnSubmit={false}
-                      />
-                    </View>
-                  </TouchableWithoutFeedback>
-              
-                                {/* Cancel Button */}
-                  <TouchableWithoutFeedback>
-                    <View>
-                      <TouchableOpacity
-                        onPress={closeSearchModal}
-                        style={{
-                          paddingVertical: rs(8),
-                          paddingHorizontal: rs(4),
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={{
-                          fontSize: rf(16),
-                          color: exploreThemeColors.text,
-                          fontWeight: '400',
-                          fontFamily: 'System',
-                        }}>
-                          Cancel
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </TouchableWithoutFeedback>
-            </View>
-            
-            {/* Search Content */}
-            <View style={{ flex: 1 }}>
-              {searchQuery.length === 0 ? (
-                // Search homepage with recent searches and trending
-                <ScrollView 
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  style={{ flex: 1 }}
-                >
-                  {/* Recent searches section - MOCK DATA (easy to replace for scale) */}
-                  {[
-                    'Boracay beaches', 
-                    'Tokyo street food', 
-                    'Baguio hiking trails'
-                  ].map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleSuggestionSelect(item)}
-                      style={{
+                    {/* Search Bar - Rectangle with soft edges */}
+                    <TouchableWithoutFeedback>
+                      <View style={{
+                        flex: 1,
+                        backgroundColor: exploreThemeColors.backgroundSecondary,
+                        borderRadius: rs(8), // Soft rectangle edges - matching grid view
                         flexDirection: 'row',
                         alignItems: 'center',
-                        paddingHorizontal: rs(20),
-                        paddingVertical: rs(16),
-                        borderBottomWidth: rs(0.5),
-                        borderBottomColor: exploreThemeColors.border,
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      {/* Recent icon */}
-                      <Clock 
-                        size={ri(20)} 
-                        color={exploreThemeColors.textSecondary} 
-                        strokeWidth={1.5}
-                        style={{ marginRight: rs(16) }}
-                      />
-                      
-                      {/* Search term */}
-                      <Text style={{
-                        flex: 1,
-                        fontSize: rf(14),
-                        color: exploreThemeColors.text,
-                        fontWeight: '400',
-                        fontFamily: 'System',
+                        paddingHorizontal: rs(10),
+                        height: rs(32), // Thinner search bar - matching grid view
+                        marginRight: rs(12),
                       }}>
-                        {item}
-                      </Text>
-                      
-                      {/* X button */}
-                      <TouchableOpacity
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          // Handle remove recent search
-                        }}
-                        style={{
-                          width: rs(24),
-                          height: rs(24),
-                          borderRadius: rs(12),
-                                                  backgroundColor: exploreThemeColors.backgroundSecondary,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={{
-                          fontSize: rf(14),
-                          color: exploreThemeColors.textSecondary,
-                          fontWeight: '500',
-                          fontFamily: 'System',
-                        }}>
-                          ×
-                        </Text>
-                      </TouchableOpacity>
-                    </TouchableOpacity>
-                  ))}
+                        <Search size={ri(16)} color={exploreThemeColors.textSecondary} strokeWidth={2} />
+                        <TextInput
+                          value={searchQuery}
+                          onChangeText={handleSearchChange}
+                          placeholder="Search"
+                          placeholderTextColor={exploreThemeColors.textSecondary}
+                          style={{
+                            flex: 1,
+                            marginLeft: rs(8),
+                            fontSize: rf(14),
+                            color: exploreThemeColors.text,
+                            fontWeight: '400',
+                            fontFamily: 'System',
+                          }}
+                          returnKeyType="search"
+                          autoFocus={false}
+                          clearButtonMode="while-editing"
+                          ref={searchInputRef}
+                          blurOnSubmit={false}
+                        />
+                      </View>
+                    </TouchableWithoutFeedback>
+              
+                    {/* Cancel Button */}
+                    <TouchableWithoutFeedback>
+                      <View>
+                        <TouchableOpacity
+                          onPress={closeSearchModal}
+                          style={{
+                            paddingVertical: rs(8),
+                            paddingHorizontal: rs(4),
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={{
+                            fontSize: rf(16),
+                            color: exploreThemeColors.text,
+                            fontWeight: '400',
+                            fontFamily: 'System',
+                          }}>
+                            Cancel
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </View>
                   
-                  {/* Trending Today section */}
-                  <View style={{ 
-                    paddingTop: rs(32),
-                    paddingBottom: rs(20),
-                  }}>
-                    <Text style={{
-                      fontSize: rf(20),
-                      fontWeight: '600',
-                      color: exploreThemeColors.text,
-                      fontFamily: 'System',
-                      paddingHorizontal: rs(20),
-                      marginBottom: rs(20),
-                    }}>
-                      Trending Today
-                    </Text>
-                    
-                    {/* Trending posts - using real posts data */}
-                    {posts.slice(0, 6).map((post, index) => (
-                      <TouchableOpacity
-                        key={post.id}
-                        onPress={() => handleSuggestionSelect(post.location || post.activity || 'Trending')}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          paddingHorizontal: rs(20),
-                          paddingVertical: rs(12),
-                        }}
-                        activeOpacity={0.7}
+                  {/* Search Content */}
+                  <View style={{ flex: 1 }}>
+                    {searchQuery.length === 0 ? (
+                      // Search homepage with recent searches and trending
+                      <ScrollView 
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                        style={{ flex: 1 }}
                       >
-                        {/* Post thumbnail */}
-                        <View style={{
-                          width: rs(60),
-                          height: rs(60),
-                          borderRadius: rs(8),
-                          backgroundColor: exploreThemeColors.backgroundSecondary,
-                          marginRight: rs(12),
-                          overflow: 'hidden',
-                        }}>
-                          {post.images && post.images[0] ? (
-                            <Image
-                              source={{ uri: post.images[0] }}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                              }}
-                              resizeMode="cover"
-                            />
-                          ) : (
-                            <View style={{
-                              width: '100%',
-                              height: '100%',
-                              backgroundColor: exploreThemeColors.backgroundSecondary,
+                        {/* Recent searches section - MOCK DATA (easy to replace for scale) */}
+                        {[
+                          'Boracay beaches', 
+                          'Tokyo street food', 
+                          'Baguio hiking trails'
+                        ].map((item, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => handleSuggestionSelect(item)}
+                            style={{
+                              flexDirection: 'row',
                               alignItems: 'center',
-                              justifyContent: 'center',
+                              paddingHorizontal: rs(20),
+                              paddingVertical: rs(16),
+                              borderBottomWidth: rs(0.5),
+                              borderBottomColor: exploreThemeColors.border,
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            {/* Recent icon */}
+                            <Clock 
+                              size={ri(20)} 
+                              color={exploreThemeColors.textSecondary} 
+                              strokeWidth={1.5}
+                              style={{ marginRight: rs(16) }}
+                            />
+                            
+                            {/* Search term */}
+                            <Text style={{
+                              flex: 1,
+                              fontSize: rf(14),
+                              color: exploreThemeColors.text,
+                              fontWeight: '400',
+                              fontFamily: 'System',
                             }}>
+                              {item}
+                            </Text>
+                            
+                            {/* X button */}
+                            <TouchableOpacity
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                // Handle remove recent search
+                              }}
+                              style={{
+                                width: rs(24),
+                                height: rs(24),
+                                borderRadius: rs(12),
+                                backgroundColor: exploreThemeColors.backgroundSecondary,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                              activeOpacity={0.7}
+                            >
                               <Text style={{
-                                fontSize: rf(12),
+                                fontSize: rf(14),
                                 color: exploreThemeColors.textSecondary,
                                 fontWeight: '500',
                                 fontFamily: 'System',
                               }}>
-                                {post.activity?.charAt(0) || 'T'}
+                                ×
                               </Text>
-                            </View>
-                          )}
-                        </View>
+                            </TouchableOpacity>
+                          </TouchableOpacity>
+                        ))}
                         
-                        {/* Post content */}
-                        <View style={{ flex: 1 }}>
+                        {/* Trending Today section */}
+                        <View style={{ 
+                          paddingTop: rs(32),
+                          paddingBottom: rs(20),
+                        }}>
                           <Text style={{
-                            fontSize: rf(16),
-                            color: '#007AFF',
-                            fontWeight: '400',
+                            fontSize: rf(20),
+                            fontWeight: '600',
+                            color: exploreThemeColors.text,
                             fontFamily: 'System',
-                            marginBottom: rs(2),
+                            paddingHorizontal: rs(20),
+                            marginBottom: rs(20),
                           }}>
-                            {post.location || post.activity || 'Trending Post'}
+                            Trending Today
                           </Text>
-                          <Text 
+                          
+                          {/* Trending posts - using real posts data */}
+                          {posts.slice(0, 6).map((post, index) => (
+                            <TouchableOpacity
+                              key={post.id}
+                              onPress={() => handleSuggestionSelect(post.location || post.activity || 'Trending')}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingHorizontal: rs(20),
+                                paddingVertical: rs(12),
+                              }}
+                              activeOpacity={0.7}
+                            >
+                              {/* Post thumbnail */}
+                              <View style={{
+                                width: rs(60),
+                                height: rs(60),
+                                borderRadius: rs(8),
+                                backgroundColor: exploreThemeColors.backgroundSecondary,
+                                marginRight: rs(12),
+                                overflow: 'hidden',
+                              }}>
+                                {post.images && post.images[0] ? (
+                                  <Image
+                                    source={{ uri: post.images[0] }}
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                    }}
+                                    resizeMode="cover"
+                                  />
+                                ) : (
+                                  <View style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: exploreThemeColors.backgroundSecondary,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}>
+                                    <Text style={{
+                                      fontSize: rf(12),
+                                      color: exploreThemeColors.textSecondary,
+                                      fontWeight: '500',
+                                      fontFamily: 'System',
+                                    }}>
+                                      {post.activity?.charAt(0) || 'T'}
+                                    </Text>
+                                  </View>
+                                )}
+                              </View>
+                              
+                              {/* Post content */}
+                              <View style={{ flex: 1 }}>
+                                <Text style={{
+                                  fontSize: rf(16),
+                                  color: '#007AFF',
+                                  fontWeight: '400',
+                                  fontFamily: 'System',
+                                  marginBottom: rs(2),
+                                }}>
+                                  {post.location || post.activity || 'Trending Post'}
+                                </Text>
+                                <Text 
+                                  style={{
+                                    fontSize: rf(14),
+                                    color: exploreThemeColors.textSecondary,
+                                    fontWeight: '400',
+                                    fontFamily: 'System',
+                                  }}
+                                  numberOfLines={2}
+                                >
+                                  {post.content && post.content.length > 60 
+                                    ? post.content.substring(0, 60) + '...' 
+                                    : (post.content || 'Trending content')
+                                  }
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    ) : (
+                      // Search suggestions dropdown
+                      <ScrollView 
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                        style={{ flex: 1 }}
+                      >
+                        {searchSuggestions.map((suggestion, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => handleSuggestionSelect(suggestion)}
                             style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              paddingHorizontal: rs(20),
+                              paddingVertical: rs(12),
+                              borderBottomWidth: index < searchSuggestions.length - 1 ? rs(0.5) : 0,
+                              borderBottomColor: exploreThemeColors.border,
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <Search 
+                              size={ri(16)} 
+                              color={exploreThemeColors.textSecondary} 
+                              strokeWidth={1.5} 
+                            />
+                            <Text style={{
+                              marginLeft: rs(12),
                               fontSize: rf(14),
-                              color: exploreThemeColors.textSecondary,
+                              color: exploreThemeColors.text,
                               fontWeight: '400',
                               fontFamily: 'System',
-                            }}
-                            numberOfLines={2}
-                          >
-                            {post.content && post.content.length > 60 
-                              ? post.content.substring(0, 60) + '...' 
-                              : (post.content || 'Trending content')
-                            }
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </ScrollView>
-              ) : (
-                // Search suggestions dropdown
-                <ScrollView 
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  style={{ flex: 1 }}
-                >
-                  {searchSuggestions.map((suggestion, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleSuggestionSelect(suggestion)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: rs(20),
-                        paddingVertical: rs(12),
-                        borderBottomWidth: index < searchSuggestions.length - 1 ? rs(0.5) : 0,
-                        borderBottomColor: exploreThemeColors.border,
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Search 
-                        size={ri(16)} 
-                        color={exploreThemeColors.textSecondary} 
-                        strokeWidth={1.5} 
-                      />
-                      <Text style={{
-                        marginLeft: rs(12),
-                        fontSize: rf(14),
-                        color: exploreThemeColors.text,
-                        fontWeight: '400',
-                        fontFamily: 'System',
-                      }}>
-                        {suggestion}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
+                            }}>
+                              {suggestion}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    )}
                   </View>
                 </View>
               </TouchableWithoutFeedback>

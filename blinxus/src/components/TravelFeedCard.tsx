@@ -23,11 +23,8 @@ interface TravelFeedCardProps extends PostCardProps {
   onReset?: () => void;
   isVisible?: boolean;
   onLucidPress?: () => void;
-  appBarElementsVisible?: boolean; // NEW: Whether app bar elements (logo, grid) are visible
-  cardIndex?: number; // NEW: Card index for alignment logic
-  isInModal?: boolean; // NEW: Whether card is displayed in modal context
-  navigation?: NavigationProp<ParamListBase>; // NEW: Optional navigation prop for modal context
-  onModalDismiss?: () => void; // NEW: Callback to dismiss modal
+  appBarElementsVisible?: boolean; // Whether app bar elements (logo, grid) are visible
+  cardIndex?: number; // Card index for alignment logic
 }
 
 const { width: screenWidth, height: screenHeight } = RESPONSIVE_SCREEN;
@@ -425,29 +422,20 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   onReset,
   isVisible,
   onLucidPress,
-  appBarElementsVisible = false, // NEW: Default to false (app bar elements hidden)
-  cardIndex = 0, // NEW: Default to 0
-  isInModal = false, // NEW: Default to false (not in modal)
-  navigation,
-  onModalDismiss
+  appBarElementsVisible = false, // Default to false (app bar elements hidden)
+  cardIndex = 0 // Default to 0
 }) => {
   const { deletePost, editPost, likePost, unlikePost, addComment } = usePosts();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
   const { likePost: userLikePost, unlikePost: userUnlikePost, isPostLiked } = useLikedPosts();
   
-  // RADICAL FIX: Use prop navigation if available, otherwise use hook with error handling
+  // Use navigation hook with error handling
   let finalNavigation;
-  if (navigation) {
-    // Use passed navigation prop (for modal context)
-    finalNavigation = navigation;
-  } else {
-    // Use hook navigation (for normal context)
-    try {
-      finalNavigation = useNavigation();
-    } catch (error) {
-      console.warn('Navigation hook failed in TravelFeedCard:', error);
-      finalNavigation = null;
-    }
+  try {
+    finalNavigation = useNavigation();
+  } catch (error) {
+    console.warn('Navigation hook failed in TravelFeedCard:', error);
+    finalNavigation = null;
   }
   
   const themeColors = useThemeColors();
@@ -610,36 +598,16 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     }
     
     try {
-      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
-      // so navigation happens on top instead of underneath the modal
-      if (isInModal && onModalDismiss) {
-        // Close the modal first, then navigate
-        onModalDismiss(); // This properly closes the modal
-        
-        // Wait for modal to close, then navigate to profile
-        setTimeout(() => {
-          try {
-            const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'Explore');
-            handleTravelFeedProfile({
-              authorId,
-              authorName
-            });
-          } catch (error) {
-            console.warn('Delayed profile navigation failed:', error);
-          }
-        }, 300); // Wait for modal close animation
-      } else {
-        // Normal context - navigate directly
-        const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'Explore');
-        handleTravelFeedProfile({
-          authorId,
-          authorName
-        });
-      }
+      // Navigate directly to profile
+      const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'ImmersiveFeed');
+      handleTravelFeedProfile({
+        authorId,
+        authorName
+      });
     } catch (error) {
       console.warn('Profile navigation failed:', error);
     }
-  }, [authorName, authorId, finalNavigation, isInModal, onModalDismiss]);
+  }, [authorName, authorId, finalNavigation]);
 
   // CENTRALIZED: Location navigation to Pods Forum - UNIVERSAL SYSTEM
   const handleLocationPress = useCallback(() => {
@@ -657,30 +625,13 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       const resolved = resolveLocationForNavigation(location);
       console.log(`[DEBUG] Location resolved:`, resolved);
       
-      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
-      // so navigation happens on top instead of underneath the modal
-      if (isInModal && onModalDismiss) {
-        // Close the modal first, then navigate
-        onModalDismiss(); // This properly closes the modal
-        
-        // Wait for modal to close, then navigate to location
-        setTimeout(() => {
-          try {
-            const success = LocationNavigation.navigateToForum(finalNavigation, location);
-            console.log(`[DEBUG] Delayed navigation success:`, success);
-          } catch (error) {
-            console.warn('Delayed location navigation failed:', error);
-          }
-        }, 300); // Wait for modal close animation
-      } else {
-        // Normal context - navigate directly
-        const success = LocationNavigation.navigateToForum(finalNavigation, location);
-        console.log(`[DEBUG] Navigation success:`, success);
-      }
+      // Navigate directly to location with proper fromScreen context
+      const success = LocationNavigation.navigateToForum(finalNavigation, location, 'ImmersiveFeed');
+      console.log(`[DEBUG] Navigation success:`, success);
     } catch (error) {
       console.warn('Location navigation failed:', error);
     }
-  }, [location, finalNavigation, isInModal, onModalDismiss]);
+  }, [location, finalNavigation]);
 
   // Add ref for debouncing likes
   const lastLikeTime = useRef(0);
@@ -1024,16 +975,18 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         {/* Name, Flag and Location */}
         <View>
           <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.5}>
-            <Text style={{
-              color: 'white',
-              fontSize: typography.userName,
-              fontWeight: '600',
-              fontFamily: 'System',
-              textShadowColor: 'rgba(0,0,0,0.7)',
-              textShadowOffset: { width: 0, height: rs(1) },
-              textShadowRadius: rs(3)
-            }}>
-              {authorName} {authorNationalityFlag}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{
+                color: 'white',
+                fontSize: typography.userName,
+                fontWeight: '600',
+                fontFamily: 'System',
+                textShadowColor: 'rgba(0,0,0,0.7)',
+                textShadowOffset: { width: 0, height: rs(1) },
+                textShadowRadius: rs(3)
+              }}>
+                {authorName} {authorNationalityFlag || ''}
+              </Text>
               {isLucid && (
                 <Text style={{
                   fontSize: typography.caption,
@@ -1045,10 +998,10 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                   textShadowOffset: { width: 0, height: rs(1) },
                   textShadowRadius: rs(3)
                 }}>
-                  {' '}• LUCID
+                  • LUCID
                 </Text>
               )}
-            </Text>
+            </View>
           </TouchableOpacity>
           {/* Location Pill with Activity Color - CENTRALIZED Navigation */}
           <View style={{ marginTop: rs(4), flexDirection: 'row', alignItems: 'center' }}>
@@ -1084,7 +1037,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
                   textShadowRadius: isLucid ? rs(3) : (postData.activityColor ? 0 : rs(3))
                 }}
               >
-{postData.location}
+                {postData.location}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1279,9 +1232,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         onShare={handleShare}
         onSave={handleSave}
         onLike={handleLike}
-        isInModal={isInModal} // Pass modal context
         navigation={finalNavigation as any} // Cast to any to handle type complexity
-        onModalDismiss={onModalDismiss} // Pass modal dismiss callback
       />
 
       {/* Fullscreen Image Modal - Triggered by rotation */}

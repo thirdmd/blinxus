@@ -23,11 +23,10 @@ import { mapPostToCardProps, PostCardProps } from '../../types/structures/posts_
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 
-import FullscreenView from '../../components/FullscreenView';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
 import { getResponsiveDimensions, getTypographyScale, getSpacingScale, ri, rs, rf, RESPONSIVE_SCREEN, getTextStyles } from '../../utils/responsive';
-import useFullscreenManager from '../../hooks/useFullscreenManager';
+import { ImmersiveNavigation } from '../../utils/immersiveNavigation';
 import NavigationManager from '../../utils/navigationManager';
 import FilterPills from '../../components/FilterPills';
 import UserProfileNavigation from '../../utils/userProfileNavigation';
@@ -50,7 +49,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
   const [activeTab, setActiveTab] = useState<'recent' | 'activities' | 'map'>('recent');
   
   // Centralized fullscreen management
-  const fullscreenManager = useFullscreenManager();
+
   
   // State for feed context and category selection
   const [feedContext, setFeedContext] = useState<'recent' | 'activities'>('recent');
@@ -126,49 +125,28 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     });
   };
 
-  // Handle post press with centralized fullscreen manager
+  // Handle post press with centralized navigation
   const handlePostPress = (post: PostCardProps, context: 'recent' | 'activities', categoryName?: string) => {
-    // Store current scroll position
-    if (context === 'recent') {
-      const currentOffset = recentScrollPositionRef.current;
-      setRecentScrollPosition(currentOffset);
-    }
-    
     let postsToShow: PostCardProps[];
-    let scrollRef: React.RefObject<any>;
-    let scrollPosition: number;
     
     if (context === 'recent') {
       postsToShow = sortedByRecent;
-      scrollRef = recentScrollRef;
-      scrollPosition = recentScrollPosition;
     } else if (context === 'activities' && categoryName) {
       // For activities tab, only show posts from the specific category
       postsToShow = getPostsForActivity(categoryName);
       setSelectedActivityCategory(categoryName);
-      scrollRef = activitiesScrollRef;
-      scrollPosition = activitiesScrollPosition;
     } else {
       // Fallback to all activity posts
       postsToShow = allActivityPosts;
       setSelectedActivityCategory(null);
-      scrollRef = activitiesScrollRef;
-      scrollPosition = activitiesScrollPosition;
     }
     
     setFeedContext(context);
     
-    // Use centralized fullscreen manager
-    fullscreenManager.handlePostPress(post, postsToShow, {
-      screenName: 'Library',
-      feedContext: context,
-      scrollPosition,
-      setScrollPosition: context === 'recent' ? setRecentScrollPosition : setActivitiesScrollPosition,
-      scrollRef,
-      onBackCustom: () => {
-        setSelectedActivityCategory(null); // Reset category selection
-      }
-    });
+    // Use immersive navigation
+    if (navigation) {
+      ImmersiveNavigation.navigateFromPostInList(navigation as any, postsToShow, post, 'Library');
+    }
   };
 
   // Handle activity selection
@@ -442,33 +420,7 @@ export default function Library({ onBackPress }: LibraryProps = {}) {
     );
   };
 
-  // Show fullscreen modal when active
-  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
-    let postsToShow: PostCardProps[];
-    
-    if (feedContext === 'recent') {
-      postsToShow = sortedByRecent;
-    } else if (feedContext === 'activities' && selectedActivityCategory) {
-      // For activities tab with specific category, only show posts from that category
-      postsToShow = getPostsForActivity(selectedActivityCategory);
-    } else {
-      // Fallback to all activity posts
-      postsToShow = allActivityPosts;
-    }
 
-    return (
-      <FullscreenView
-        visible={fullscreenManager.isFullscreen}
-        posts={postsToShow}
-        selectedPostIndex={fullscreenManager.selectedPostIndex}
-        animationValues={fullscreenManager.animationValues}
-        config={fullscreenManager.currentConfig}
-        onBack={fullscreenManager.exitFullscreen}
-        onLucidPress={fullscreenManager.handleLucidPress}
-        navigation={navigation}
-      />
-    );
-  }
 
   // Otherwise render the main library screen
   return (

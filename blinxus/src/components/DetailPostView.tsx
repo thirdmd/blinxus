@@ -33,9 +33,7 @@ interface DetailPostViewProps {
   onShare: () => void;
   onSave: () => void;
   onLike: () => void;
-  isInModal?: boolean; // NEW: Whether parent is in modal context
-  navigation?: NavigationProp<ParamListBase>; // NEW: Optional navigation prop for modal context
-  onModalDismiss?: () => void; // NEW: Callback to dismiss modal
+  navigation?: NavigationProp<ParamListBase>; // Optional navigation prop
 }
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -58,9 +56,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   onShare,
   onSave,
   onLike,
-  isInModal = false, // NEW: Default to false
-  navigation,
-  onModalDismiss
+  navigation
 }) => {
   // Fixed dark mode colors
   const darkColors = {
@@ -75,13 +71,11 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
   const { savePost, unsavePost } = useSavedPosts();
   const { likePost: userLikePost, unlikePost: userUnlikePost, isPostLiked } = useLikedPosts();
   
-  // RADICAL FIX: Use prop navigation if available, otherwise use hook with error handling
+  // Use prop navigation if available, otherwise use hook with error handling
   let finalNavigation;
   if (navigation) {
-    // Use passed navigation prop (for modal context)
     finalNavigation = navigation;
   } else {
-    // Use hook navigation (for normal context)
     try {
       finalNavigation = useNavigation();
     } catch (error) {
@@ -147,32 +141,12 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
     }
     
     try {
-      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
-      // so navigation happens on top instead of underneath the modal
-      if (isInModal && onModalDismiss) {
-        // Close the modal first, then navigate
-        onModalDismiss(); // This properly closes the modal
-        
-        // Wait for modal to close, then navigate to profile
-        setTimeout(() => {
-          try {
-            const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'PostDetail');
-            handleTravelFeedProfile({
-              authorId: currentPost.authorId,
-              authorName: currentPost.authorName
-            });
-          } catch (error) {
-            console.warn('Delayed profile navigation failed in DetailPostView:', error);
-          }
-        }, 300); // Wait for modal close animation
-      } else {
-        // Normal context - navigate directly
-        const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'PostDetail');
-        handleTravelFeedProfile({
-          authorId: currentPost.authorId,
-          authorName: currentPost.authorName
-        });
-      }
+      // Navigate directly to profile
+      const { handleTravelFeedProfile } = UserProfileNavigation.createHandlersForScreen(finalNavigation as any, 'PostDetail');
+      handleTravelFeedProfile({
+        authorId: currentPost.authorId,
+        authorName: currentPost.authorName
+      });
     } catch (error) {
       console.warn('Profile navigation failed in DetailPostView:', error);
     }
@@ -590,10 +564,10 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
         <ReanimatedAnimated.View
           style={[{
             position: 'absolute',
-            top: isInModal ? 0 : getAlignedHeaderPosition(), // Full screen in modal
+            top: getAlignedHeaderPosition(),
             left: 0,
             width: screenWidth,
-            height: isInModal ? screenHeight : (screenHeight - getAlignedHeaderPosition() - 70), // Full height in modal
+            height: screenHeight - getAlignedHeaderPosition() - 70,
             zIndex: 1000,
           }, animatedStyle]}
         >
@@ -746,7 +720,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     fontSize: 16, 
                     marginLeft: 4 
                   }}>
-                    {currentPost.authorNationalityFlag}
+                    {currentPost.authorNationalityFlag || ''}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
@@ -993,26 +967,9 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     }
                     
                     try {
-                      // RADICAL FIX: If we're in a modal context, we need to dismiss it first
-                      // so navigation happens on top instead of underneath the modal
-                      if (isInModal && onModalDismiss) {
-                        // Close the modal first, then navigate
-                        onModalDismiss(); // This properly closes the modal
-                        
-                        // Wait for modal to close, then navigate to location
-                        setTimeout(() => {
-                          try {
-                            const success = LocationNavigation.navigateToForum(finalNavigation, currentPost.location);
-                            console.log(`[DEBUG] Delayed location navigation success from DetailPostView:`, success);
-                          } catch (error) {
-                            console.warn('Delayed location navigation failed in DetailPostView:', error);
-                          }
-                        }, 300); // Wait for modal close animation
-                      } else {
-                        // Normal context - navigate directly
-                        const success = LocationNavigation.navigateToForum(finalNavigation, currentPost.location);
-                        console.log(`[DEBUG] Location navigation success from DetailPostView:`, success);
-                      }
+                      // Navigate directly to location
+                      const success = LocationNavigation.navigateToForum(finalNavigation, currentPost.location);
+                      console.log(`[DEBUG] Location navigation success from DetailPostView:`, success);
                     } catch (error) {
                       console.warn('Location navigation failed in DetailPostView:', error);
                     }
@@ -1030,7 +987,7 @@ const DetailPostView: React.FC<DetailPostViewProps> = ({
                     fontWeight: '600',
                     fontFamily: 'System'
                   }}>
-                    View Map
+                    View Pod
                   </Text>
                 </TouchableOpacity>
               </View>

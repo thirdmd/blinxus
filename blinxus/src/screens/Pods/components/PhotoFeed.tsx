@@ -19,8 +19,7 @@ import { useThemeColors } from '../../../hooks/useThemeColors';
 import { usePosts } from '../../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../../types/structures/posts_structure';
 import MediaGridItem from '../../../components/MediaGridItem';
-import FullscreenView from '../../../components/FullscreenView';
-import useFullscreenManager from '../../../hooks/useFullscreenManager';
+import { ImmersiveNavigation } from '../../../utils/immersiveNavigation';
 import { Country } from '../../../constants/placesData';
 import { LocationFilter } from './Forum/forumTypes';
 import { getResponsiveDimensions, ri, rs } from '../../../utils/responsive';
@@ -41,8 +40,7 @@ const PhotoFeed: React.FC<PhotoFeedProps> = ({
   const themeColors = useThemeColors();
   const { posts } = usePosts();
   
-  // Centralized fullscreen management - EXACT same as ExploreScreen & Library
-  const fullscreenManager = useFullscreenManager();
+
   
   // Scroll position tracking - EXACT same as ExploreScreen media mode & Library recent tab
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -128,37 +126,15 @@ const PhotoFeed: React.FC<PhotoFeedProps> = ({
     lastScrollY.current = currentScrollY;
   }, []);
 
-  // Handle post press - EXACT same as ExploreScreen media mode & Library
+  // Handle post press - Using immersive navigation
   const handlePostPress = useCallback((post: PostCardProps) => {
-    // Store current scroll position before entering fullscreen - EXACT like Library
-    const currentOffset = scrollPositionRef.current;
-    setScrollPosition(currentOffset);
-    
-    // Use centralized fullscreen manager - EXACT same integration
-    fullscreenManager.handlePostPress(post, filteredPosts, {
-      screenName: 'PhotoFeed',
-      feedContext: 'photos',
-      scrollPosition: currentOffset,
-      setScrollPosition: setScrollPosition,
-      scrollRef: scrollRef
-    });
-  }, [filteredPosts, fullscreenManager]);
+    if (navigation) {
+      // Use immersive navigation for TikTok-style experience
+      ImmersiveNavigation.navigateFromPostInList(navigation, filteredPosts, post, 'Photos');
+    }
+  }, [filteredPosts, navigation]);
 
-  // Show fullscreen modal when active
-  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
-    return (
-      <FullscreenView
-        visible={fullscreenManager.isFullscreen}
-        posts={filteredPosts}
-        selectedPostIndex={fullscreenManager.selectedPostIndex}
-        animationValues={fullscreenManager.animationValues}
-        config={fullscreenManager.currentConfig}
-        onBack={fullscreenManager.exitFullscreen}
-        onLucidPress={fullscreenManager.handleLucidPress}
-        navigation={navigation}
-      />
-    );
-  }
+
 
   // Empty state
   if (filteredPosts.length === 0) {

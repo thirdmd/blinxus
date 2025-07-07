@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from './blinxus/src/constants/colors';
 import { Home, Users2, UserCircle, Bell, Plus } from 'lucide-react-native';
 import ScrollContext, { useScrollContext } from './blinxus/src/contexts/ScrollContext';
@@ -21,6 +22,9 @@ import CreatePost from './blinxus/src/screens/Create/CreatePost';
 import NotificationsScreen from './blinxus/src/screens/NotificationsScreen';
 import LucidFullscreen from './blinxus/src/screens/LucidFullscreen';
 import SplashScreen from './blinxus/src/screens/SplashScreen';
+import ImmersiveFeedScreen from './blinxus/src/screens/ImmersiveFeed/ImmersiveFeedScreen';
+import ProfileViewScreen from './blinxus/src/screens/Profile/ProfileViewScreen';
+import LocationViewScreen from './blinxus/src/screens/Pods/LocationViewScreen';
 
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
@@ -425,6 +429,30 @@ function RootNavigator() {
           gestureEnabled: true,
         }}
       />
+      <RootStack.Screen 
+        name="ImmersiveFeed" 
+        component={ImmersiveFeedScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }}
+      />
+      <RootStack.Screen 
+        name="ProfileView" 
+        component={ProfileViewScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }}
+      />
+      <RootStack.Screen 
+        name="LocationView" 
+        component={LocationViewScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }}
+      />
     </RootStack.Navigator>
   );
 }
@@ -446,22 +474,24 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider> 
-      <SettingsProvider>
-        <PostsProvider>
-          <SavedPostsProvider>
-            <LikedPostsProvider>
-              <JoinedPodsProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <NavigationContainer>
-                    <RootNavigator />
-                  </NavigationContainer>
-                </GestureHandlerRootView>
-              </JoinedPodsProvider>
-            </LikedPostsProvider>
-          </SavedPostsProvider>
-        </PostsProvider>
-      </SettingsProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider> 
+        <SettingsProvider>
+          <PostsProvider>
+            <SavedPostsProvider>
+              <LikedPostsProvider>
+                <JoinedPodsProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <NavigationContainer>
+                      <RootNavigator />
+                    </NavigationContainer>
+                  </GestureHandlerRootView>
+                </JoinedPodsProvider>
+              </LikedPostsProvider>
+            </SavedPostsProvider>
+          </PostsProvider>
+        </SettingsProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

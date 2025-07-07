@@ -36,6 +36,18 @@ export class NavigationManager {
         case 'Explore':
           (navigation as any).navigate('MainTabs', { screen: 'Home' });
           break;
+        case 'ImmersiveFeed':
+          // For ImmersiveFeed, use generic goBack to return to the fullscreen view
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+          break;
+        case 'ProfileView':
+          // For ProfileView stack screen, use goBack to return to previous screen
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+          break;
         case 'Forum':
           (navigation as any).navigate('MainTabs', { screen: 'Pods' });
           break;

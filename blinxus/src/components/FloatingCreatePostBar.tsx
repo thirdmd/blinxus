@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getCurrentUser } from '../types/userData/users_data';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface FloatingCreatePostBarProps {
   onPress: () => void;
@@ -15,18 +16,28 @@ const FloatingCreatePostBar: React.FC<FloatingCreatePostBarProps> = ({
 }) => {
   const themeColors = useThemeColors();
   const currentUser = getCurrentUser();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={{
       position: 'absolute',
-      bottom: 0, // Directly attached to bottom navigation bar
+      bottom: insets.bottom + 16, // Proper spacing from bottom edge
       left: 0,
       right: 0,
       backgroundColor: themeColors.background,
       borderTopWidth: 0.5,
       borderTopColor: themeColors.border,
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 12,
+      // Add shadow for better visibility
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: -2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 5,
     }}>
       <View style={{
         flexDirection: 'row',

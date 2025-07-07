@@ -22,7 +22,6 @@ import { mapPostToCardProps, PostCardProps } from './posts_structure';
 import TravelFeedCard from '../../components/TravelFeedCard';
 import MediaGridItem from '../../components/MediaGridItem';
 
-import FullscreenView from '../../components/FullscreenView';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, Settings, Bookmark, ChevronLeft, Album } from 'lucide-react-native';
 import Library from '../../screens/Profile/Library';
@@ -35,7 +34,7 @@ import {
   createLibrarySlideInAnimation,
   createLibrarySlideOutAnimation
 } from '../../utils/animations';
-import useFullscreenManager from '../../hooks/useFullscreenManager';
+import { ImmersiveNavigation } from '../../utils/immersiveNavigation';
 import { NavigationManager } from '../../utils/navigationManager';
 import UserProfileNavigation from '../../utils/userProfileNavigation';
 
@@ -83,8 +82,7 @@ export default function ProfileStructure({
   const lastScrollY = useRef(0);
   const scrollViewRef = useRef<ScrollView>(null);
   
-  // Centralized fullscreen management
-  const fullscreenManager = useFullscreenManager();
+
   
   // Ultra-smooth Library open animation with parallax
   const openLibrary = () => {
@@ -213,20 +211,10 @@ export default function ProfileStructure({
     lastScrollY.current = currentScrollY;
   };
 
-  // Handle post press with centralized fullscreen manager
+  // Handle post press with immersive navigation
   const handlePostPress = (post: PostCardProps) => {
-    // Store current scroll position before entering fullscreen
-    const currentOffset = scrollPositionRef.current;
-    setScrollPosition(currentOffset);
-    
-    // Use centralized fullscreen manager
-    fullscreenManager.handlePostPress(post, userMediaPosts, {
-      screenName: 'Profile',
-      feedContext: 'profile',
-      scrollPosition: currentOffset,
-      setScrollPosition: setScrollPosition,
-      scrollRef: scrollViewRef
-    });
+    // Use immersive navigation for TikTok-style experience
+    ImmersiveNavigation.navigateFromPostInList(navigation as any, userMediaPosts, post, 'Profile');
   };
 
   // Better social media icon components
@@ -302,20 +290,7 @@ export default function ProfileStructure({
     );
   };
 
-  // Show fullscreen modal when active
-  if (fullscreenManager.isFullscreen && fullscreenManager.currentConfig) {
-    return (
-      <FullscreenView
-        visible={fullscreenManager.isFullscreen}
-        posts={userMediaPosts}
-        selectedPostIndex={fullscreenManager.selectedPostIndex}
-        animationValues={fullscreenManager.animationValues}
-        config={fullscreenManager.currentConfig}
-        onBack={fullscreenManager.exitFullscreen}
-        onLucidPress={fullscreenManager.handleLucidPress}
-      />
-    );
-  }
+
 
   // Handle back navigation to specific previous screen
   const handleBackToPreviousScreen = () => {
