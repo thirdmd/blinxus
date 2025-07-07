@@ -28,7 +28,7 @@ const LocationViewScreen: React.FC = () => {
   const params = route.params as LocationViewScreenParams || {};
   const { location, fromScreen, scrollPosition } = params;
   
-  // State for tab navigation
+  // State for tab navigation, default to Forum
   const [activeTab, setActiveTab] = useState<PodTabType>('Forum');
   
   // Resolve location to get country data
@@ -96,6 +96,7 @@ const LocationViewScreen: React.FC = () => {
           onLocationPress={handleLocationPress}
           onBack={handleBack}
           theme={podTheme}
+          navigation={navigation as any}
           navigationContext={{
             targetLocationFilter: location,
             autoSelectLocationTab: true

@@ -17,6 +17,7 @@ import { useOrientation, Orientation } from '../hooks/useOrientation';
 import UserProfileNavigation from '../utils/userProfileNavigation';
 import { placesData, getLocationByName, getCountryByLocationId, resolveLocationForNavigation } from '../constants/placesData';
 import { LocationNavigation } from '../utils/locationNavigation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TravelFeedCardProps extends PostCardProps {
   onDetailsPress: () => void;
@@ -460,14 +461,12 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
   const isLucid = type === 'lucid';
 
   // CENTRALIZED LOGIC: ALL names and counters positioned below app bar
+  const insets = useSafeAreaInsets();
   const getDynamicTopPosition = () => {
-    // ALL posts have names/counters positioned below app bar for consistency
-    // This maximizes content space and ensures uniform positioning
+    // Position header just below back button for immersive mode
     if (appBarElementsVisible === true) {
-      // ALL posts: ALWAYS position below app bar - MOVED HIGHER for more space
-      return immersiveDimensions.topOverlayPosition + rs(25); // Much closer to app bar
+      return insets.top + rs(32) + rs(8); // Safe area top + back button height + gap
     } else {
-      // Media mode: use standard position
       return immersiveDimensions.topOverlayPosition;
     }
   };
@@ -618,16 +617,9 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
     }
     
     try {
-      // DEBUG: Log the location to understand what's happening
-      console.log(`[DEBUG] Attempting to navigate to location: "${location}"`);
-      
-      // Test location resolution
-      const resolved = resolveLocationForNavigation(location);
-      console.log(`[DEBUG] Location resolved:`, resolved);
-      
-      // Navigate directly to location with proper fromScreen context
+      // Navigate directly to forum for this location, preserving back behavior
       const success = LocationNavigation.navigateToForum(finalNavigation, location, 'ImmersiveFeed');
-      console.log(`[DEBUG] Navigation success:`, success);
+      console.log(`[DEBUG] Navigation to Forum success:`, success);
     } catch (error) {
       console.warn('Location navigation failed:', error);
     }
@@ -935,8 +927,8 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Top Left Overlay - User Info - MOVED CLOSER TO LEFT EDGE */}
       <View style={{
         position: 'absolute',
-        top: getAlignedTopPosition(), // Aligned position for consistency
-        left: rs(8), // MOVED CLOSER to left edge (was 16)
+        top: getAlignedTopPosition(), // Align header under back button
+        left: insets.left + rs(12), // Slightly move to the right
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1000 // Ensure profile area is above image overlay

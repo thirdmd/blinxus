@@ -6,6 +6,7 @@ import { PostCardProps } from '../types/structures/posts_structure';
 import TravelFeedCard from './TravelFeedCard';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getResponsiveDimensions, ri, rs, rf } from '../utils/responsive';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height: screenHeight } = Dimensions.get('window');
 const responsiveDimensions = getResponsiveDimensions();
@@ -25,6 +26,7 @@ const ImmersiveFeed: React.FC<ImmersiveFeedProps> = ({
 }) => {
   const navigation = useNavigation();
   const themeColors = useThemeColors();
+  const insets = useSafeAreaInsets();
   
   // Use dark theme for immersive experience (same as ExploreScreen)
   const immersiveThemeColors = {
@@ -112,8 +114,8 @@ const ImmersiveFeed: React.FC<ImmersiveFeedProps> = ({
         onPress={handleBack}
         style={{ 
           position: 'absolute',
-          top: rs(60), // Safe area top + padding
-          left: rs(16),
+          top: insets.top,
+          left: insets.left + rs(8),
           width: rs(32), 
           height: rs(32), 
           alignItems: 'center', 

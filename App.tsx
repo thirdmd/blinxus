@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar, Image } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, StatusBar, Image, LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from './blinxus/src/constants/colors';
@@ -13,6 +13,8 @@ import { useThemeColors } from './blinxus/src/hooks/useThemeColors';
 import { getResponsiveDimensions, getTypographyScale, ri, rs, rf } from './blinxus/src/utils/responsive';
 import { getCurrentUser } from './blinxus/src/types/userData/users_data';
 
+// Suppress the specific warning about text strings outside <Text>
+LogBox.ignoreLogs(['Text strings must be rendered within a <Text> component']);
 
 // Import screens
 import ExploreScreen, { ExploreScreenRef } from './blinxus/src/screens/Explore/ExploreScreen';
@@ -371,7 +373,7 @@ function TabNavigator() {
               if (route.name === 'Create') {
                 return null; // Remove "Create" text
               }
-              return !focused ? '' : undefined;
+              return !focused ? null : undefined;
             },
           };
         }}

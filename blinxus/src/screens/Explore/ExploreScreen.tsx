@@ -542,29 +542,29 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                onPress={exitMediaMode}
                style={{ 
                  position: 'absolute',
-                 top: immersiveDimensions.topOverlayPosition, // Exact calculated position for all screen sizes
-                 left: rs(16),
-                width: rs(32), 
-                height: rs(32), 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: rs(8),
-                backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent background for visibility
-                opacity: 1.0, // ALWAYS VISIBLE - no fade on scroll
-                zIndex: 1000, // High z-index to float over content
-              }}
-              activeOpacity={0.7}
-            >
-              <ChevronLeft size={ri(20)} color="white" strokeWidth={2} />
-            </TouchableOpacity>
+                 top: immersiveDimensions.topOverlayPosition + 6, // Move 1px down
+                 left: rs(8), // Match the right position of the search button
+                 width: rs(32), 
+                 height: rs(32), 
+                 alignItems: 'center', 
+                 justifyContent: 'center',
+                 borderRadius: rs(8),
+                 backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent background for visibility
+                 opacity: 1.0, // ALWAYS VISIBLE - no fade on scroll
+                 zIndex: 1000, // High z-index to float over content
+               }}
+               activeOpacity={0.7}
+             >
+               <ChevronLeft size={ri(20)} color="white" strokeWidth={2} />
+             </TouchableOpacity>
             
             {/* Search Icon - Circular with black background at right corner */}
             <TouchableOpacity 
               onPress={openSearchModal}
               style={{
                 position: 'absolute',
-                top: immersiveDimensions.topOverlayPosition, // Same position as back button
-                right: rs(16), // Right corner (opposite of back button)
+                top: immersiveDimensions.topOverlayPosition + 6, // Move 1px down
+                right: rs(8), // Right corner (opposite of back button)
                width: rs(32), // Same size as back button
                height: rs(32), // Same size as back button
                alignItems: 'center', 
@@ -990,6 +990,7 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
             <View style={{ 
               flexDirection: 'row', 
               flexWrap: 'wrap', 
+              marginTop: immersiveDimensions.topOverlayPosition, // Align with appbar icons
               paddingBottom: 32,
               backgroundColor: exploreThemeColors.background // CENTRALIZED: Always dark mode
             }}>
