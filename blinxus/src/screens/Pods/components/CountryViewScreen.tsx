@@ -7,6 +7,7 @@
 // ✅ Improved touch targets with hitSlop
 // ✅ Removed unnecessary background tap handlers
 // ✅ Added smooth tab transitions
+// ✅ RADICAL: Scroll position persistence for All tab
 
 import React, { useState, useRef, forwardRef, useImperativeHandle, useCallback, useMemo, useEffect } from 'react';
 import {
@@ -21,7 +22,7 @@ import {
   Keyboard,
   InteractionManager,
 } from 'react-native';
-import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X, MessageCircle, Grid3X3, ShoppingBag, Calendar, HelpCircle } from 'lucide-react-native';
+import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X, MessageCircle, Grid3X3, ShoppingBag, Calendar, HelpCircle, Globe } from 'lucide-react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { 
   PodThemeConfig, 
@@ -54,6 +55,13 @@ export interface CountryViewScreenRef {
   scrollToTop: () => void;
 }
 
+// RADICAL: Scroll position persistence interface
+interface ScrollPositionCache {
+  [locationFilter: string]: {
+    [tabType: string]: number;
+  };
+}
+
 const { width } = Dimensions.get('window');
 
 const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProps>(({
@@ -70,6 +78,10 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   
   // Forum-specific state
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<LocationFilter>('All');
+  
+  // RADICAL: Scroll position persistence system
+  const scrollPositionCache = useRef<ScrollPositionCache>({});
+  const isRestoringScroll = useRef(false);
   
   // Scroll ref for the main content area
   const forumScrollRef = useRef<any>(null);
@@ -102,6 +114,73 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
   const hasNotifications = isPodNotificationsEnabled(country.id);
 
   const hasAutoSelectedRef = useRef(false);
+
+  // RADICAL: Save scroll position for current location filter and tab
+  const saveScrollPosition = useCallback((scrollY: number) => {
+    const cacheKey = `${selectedLocationFilter}-${activeTab}`;
+    if (!scrollPositionCache.current[selectedLocationFilter]) {
+      scrollPositionCache.current[selectedLocationFilter] = {};
+    }
+    scrollPositionCache.current[selectedLocationFilter][activeTab] = scrollY;
+    
+    // Debug logging
+    console.log(`💾 Saved scroll position for ${cacheKey}: ${scrollY}`);
+  }, [selectedLocationFilter, activeTab]);
+
+  // RADICAL: Restore scroll position for current location filter and tab
+  const restoreScrollPosition = useCallback(() => {
+    const cacheKey = `${selectedLocationFilter}-${activeTab}`;
+    const savedPosition = scrollPositionCache.current[selectedLocationFilter]?.[activeTab];
+    
+    if (savedPosition && savedPosition > 0 && forumScrollRef.current && activeTab === 'Forum') {
+      isRestoringScroll.current = true;
+      
+      // Use setTimeout to ensure FlatList is fully rendered
+      setTimeout(() => {
+        try {
+          if (forumScrollRef.current?.scrollToOffset) {
+            forumScrollRef.current.scrollToOffset({ 
+              offset: savedPosition, 
+              animated: false 
+            });
+            console.log(`🔄 Restored scroll position for ${cacheKey}: ${savedPosition}`);
+          }
+        } catch (error) {
+          console.warn('Failed to restore scroll position:', error);
+        } finally {
+          // Reset flag after a delay
+          setTimeout(() => {
+            isRestoringScroll.current = false;
+          }, 100);
+        }
+      }, 50);
+    }
+  }, [selectedLocationFilter, activeTab]);
+
+  // RADICAL: Enhanced location filter change with scroll preservation
+  const handleLocationFilterChange = useCallback((filter: LocationFilter) => {
+    if (filter === selectedLocationFilter) return;
+    
+    // Save current scroll position before changing filter (only for Forum tab)
+    if (activeTab === 'Forum' && forumScrollRef.current?.getCurrentScrollPosition) {
+      const currentScrollY = forumScrollRef.current.getCurrentScrollPosition();
+      saveScrollPosition(currentScrollY);
+    }
+    
+    // Change filter
+    setSelectedLocationFilter(filter);
+    
+    // Collapse search if expanded
+    if (isSearchExpanded) {
+      setSearchQuery('');
+      setIsSearchExpanded(false);
+      Keyboard.dismiss();
+      searchAnimation.setValue(0);
+    }
+    
+    // Auto-scroll to selected tab
+    scrollToSelectedTab(filter);
+  }, [selectedLocationFilter, isSearchExpanded, saveScrollPosition, activeTab, searchAnimation]);
 
   // Function to scroll to the selected location tab
   const scrollToSelectedTab = useCallback((targetFilter: string) => {
@@ -178,7 +257,17 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
         }, 300);
       }
     }
-  }, [navigationContext, country.subLocations]);
+  }, [navigationContext, country.subLocations, scrollToSelectedTab]);
+
+  // RADICAL: Restore scroll position when location filter changes
+  useEffect(() => {
+    if (!isRestoringScroll.current) {
+      // Small delay to ensure the new content is loaded
+      setTimeout(() => {
+        restoreScrollPosition();
+      }, 100);
+    }
+  }, [selectedLocationFilter, activeTab, restoreScrollPosition]);
   
   // TAB TRANSITIONS: INSTANT response with smooth animation
   const animateToTab = useCallback((targetTab: PodTabType) => {
@@ -186,6 +275,12 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
     
     // Check if already at target tab to prevent unnecessary animations
     if (currentTabIndex.current === targetIndex) return;
+    
+    // Save current scroll position before tab change (only for Forum tab)
+    if (activeTab === 'Forum' && forumScrollRef.current?.getCurrentScrollPosition) {
+      const currentScrollY = forumScrollRef.current.getCurrentScrollPosition();
+      saveScrollPosition(currentScrollY);
+    }
     
     const targetTranslateX = -targetIndex * width;
     
@@ -201,7 +296,7 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       easing: ANIMATION_EASINGS.easeOut, // Smooth easing for 60fps
       useNativeDriver: true,
     }).start();
-  }, [tabContainerTranslateX, width, tabs]);
+  }, [tabContainerTranslateX, width, tabs, saveScrollPosition, activeTab]);
   
   // Handle tab changes with direct animation
   useEffect(() => {
@@ -290,17 +385,6 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
     );
   }, [locationTabs, searchQuery, country.subLocations]);
 
-  // OPTIMIZED: Memoized location filter change handler
-  const handleLocationFilterChange = useCallback((filter: LocationFilter) => {
-    setSelectedLocationFilter(filter);
-    // INSTANT: Collapse search immediately when selecting location
-    if (isSearchExpanded) {
-      collapseSearch();
-    }
-    // AUTO-SCROLL: Scroll the tabs to make the selected filter visible
-    scrollToSelectedTab(filter);
-  }, [isSearchExpanded, collapseSearch, scrollToSelectedTab]);
-
   // PERFORMANCE: INSTANT tab switching - no delays
   const handleTabChange = useCallback((tab: PodTabType) => {
     // Skip if already on the same tab
@@ -337,6 +421,18 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       }
     }
   }), []);
+
+  const pillStyle = {
+    marginRight: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    borderRadius: 8,
+    minHeight: 27,
+    flexDirection: 'row' as const,
+    borderWidth: 1,
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: themeColors.background }}>
@@ -572,48 +668,76 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
               </Animated.View>
             )}
           </View>
-          
-          {/* PERFORMANCE: Ultra-smooth location tabs */}
+
+          {/* Left-aligned 'All' tab, always visible, not scrollable */}
+          <TouchableOpacity
+            onPress={() => handleLocationFilterChange('All')}
+            style={[
+              pillStyle,
+              {
+                backgroundColor: selectedLocationFilter === 'All' 
+                  ? theme.colors.primary 
+                  : 'transparent',
+                borderColor: theme.colors.primary,
+              }
+            ]}
+            activeOpacity={0.8}
+          >
+            <Globe 
+              size={11} 
+              color={selectedLocationFilter === 'All' ? '#FFFFFF' : theme.colors.primary} 
+              strokeWidth={2.5}
+              style={{ marginRight: 3 }}
+            />
+            <Text style={{
+              color: selectedLocationFilter === 'All' 
+                ? '#FFFFFF'
+                : theme.colors.primary,
+              fontSize: 14,
+              fontWeight: '600',
+              fontFamily: 'System',
+              letterSpacing: -0.2,
+            }}>
+              Feed
+            </Text>
+          </TouchableOpacity>
+
+          {/* Scrollable sublocation tabs (excluding 'All') */}
           <ScrollView
             ref={locationTabsScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               paddingRight: 20,
-              gap: 6,
             }}
             style={{ flex: 1 }}
-            // PERFORMANCE: Maximum scroll optimization
             removeClippedSubviews={true}
             scrollEventThrottle={1}
             decelerationRate="fast"
             overScrollMode="never"
             bounces={false}
           >
-            {filteredLocationTabs.map((tab) => (
+            {/* Sublocation pills */}
+            {filteredLocationTabs.filter(tab => tab !== 'All').map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => handleLocationFilterChange(tab)}
-                style={{
-                  paddingVertical: 6,
-                  paddingHorizontal: 12,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 12,
-                  minHeight: 28,
-                  backgroundColor: selectedLocationFilter === tab 
-                    ? theme.colors.primary 
-                    : 'transparent',
-                  borderWidth: selectedLocationFilter === tab ? 0 : 0.5,
-                  borderColor: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.08)' 
-                    : 'rgba(0, 0, 0, 0.06)',
-                }}
+                style={[
+                  pillStyle,
+                  {
+                    backgroundColor: selectedLocationFilter === tab 
+                      ? theme.colors.primary 
+                      : 'transparent',
+                    borderColor: selectedLocationFilter === tab
+                      ? theme.colors.primary
+                      : (themeColors.isDark ? 'rgba(255,255,255,0.35)' : '#B0B0B0'),
+                  }
+                ]}
                 activeOpacity={0.8}
               >
                 <Text style={{
                   color: selectedLocationFilter === tab 
-                    ? '#FFFFFF'
+                    ? (themeColors.isDark ? '#B0B0B0' : '#FFFFFF')
                     : theme.colors.textSecondary,
                   fontSize: 14,
                   fontWeight: selectedLocationFilter === tab ? '600' : '500',

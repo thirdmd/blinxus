@@ -828,6 +828,17 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
     }
   };
 
+  const pillStyle = {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginRight: 6,
+    borderWidth: 1,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    minHeight: 27,
+  };
+
   // Enhanced renderContinentTab with double-tap detection and special Feed tab styling
   const renderContinentTab = React.useCallback((continent: Continent | { id: string; name: string }, index: number) => {
     const isActive = activeContinent === index;
@@ -837,30 +848,24 @@ const ContinentListScreen = React.forwardRef<ContinentListScreenRef, ContinentLi
       <TouchableOpacity
         onPress={() => {
           if (index === 0 && activeContinent === index) {
-            // Double-tap "Feed" tab - trigger double-tap handler
             handleDoubleTabPress();
           } else {
             handleContinentChange(index);
           }
         }}
-        style={{ 
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          backgroundColor: isActive 
-            ? (isFeedTab ? theme.colors.primary : theme.colors.primary)
-            : 'transparent',
-          borderRadius: 12,
-          marginRight: 6,
-          borderWidth: isActive ? 0 : 0.5,
-          borderColor: isFeedTab && !isActive
+        style={[
+          pillStyle,
+          {
+            backgroundColor: isActive 
+              ? (isFeedTab ? theme.colors.primary : theme.colors.primary)
+              : 'transparent',
+            borderColor: isFeedTab
               ? theme.colors.primary
-              : themeColors.isDark 
-                ? 'rgba(255, 255, 255, 0.08)' 
-                : 'rgba(0, 0, 0, 0.06)',
-          flexDirection: 'row',
-          alignItems: 'center',
-          minHeight: 28,
-        }}
+              : (isActive
+                  ? theme.colors.primary
+                  : (themeColors.isDark ? 'rgba(255,255,255,0.35)' : '#B0B0B0')),
+          }
+        ]}
         activeOpacity={0.8}
       >
         {isFeedTab && (

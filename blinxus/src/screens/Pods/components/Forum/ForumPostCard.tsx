@@ -101,7 +101,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
         marginHorizontal: 8,
         borderWidth: 1,
         borderColor: themeColors.isDark 
-          ? 'rgba(255, 255, 255, 0.15)'
+          ? 'rgba(255,255,255,0.35)'
           : 'rgba(0, 0, 0, 0.12)',
         // Allow flexible height based on content
         minHeight: compact ? 120 : 160,
@@ -292,7 +292,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
                   <Text style={{
                     fontSize: 13,
                     color: themeColors.isDark 
-                      ? 'rgba(139, 184, 255, 0.9)' 
+                      ? '#B0B0B0' 
                       : 'rgba(0, 0, 0, 0.6)',
                     fontWeight: '500',
                     fontFamily: 'System',
@@ -328,7 +328,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
                 <Text style={{
                   fontSize: 13,
                   color: themeColors.isDark 
-                    ? 'rgba(255, 255, 255, 0.75)' 
+                    ? '#B0B0B0' 
                     : 'rgba(0, 0, 0, 0.5)',
                   fontWeight: '400',
                   fontFamily: 'System',

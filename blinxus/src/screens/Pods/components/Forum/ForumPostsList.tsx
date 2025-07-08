@@ -35,6 +35,8 @@ interface ForumPostsListProps {
 export interface ForumPostsListRef {
   scrollToTop: () => void;
   refresh: () => void;
+  getCurrentScrollPosition: () => number;
+  scrollToOffset: (params: { offset: number; animated?: boolean }) => void;
 }
 
 // RADICAL: Memoized components for zero unnecessary re-renders
@@ -144,6 +146,9 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   const themeColors = useThemeColors();
   const navigation = useNavigation();
   const flatListRef = useRef<FlatList>(null);
+  
+  // RADICAL: Track scroll position for persistence
+  const currentScrollPosition = useRef(0);
 
   // RADICAL: Use the new instant UI hook
   const { posts, uiState, filters, actions } = useForumPosts({
@@ -337,10 +342,18 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
     }
   }, [selectedLocationFilter, filters.location, actions.updateFilters]);
 
+  // RADICAL: Handle scroll position tracking
+  const handleScroll = useCallback((event: any) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    currentScrollPosition.current = scrollY;
+  }, []);
+
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
     scrollToTop: handleScrollToTop,
     refresh: handleRefresh,
+    getCurrentScrollPosition: () => currentScrollPosition.current,
+    scrollToOffset: (params) => flatListRef.current?.scrollToOffset(params),
   }), [handleScrollToTop, handleRefresh]);
 
   // RADICAL: Early returns for different states - prevents unnecessary renders
@@ -429,6 +442,7 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
+        onScroll={handleScroll}
         
         // PERFORMANCE: Critical optimizations for 100% smooth scrolling
         getItemLayout={(data, index) => ({
