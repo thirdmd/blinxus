@@ -618,6 +618,11 @@ const ExploreScreen = forwardRef<ExploreScreenRef, {}>((props, ref) => {
                 // Remove backgroundColor - no black border/background
                 opacity: scrollY > 30 ? 0 : 1,
                 zIndex: 1000, // High z-index to float over content
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.4,
+                shadowRadius: 7,
+                elevation: 8,
               }}
               activeOpacity={0.7}
             >

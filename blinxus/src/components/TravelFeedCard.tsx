@@ -35,6 +35,14 @@ const spacing = getSpacingScale();
 const immersiveDimensions = getImmersiveScreenDimensions();
 const safeArea = getSafeAreaAdjustments();
 
+const iconShadow = {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+  elevation: 3, // for Android
+};
+
 // Immersive Swipeable Image Carousel Component
 const ImmersiveImageCarousel: React.FC<{
   images: string[];
@@ -462,18 +470,13 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
 
   // CENTRALIZED LOGIC: ALL names and counters positioned below app bar
   const insets = useSafeAreaInsets();
-  const getDynamicTopPosition = () => {
-    // Position header just below back button for immersive mode
-    if (appBarElementsVisible === true) {
-      return insets.top + rs(32) + rs(8); // Safe area top + back button height + gap
-    } else {
-      return immersiveDimensions.topOverlayPosition;
-    }
-  };
+  const overlayTop = insets.top + rs(12); // base value for all overlays
+  const profileOffset = rs(5); // additional offset for profile group
+  const indicatorOffset = rs(9); // additional offset for image indicator
 
   // Ensure name and image counter are always aligned
   const getAlignedTopPosition = () => {
-    return getDynamicTopPosition(); // Both use same position for perfect alignment
+    return overlayTop + profileOffset; // Both use same position for perfect alignment
   };
 
   // Handle rotation to fullscreen image - only when TravelFeedCard is visible
@@ -927,7 +930,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Top Left Overlay - User Info - MOVED CLOSER TO LEFT EDGE */}
       <View style={{
         position: 'absolute',
-        top: insets.top + rs(17),
+        top: overlayTop + profileOffset,
         left: insets.left + rs(12),
         flexDirection: 'row',
         alignItems: 'center',
@@ -1039,7 +1042,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Top Right Area - Image Counter and Lucid Button */}
       <View style={{
         position: 'absolute',
-        top: insets.top + rs(21),
+        top: overlayTop + indicatorOffset,
         right: rs(8),
         alignItems: 'flex-end',
         zIndex: 1000
@@ -1103,19 +1106,19 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         {/* Like Button */}
         <TouchableOpacity
           onPress={handleLike}
-          style={{
-            alignItems: 'center',
-            marginTop: rs(16)
-          }}
+          style={[
+            iconShadow,
+            { alignItems: 'center', marginTop: rs(16), marginLeft: rs(3) }
+          ]}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
           activeOpacity={0.3}
           delayPressIn={0}
           delayPressOut={0}
         >
-          <Animated.View style={{ 
-            alignItems: 'center',
-            transform: [{ scale: likeButtonScale }]
-          }}>
+          <Animated.View style={[
+            iconShadow,
+            { alignItems: 'center', transform: [{ scale: likeButtonScale }] }
+          ]}>
             <Heart
               size={ri(26)}
               color={isLiked ? '#ff3040' : 'white'}
@@ -1139,10 +1142,17 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         {/* Details Button */}
         <TouchableOpacity
           onPress={handleCommentsPress}
-          style={{
-            alignItems: 'center',
-            marginTop: rs(40)
-          }}
+          style={[
+            iconShadow,
+            {
+              alignItems: 'center',
+              marginTop: rs(35),
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+              elevation: 6,
+              shadowOffset: { width: 0, height: 3 }
+            }
+          ]}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
           activeOpacity={0.3}
           delayPressIn={0}
@@ -1154,10 +1164,18 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
         {/* Zoom Toggle Button */}
         <TouchableOpacity
           onPress={zoomToggleFn || (() => {})}
-          style={{
-            alignItems: 'center',
-            marginTop: rs(40)
-          }}
+          style={[
+            iconShadow,
+            {
+              alignItems: 'center',
+              marginTop: rs(40),
+              marginRight: rs(1),
+              shadowOpacity: 0.6,
+              shadowRadius: 10,
+              elevation: 12,
+              shadowOffset: { width: 0, height: 5 }
+            }
+          ]}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
           activeOpacity={0.7}
         >
