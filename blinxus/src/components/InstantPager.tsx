@@ -1,5 +1,4 @@
 import React, { forwardRef, useCallback } from 'react';
-import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 import { StyleSheet, ViewStyle, View, Platform, StatusBar } from 'react-native';
 
 /**
@@ -14,7 +13,7 @@ type InstantPagerProps<ItemT> = {
   style?: ViewStyle;
 };
 
-const InstantPager = forwardRef<PagerView, InstantPagerProps<any>>(
+const InstantPager = forwardRef<any, InstantPagerProps<any>>(
   (
     {
       data,
@@ -27,29 +26,20 @@ const InstantPager = forwardRef<PagerView, InstantPagerProps<any>>(
     ref
   ) => {
     const handlePageSelected = useCallback(
-      (e: PagerViewOnPageSelectedEvent) => {
-        const pos = e.nativeEvent.position;
-        onPageSelected?.(pos);
+      (index: number) => {
+        onPageSelected?.(index);
       },
       [onPageSelected]
     );
 
     return (
-      <PagerView
-        ref={ref}
-        style={[styles.pager, style]}
-        initialPage={initialPage}
-        orientation="vertical"
-        onPageSelected={handlePageSelected}
-        scrollEnabled={true}
-        overScrollMode="never"
-      >
+      <View style={[styles.pager, style]}>
         {data.map((item, index) => (
           <View key={keyExtractor(item, index)} style={styles.page}>
             {renderItem({ item, index })}
           </View>
         ))}
-      </PagerView>
+      </View>
     );
   }
 );

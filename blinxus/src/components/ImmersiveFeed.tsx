@@ -166,7 +166,7 @@ const ImmersiveFeed: React.FC<ImmersiveFeedProps> = ({
 
       {/* Placeholder bottom bar matching navigation bar height */}
       <TouchableOpacity
-        onPress={() => Alert.alert('Comments', 'Opening comments view...')}
+        onPress={() => Alert.alert('Details', 'Opening image details...')}
         style={{
           height: responsiveDimensions.tabBar.height,
           backgroundColor: '#000',
@@ -176,7 +176,7 @@ const ImmersiveFeed: React.FC<ImmersiveFeedProps> = ({
         activeOpacity={0.7}
       >
         <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: rf(14) }}>
-          Add comment...
+          View details...
         </Text>
       </TouchableOpacity>
     </View>

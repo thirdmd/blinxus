@@ -18,6 +18,7 @@ import LocationSelector from '../../components/LocationSelector';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
+import { travelImages } from '../../constants/mockImages';
 
 interface CreateRegularPostProps {
   navigation: {
@@ -58,7 +59,6 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
   };
 
   const addImages = (count: number) => {
-    const { travelImages } = require('../../constants/mockImages');
     const newImages: string[] = [];
     for (let i = 0; i < count; i++) {
       newImages.push(travelImages[i % travelImages.length]);

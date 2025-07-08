@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar, ScrollView,
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import ReanimatedAnimated, { useSharedValue, useAnimatedStyle, useAnimatedGestureHandler, runOnJS, withSpring, withTiming } from 'react-native-reanimated';
 import { PostCardProps } from '../types/structures/posts_structure';
-import { Heart, MessageCircle, Send, Bookmark, MoreVertical, MapPinned, Edit, Trash2, Flag, X, Check, Camera, Info, Images, MoreHorizontal, Album, Menu, ChevronRight, Maximize2, Square, Layout, FileText, AlignJustify, Maximize, Minimize } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Bookmark, MoreVertical, MapPinned, Edit, Trash2, Flag, X, Check, Camera, Info, Images, MoreHorizontal, Album, Menu, ChevronRight, Maximize2, Square, Layout, FileText, AlignJustify, Maximize, Minimize, ArrowRightCircle } from 'lucide-react-native';
 import { usePosts } from '../store/PostsContext';
 import { useSavedPosts } from '../store/SavedPostsContext';
 import { useLikedPosts } from '../store/LikedPostsContext';
@@ -927,11 +927,11 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Top Left Overlay - User Info - MOVED CLOSER TO LEFT EDGE */}
       <View style={{
         position: 'absolute',
-        top: getAlignedTopPosition(), // Align header under back button
-        left: insets.left + rs(12), // Slightly move to the right
+        top: insets.top + rs(17),
+        left: insets.left + rs(12),
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 1000 // Ensure profile area is above image overlay
+        zIndex: 1000
       }}>
         {/* Profile Pic */}
         <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.5}>
@@ -1039,7 +1039,7 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Top Right Area - Image Counter and Lucid Button */}
       <View style={{
         position: 'absolute',
-        top: getAlignedTopPosition(),
+        top: insets.top + rs(21),
         right: rs(8),
         alignItems: 'flex-end',
         zIndex: 1000
@@ -1094,35 +1094,18 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
       {/* Bottom Right Action Buttons - Stacked vertically with better positioning */}
       <View style={{
         position: 'absolute',
-        bottom: immersiveDimensions.bottomOverlayPosition, // Exact calculated position for all screen sizes
-        right: rs(20),
+        bottom: rs(45),
+        right: rs(15),
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        height: rs(260) // Reduced height since Lucid button moved to top
+        justifyContent: 'flex-start'
       }}>
-        {/* Zoom Toggle Button - Top of bottom buttons */}
-        <TouchableOpacity
-          onPress={zoomToggleFn || (() => {})}
-          style={{
-            alignItems: 'center',
-            marginBottom: rs(8)
-          }}
-          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.7}
-        >
-          {isZoomedOut ? (
-            <Maximize size={ri(26)} color="white" strokeWidth={2} />
-          ) : (
-            <Minimize size={ri(26)} color="white" strokeWidth={2} />
-          )}
-        </TouchableOpacity>
-        
         {/* Like Button */}
         <TouchableOpacity
           onPress={handleLike}
           style={{
-            alignItems: 'center'
+            alignItems: 'center',
+            marginTop: rs(16)
           }}
           hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
           activeOpacity={0.3}
@@ -1153,55 +1136,36 @@ const TravelFeedCard: React.FC<TravelFeedCardProps> = React.memo(({
           </Animated.View>
         </TouchableOpacity>
 
-        {/* Details Button (changed from Comment) */}
+        {/* Details Button */}
         <TouchableOpacity
           onPress={handleCommentsPress}
           style={{
-            alignItems: 'center'
-          }}
-          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.3}
-          delayPressIn={0}
-          delayPressOut={0}
-        >
-          <Square size={ri(26)} color="white" strokeWidth={2} strokeDasharray="4 4" />
-        </TouchableOpacity>
-
-        {/* Share Button */}
-        <TouchableOpacity
-          onPress={handleShare}
-          style={{
-            alignItems: 'center'
-          }}
-          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.3}
-          delayPressIn={0}
-          delayPressOut={0}
-        >
-          <Send size={ri(26)} color="white" />
-        </TouchableOpacity>
-
-        {/* Save Button */}
-        <TouchableOpacity
-          onPress={handleSave}
-          style={{
-            alignItems: 'center'
-          }}
-          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
-          activeOpacity={0.3}
-          delayPressIn={0}
-          delayPressOut={0}
-        >
-          <Animated.View style={{ 
             alignItems: 'center',
-            transform: [{ scale: saveButtonScale }]
-          }}>
-            <Bookmark
-              size={ri(26)}
-              color={isSaved ? '#FFD700' : 'white'}
-              fill={isSaved ? '#FFD700' : 'none'}
-            />
-          </Animated.View>
+            marginTop: rs(40)
+          }}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
+          activeOpacity={0.3}
+          delayPressIn={0}
+          delayPressOut={0}
+        >
+          <ArrowRightCircle size={ri(26)} color="white" strokeWidth={2} />
+        </TouchableOpacity>
+
+        {/* Zoom Toggle Button */}
+        <TouchableOpacity
+          onPress={zoomToggleFn || (() => {})}
+          style={{
+            alignItems: 'center',
+            marginTop: rs(40)
+          }}
+          hitSlop={{ top: rs(10), bottom: rs(10), left: rs(10), right: rs(10) }}
+          activeOpacity={0.7}
+        >
+          {isZoomedOut ? (
+            <Maximize size={ri(26)} color="white" strokeWidth={2} />
+          ) : (
+            <Minimize size={ri(26)} color="white" strokeWidth={2} />
+          )}
         </TouchableOpacity>
       </View>
 
