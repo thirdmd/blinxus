@@ -22,6 +22,7 @@ import {
   Keyboard,
   InteractionManager,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { ChevronLeft, Map, Users, Bell, BellRing, UserPlus, UserMinus, Search, X, MessageCircle, Grid3X3, ShoppingBag, Calendar, HelpCircle, Globe } from 'lucide-react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { 
@@ -401,6 +402,30 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
     // INSTANT: Change tab immediately - no InteractionManager delays
     onTabChange(tab);
   }, [activeTab, isSearchExpanded, onTabChange, searchAnimation]);
+
+  // SWIPE GESTURES: Handle swipe navigation between tabs
+  const handleSwipeGesture = useCallback((event: any) => {
+    const { translationX, velocityX, state } = event.nativeEvent;
+    
+    if (state === State.END || state === State.CANCELLED) {
+      const currentIndex = tabs.indexOf(activeTab);
+      
+      // Swipe left (next tab) - translationX < 0
+      if (translationX < -30 && velocityX < -100) {
+        const nextIndex = Math.min(currentIndex + 1, tabs.length - 1);
+        if (nextIndex !== currentIndex) {
+          handleTabChange(tabs[nextIndex]);
+        }
+      }
+      // Swipe right (previous tab) - translationX > 0
+      else if (translationX > 30 && velocityX > 100) {
+        const prevIndex = Math.max(currentIndex - 1, 0);
+        if (prevIndex !== currentIndex) {
+          handleTabChange(tabs[prevIndex]);
+        }
+      }
+    }
+  }, [activeTab, tabs, handleTabChange]);
 
   const handleMapPress = useCallback(() => {
     // TODO: Open maps with country location
@@ -811,88 +836,96 @@ const CountryViewScreen = forwardRef<CountryViewScreenRef, CountryViewScreenProp
       </View>
 
       {/* PERFORMANCE: Content Area with smooth tab transitions */}
-      <View style={{ flex: 1, overflow: 'hidden' }}>
-        <Animated.View style={{ 
-          flexDirection: 'row',
-          width: width * 5, // Five tabs width
-          height: '100%',
-          transform: [{ translateX: tabContainerTranslateX }],
-        }}>
-          {/* Forum Tab Content */}
-          <View style={{ width: width, height: '100%' }}>
-            <ForumPostsList
-              ref={forumScrollRef}
-              country={country}
-              selectedLocationFilter={selectedLocationFilter}
-              onLocationFilterChange={handleLocationFilterChange}
-              onTabChange={handleTabChange}
-            />
-          </View>
-
-          {/* Explore Tab Content - PhotoFeed */}
-          <View style={{ width: width, height: '100%' }}>
-            <PhotoFeed
-              country={country}
-              selectedLocationFilter={selectedLocationFilter}
-              navigation={navigation}
-            />
-          </View>
-
-          {/* Market Tab Content */}
-          <View style={{ width: width, height: '100%' }}>
-            <View style={{ 
-              flex: 1,
-              alignItems: 'center', 
-              paddingVertical: 40,
-              marginHorizontal: 20,
-            }}>
-              <Text style={{
-                color: themeColors.textSecondary,
-                fontSize: 16,
-                fontFamily: 'System',
-              }}>
-                Marketplace coming soon
-              </Text>
+      <PanGestureHandler 
+        onGestureEvent={handleSwipeGesture} 
+        onHandlerStateChange={handleSwipeGesture}
+        activeOffsetX={[-20, 20]}
+        failOffsetY={[-50, 50]}
+        simultaneousHandlers={[]}
+      >
+        <View style={{ flex: 1, overflow: 'hidden' }}>
+          <Animated.View style={{ 
+            flexDirection: 'row',
+            width: width * 5, // Five tabs width
+            height: '100%',
+            transform: [{ translateX: tabContainerTranslateX }],
+          }}>
+            {/* Forum Tab Content */}
+            <View style={{ width: width, height: '100%' }}>
+              <ForumPostsList
+                ref={forumScrollRef}
+                country={country}
+                selectedLocationFilter={selectedLocationFilter}
+                onLocationFilterChange={handleLocationFilterChange}
+                onTabChange={handleTabChange}
+              />
             </View>
-          </View>
 
-          {/* Events Tab Content */}
-          <View style={{ width: width, height: '100%' }}>
-            <View style={{ 
-              flex: 1,
-              alignItems: 'center', 
-              paddingVertical: 40,
-              marginHorizontal: 20,
-            }}>
-              <Text style={{
-                color: themeColors.textSecondary,
-                fontSize: 16,
-                fontFamily: 'System',
-              }}>
-                Events coming soon
-              </Text>
+            {/* Explore Tab Content - PhotoFeed */}
+            <View style={{ width: width, height: '100%' }}>
+              <PhotoFeed
+                country={country}
+                selectedLocationFilter={selectedLocationFilter}
+                navigation={navigation}
+              />
             </View>
-          </View>
 
-          {/* Lost Tab Content */}
-          <View style={{ width: width, height: '100%' }}>
-            <View style={{ 
-              flex: 1,
-              alignItems: 'center', 
-              paddingVertical: 40,
-              marginHorizontal: 20,
-            }}>
-              <Text style={{
-                color: themeColors.textSecondary,
-                fontSize: 16,
-                fontFamily: 'System',
+            {/* Market Tab Content */}
+            <View style={{ width: width, height: '100%' }}>
+              <View style={{ 
+                flex: 1,
+                alignItems: 'center', 
+                paddingVertical: 40,
+                marginHorizontal: 20,
               }}>
-                Lost & found coming soon
-              </Text>
+                <Text style={{
+                  color: themeColors.textSecondary,
+                  fontSize: 16,
+                  fontFamily: 'System',
+                }}>
+                  Marketplace coming soon
+                </Text>
+              </View>
             </View>
-          </View>
-        </Animated.View>
-      </View>
+
+            {/* Events Tab Content */}
+            <View style={{ width: width, height: '100%' }}>
+              <View style={{ 
+                flex: 1,
+                alignItems: 'center', 
+                paddingVertical: 40,
+                marginHorizontal: 20,
+              }}>
+                <Text style={{
+                  color: themeColors.textSecondary,
+                  fontSize: 16,
+                  fontFamily: 'System',
+                }}>
+                  Events coming soon
+                </Text>
+              </View>
+            </View>
+
+            {/* Lost Tab Content */}
+            <View style={{ width: width, height: '100%' }}>
+              <View style={{ 
+                flex: 1,
+                alignItems: 'center', 
+                paddingVertical: 40,
+                marginHorizontal: 20,
+              }}>
+                <Text style={{
+                  color: themeColors.textSecondary,
+                  fontSize: 16,
+                  fontFamily: 'System',
+                }}>
+                  Lost & found coming soon
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+        </View>
+      </PanGestureHandler>
     </View>
   );
 });

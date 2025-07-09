@@ -115,6 +115,7 @@ export interface ForumReply {
   
   // Nested replies
   replies?: ForumReply[];
+  replyToAuthor?: ForumUser;
 }
 
 // API Request/Response types

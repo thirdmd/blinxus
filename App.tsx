@@ -27,6 +27,7 @@ import SplashScreen from './blinxus/src/screens/SplashScreen';
 import ImmersiveFeedScreen from './blinxus/src/screens/ImmersiveFeed/ImmersiveFeedScreen';
 import ProfileViewScreen from './blinxus/src/screens/Profile/ProfileViewScreen';
 import LocationViewScreen from './blinxus/src/screens/Pods/LocationViewScreen';
+import ForumCommentsScreen from './blinxus/src/screens/Pods/components/Forum/ForumCommentsScreen';
 
 // Import context
 import { PostsProvider } from './blinxus/src/store/PostsContext';
@@ -35,6 +36,7 @@ import { LikedPostsProvider } from './blinxus/src/store/LikedPostsContext';
 import { JoinedPodsProvider } from './blinxus/src/store/JoinedPodsContext';
 import { ThemeProvider } from './blinxus/src/contexts/ThemeContext';
 import { SettingsProvider } from './blinxus/src/contexts/SettingsContext';
+import { CommentsProvider } from './blinxus/src/store/CommentsContext';
 
 // Create navigators
 const Tab = createBottomTabNavigator();
@@ -455,6 +457,14 @@ function RootNavigator() {
           gestureEnabled: true,
         }}
       />
+      <RootStack.Screen 
+        name="ForumComments" 
+        component={ForumCommentsScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }}
+      />
     </RootStack.Navigator>
   );
 }
@@ -483,11 +493,13 @@ export default function App() {
             <SavedPostsProvider>
               <LikedPostsProvider>
                 <JoinedPodsProvider>
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <NavigationContainer>
-                      <RootNavigator />
-                    </NavigationContainer>
-                  </GestureHandlerRootView>
+                  <CommentsProvider>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <NavigationContainer>
+                        <RootNavigator />
+                      </NavigationContainer>
+                    </GestureHandlerRootView>
+                  </CommentsProvider>
                 </JoinedPodsProvider>
               </LikedPostsProvider>
             </SavedPostsProvider>

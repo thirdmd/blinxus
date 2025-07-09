@@ -227,6 +227,27 @@ export const getTextStyles = () => {
       fontFamily: 'System',
     },
     
+    // Forum-specific text styles
+    forumAuthor: {
+      fontSize: rf(13),
+      fontWeight: '600' as const,
+      fontFamily: 'System',
+    },
+    
+    forumContent: {
+      fontSize: rf(13),
+      fontWeight: '400' as const,
+      lineHeight: rf(18),
+      fontFamily: 'System',
+      letterSpacing: -0.1,
+    },
+
+    forumMeta: {
+      fontSize: rf(12),
+      fontWeight: '400' as const,
+      fontFamily: 'System',
+    },
+    
     // Tab labels
     tabLabel: {
       fontSize: rf(14),
@@ -284,25 +305,6 @@ export const getTextStyles = () => {
     libraryTitle: {
       fontSize: rf(17),
       fontWeight: '600' as const,
-      fontFamily: 'System',
-    },
-    
-    // Forum post text
-    forumAuthor: {
-      fontSize: rf(13),
-      fontWeight: '600' as const,
-      fontFamily: 'System',
-    },
-    
-    forumContent: {
-      fontSize: rf(13),
-      fontWeight: '400' as const,
-      fontFamily: 'System',
-    },
-    
-    forumMeta: {
-      fontSize: rf(12),
-      fontWeight: '400' as const,
       fontFamily: 'System',
     },
     
