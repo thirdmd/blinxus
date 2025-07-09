@@ -1,6 +1,6 @@
 // Individual Forum Post Card Component - Ultra-responsive & optimized
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -49,6 +49,7 @@ const { width } = Dimensions.get('window');
 
 export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
   post,
+  onLike,
   onDislike,
   onShare,
   onMore,
@@ -66,22 +67,36 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
   // THE FIX: Get interaction state directly from the centralized contexts
   const { isPostLiked, likePost, unlikePost } = useLikedPosts();
   const { isPostSaved, savePost, unsavePost } = useSavedPosts();
-  const { getCommentCountForPost } = useComments();
+  const { getCommentCountForPost, comments } = useComments();
+
+  // NEW: local state to keep an up-to-date like counter that starts at 0 and increments on the first like to show "1".
+  const [likesCount, setLikesCount] = useState(post.likes);
+
+  // Keep local count in sync if the post prop updates externally
+  useEffect(() => {
+    setLikesCount(post.likes);
+  }, [post.likes]);
 
   // Derive the up-to-date state from the contexts
   const isLiked = isPostLiked(post.id);
   const isSaved = isPostSaved(post.id);
-  const commentCount = getCommentCountForPost(post.id) || post.replyCount;
+  const commentCount = comments.hasOwnProperty(post.id)
+    ? getCommentCountForPost(post.id)
+    : post.replyCount;
 
 
   // Centralized handlers that update the contexts
   const handleLike = useCallback(() => {
     if (isLiked) {
       unlikePost(post.id);
+      setLikesCount(prev => Math.max(prev - 1, 0));
     } else {
       likePost(post.id);
+      setLikesCount(prev => prev + 1);
     }
-  }, [isLiked, post.id, likePost, unlikePost]);
+    // Propagate to parent list (e.g. ForumPostsList) if a callback was provided
+    onLike?.(post.id);
+  }, [isLiked, post.id, likePost, unlikePost, onLike]);
 
   const handleBookmark = useCallback(() => {
     if (isSaved) {
@@ -447,14 +462,14 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
                 fill={isLiked ? '#EF4444' : 'none'}
                 strokeWidth={2}
               />
-              {post.likes > 0 && (
+              {likesCount > 0 && (
                 <Text style={{
                   ...textStyles.caption,
                   color: isLiked ? '#EF4444' : themeColors.textSecondary,
                   marginLeft: 4,
                   fontWeight: isLiked ? '600' : '500',
                 }}>
-                  {post.likes}
+                  {likesCount}
                 </Text>
               )}
             </TouchableOpacity>
