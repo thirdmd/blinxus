@@ -37,8 +37,8 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
 
   // CENTRALIZED: Get filtered locations using LocationDisplayHelper
   const filteredLocations = useMemo(() => {
-    return LocationDisplayHelper.filterLocations(locationSearch, false);
-  }, [locationSearch]);
+    return LocationDisplayHelper.filterLocations(locationSearch, showCountryInResults);
+  }, [locationSearch, showCountryInResults]);
 
   const handleLocationSelect = (locationName: string) => {
     onLocationSelect(locationName);
