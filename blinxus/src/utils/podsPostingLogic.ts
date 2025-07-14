@@ -2,11 +2,15 @@ import {
   SubLocation, 
   Country, 
   Continent,
+  SubSubLocation,
   getLocationByName,
   getLocationById,
   getCountryByLocationId,
   getContinentByLocationId,
-  searchLocations
+  searchLocations,
+  getSubSubLocationByName,
+  getSubSubLocationById,
+  getParentSubLocation
 } from '../constants/placesData';
 import { ActivityKey } from '../constants/activityTags';
 
@@ -68,13 +72,54 @@ export class PodsPostingService {
   }
 
   /**
+   * Match location from user input
+   * This includes matching aliases and common names
+   */
+  private matchLocationFromInput(input: string): {
+    exact?: SubLocation;
+    suggestions: SubLocation[];
+  } {
+    const normalizedInput = input.toLowerCase().trim();
+    
+    // NEW: First check if it's a subsublocation
+    const subSubLocation = getSubSubLocationByName(input);
+    if (subSubLocation) {
+      // Map subsublocation to its parent sublocation
+      const parentLocation = getParentSubLocation(subSubLocation.id);
+      if (parentLocation) {
+        return {
+          exact: parentLocation,
+          suggestions: []
+        };
+      }
+    }
+    
+    // Try exact name match for sublocations
+    const exactMatch = getLocationByName(input);
+    if (exactMatch) {
+      return {
+        exact: exactMatch,
+        suggestions: []
+      };
+    }
+    
+    // Search for suggestions
+    const suggestions = searchLocations(input);
+    
+    return {
+      exact: undefined,
+      suggestions: suggestions.slice(0, 5) // Limit to 5 suggestions
+    };
+  }
+
+  /**
    * Process a post and determine which Pod(s) it should belong to
    */
   public processPostForPods(postData: CreatePostData): ProcessedPostForPods {
     const locationMatch = this.matchLocationFromInput(postData.locationInput);
     
     if (locationMatch.exact) {
-      // Exact match found
+      // Exact match found (including subsublocation mapped to parent)
       const location = locationMatch.exact;
       const country = getCountryByLocationId(location.id);
       const continent = getContinentByLocationId(location.id);
@@ -128,31 +173,6 @@ export class PodsPostingService {
 
       return processedPost;
     }
-  }
-
-  /**
-   * Match location input to actual location data
-   */
-  private matchLocationFromInput(input: string): {
-    exact: SubLocation | null;
-    suggestions: SubLocation[];
-  } {
-    // First try exact match by name or alternate names
-    const exactMatch = getLocationByName(input);
-    if (exactMatch) {
-      return {
-        exact: exactMatch,
-        suggestions: [],
-      };
-    }
-
-    // If no exact match, search for similar locations
-    const suggestions = searchLocations(input).slice(0, 5); // Limit to 5 suggestions
-
-    return {
-      exact: null,
-      suggestions,
-    };
   }
 
   /**

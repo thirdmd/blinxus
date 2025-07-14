@@ -17,6 +17,7 @@ import LocationSelector from '../../components/LocationSelector';
 import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
+import { resolveLocationForNavigation } from '../../constants/placesData';
 
 interface CreateLucidsProps {
   navigation: {
@@ -261,18 +262,28 @@ const CreateLucids = forwardRef(({ navigation, onValidationChange }: CreateLucid
       // Generate flat array for backward compatibility
       const allImages = LucidPhotoManager.dayPhotosToFlatArray(dayPhotos);
       
+      // NEW: Handle subsublocation resolution
+      let finalLocation = selectedLocation.trim();
+      
+      // Check if the selected location is a subsublocation
+      const resolvedLocation = resolveLocationForNavigation(selectedLocation);
+      if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+        // Keep the subsublocation name for display, but the pods logic will map it to parent
+        finalLocation = selectedLocation.trim();
+      }
+      
       addPost({
         authorId: 'current_user',
         authorName: 'Third Camacho',
         authorNationalityFlag: '🇵🇭',
         type: 'lucid',
-        title: selectedLocation.trim(),
+        title: finalLocation, // Use the final location (including subsublocation)
         content: undefined,
         images: allImages, // Flat array for backward compatibility
         lucidData, // Centralized day-by-day structure
-        location: selectedLocation.trim(),
+        location: finalLocation, // Store the actual selected location (including subsublocation)
         activity: undefined,
-    });
+      });
     
       navigation.goBack();
     } catch (error) {

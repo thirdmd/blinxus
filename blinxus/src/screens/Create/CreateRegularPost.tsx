@@ -19,6 +19,7 @@ import { usePosts } from '../../store/PostsContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { getResponsiveDimensions, getTextStyles, rs } from '../../utils/responsive';
 import { travelImages } from '../../constants/mockImages';
+import { resolveLocationForNavigation } from '../../constants/placesData';
 
 interface CreateRegularPostProps {
   navigation: {
@@ -88,39 +89,49 @@ const CreateRegularPost = forwardRef(({ navigation, onValidationChange }: Create
       return;
     }
     
-      let activityKey: ActivityKey | undefined = undefined;
-      if (selectedActivity) {
-        const activityTag = activityTags.find(tag => tag.id === selectedActivity);
-        if (activityTag) {
-          const activityKeyMap: { [key: string]: ActivityKey } = {
-            'Aquatics': 'aquatics',
-            'Outdoors': 'outdoors', 
-            'City': 'city',
-            'Food': 'food',
-            'Stays': 'stays',
-            'Heritage': 'heritage',
-            'Wellness': 'wellness',
-            'Amusements': 'amusements',
-            'Cultural': 'cultural',
-            'Special Experiences': 'special',
-            'Thrill': 'thrill',
-          };
-          activityKey = activityKeyMap[activityTag.name];
-        }
+    let activityKey: ActivityKey | undefined = undefined;
+    if (selectedActivity) {
+      const activityTag = activityTags.find(tag => tag.id === selectedActivity);
+      if (activityTag) {
+        const activityKeyMap: { [key: string]: ActivityKey } = {
+          'Aquatics': 'aquatics',
+          'Outdoors': 'outdoors', 
+          'City': 'city',
+          'Food': 'food',
+          'Stays': 'stays',
+          'Heritage': 'heritage',
+          'Wellness': 'wellness',
+          'Amusements': 'amusements',
+          'Cultural': 'cultural',
+          'Special Experiences': 'special',
+          'Thrill': 'thrill',
+        };
+        activityKey = activityKeyMap[activityTag.name];
       }
+    }
 
-      addPost({
-        authorId: 'current_user',
-        authorName: 'Third Camacho',
-        authorNationalityFlag: '🇵🇭',
-        type: 'regular',
-        content: postText.trim() || undefined,
-        images: selectedImages,
-        location: selectedLocation.trim(),
-        activity: activityKey,
+    // NEW: Handle subsublocation resolution
+    let finalLocation = selectedLocation.trim();
+    
+    // Check if the selected location is a subsublocation
+    const resolvedLocation = resolveLocationForNavigation(selectedLocation);
+    if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+      // Keep the subsublocation name for display, but the pods logic will map it to parent
+      finalLocation = selectedLocation.trim();
+    }
+
+    addPost({
+      authorId: 'current_user',
+      authorName: 'Third Camacho',
+      authorNationalityFlag: '🇵🇭',
+      type: 'regular',
+      content: postText.trim() || undefined,
+      images: selectedImages,
+      location: finalLocation, // Store the actual selected location (including subsublocation)
+      activity: activityKey,
     });
     
-      navigation.goBack();
+    navigation.goBack();
   };
 
   return (

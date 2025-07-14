@@ -20,7 +20,7 @@ import { usePosts } from '../../../store/PostsContext';
 import { mapPostToCardProps, PostCardProps } from '../../../types/structures/posts_structure';
 import MediaGridItem from '../../../components/MediaGridItem';
 import { ImmersiveNavigation } from '../../../utils/immersiveNavigation';
-import { Country } from '../../../constants/placesData';
+import { Country, resolveLocationForNavigation, getSubSubLocationByName, getParentSubLocation } from '../../../constants/placesData';
 import { LocationFilter } from './Forum/forumTypes';
 import { getResponsiveDimensions, ri, rs } from '../../../utils/responsive';
 
@@ -71,14 +71,30 @@ const PhotoFeed: React.FC<PhotoFeedProps> = ({
         if (post.location === country.name) return true;
         
         // Check if location matches any sublocation in this country
-        return country.subLocations.some(sublocation => 
-          post.location === sublocation.name ||
-          post.location === `${sublocation.name}, ${country.name}` ||
-          post.location.toLowerCase().includes(sublocation.name.toLowerCase())
-        );
+        const matchesSubLocation = country.subLocations.some(sublocation => {
+          // Direct sublocation match
+          if (post.location === sublocation.name ||
+              post.location === `${sublocation.name}, ${country.name}` ||
+              post.location.toLowerCase().includes(sublocation.name.toLowerCase())) {
+            return true;
+          }
+          
+          // NEW: Check if post location is a subsublocation that belongs to this sublocation
+          if (sublocation.subSubLocations) {
+            return sublocation.subSubLocations.some(subSubLocation => 
+              post.location === subSubLocation.name ||
+              post.location === `${subSubLocation.name}, ${sublocation.name}` ||
+              post.location.toLowerCase().includes(subSubLocation.name.toLowerCase())
+            );
+          }
+          
+          return false;
+        });
+        
+        return matchesSubLocation;
       });
     } else {
-      // Show posts from specific location
+      // Show posts from specific location (sublocation or subsublocation)
       return postsWithImages.filter(post => {
         if (!post.location) return false;
         
@@ -88,7 +104,42 @@ const PhotoFeed: React.FC<PhotoFeedProps> = ({
         // Match with "Location, Country" format
         if (post.location === `${selectedLocationFilter}, ${country.name}`) return true;
         
-        // Partial match for location name
+        // NEW: Handle subsublocation posts
+        // Check if the selected filter is a sublocation and the post is from a subsublocation within it
+        const selectedSubLocation = country.subLocations.find(loc => loc.name === selectedLocationFilter);
+        if (selectedSubLocation && selectedSubLocation.subSubLocations) {
+          // Check if the post location is any subsublocation within the selected sublocation
+          const isSubSubLocationPost = selectedSubLocation.subSubLocations.some(subSubLocation =>
+            post.location === subSubLocation.name ||
+            post.location === `${subSubLocation.name}, ${selectedSubLocation.name}` ||
+            post.location.toLowerCase().includes(subSubLocation.name.toLowerCase())
+          );
+          
+          if (isSubSubLocationPost) return true;
+        }
+        
+        // NEW: Handle case where selected filter might be a subsublocation name
+        // Check if any sublocation has a subsublocation matching the filter
+        const matchingSubLocation = country.subLocations.find(sublocation => {
+          if (!sublocation.subSubLocations) return false;
+          
+          return sublocation.subSubLocations.some(subSubLocation => {
+            return subSubLocation.name === selectedLocationFilter ||
+                   subSubLocation.alternateNames.some(altName => altName === selectedLocationFilter);
+          });
+        });
+        
+        if (matchingSubLocation) {
+          // If selectedLocationFilter is a subsublocation name, show posts from both:
+          // 1. The subsublocation itself
+          // 2. The parent sublocation
+          return post.location === selectedLocationFilter ||
+                 post.location === matchingSubLocation.name ||
+                 post.location.toLowerCase().includes(selectedLocationFilter.toLowerCase()) ||
+                 post.location.toLowerCase().includes(matchingSubLocation.name.toLowerCase());
+        }
+        
+        // Partial match for location name (fallback)
         return post.location.toLowerCase().includes(selectedLocationFilter.toLowerCase());
       });
     }

@@ -89,8 +89,25 @@ export class LocationNavigation {
     
     // If still not found, try by location name
     if (!targetCountry && location.name) {
-      const foundLocation = getLocationByName(location.name);
-      if (foundLocation) {
+      // NEW: Handle formatted location names like "Anilao, Batangas"
+      let actualLocationName = location.name;
+      
+      if (location.name.includes(', ')) {
+        // Extract the actual location name from formatted display
+        const [locationPart, countryPart] = location.name.split(', ');
+        actualLocationName = locationPart;
+        
+        // Try to find country by the country part
+        if (!targetCountry) {
+          targetCountry = placesData
+            .flatMap(continent => continent.countries)
+            .find(country => country.name === countryPart) || null;
+        }
+      }
+      
+      // Try to find location by the actual location name
+      const foundLocation = getLocationByName(actualLocationName);
+      if (foundLocation && !targetCountry) {
         targetCountry = getCountryByLocationId(foundLocation.id);
       }
     }
@@ -115,12 +132,29 @@ export class LocationNavigation {
       };
     }
     
-    // Find specific location
-    targetLocation = targetCountry.subLocations.find(subLoc => 
-      subLoc.id === location.id || 
-      subLoc.name === location.name ||
-      subLoc.name === location.name.split('-').pop()
-    ) || null;
+    // Extract actual location name for searching
+    let searchLocationName = location.name;
+    if (location.name.includes(', ')) {
+      searchLocationName = location.name.split(', ')[0];
+    }
+    
+    // NEW: Use resolveLocationForNavigation to properly handle subsublocations
+    const resolvedLocation = resolveLocationForNavigation(searchLocationName);
+    
+    if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+      // For subsublocations, navigate to the parent sublocation
+      targetLocation = resolvedLocation.parentSubLocation;
+    } else if (resolvedLocation.type === 'sublocation' && resolvedLocation.location) {
+      // For regular sublocations
+      targetLocation = resolvedLocation.location;
+    } else {
+      // Fallback to original logic
+      targetLocation = targetCountry.subLocations.find(subLoc => 
+        subLoc.id === location.id || 
+        subLoc.name === searchLocationName ||
+        subLoc.name === searchLocationName.split('-').pop()
+      ) || null;
+    }
 
     return {
       targetCountry,
@@ -309,14 +343,31 @@ export class LocationNavigation {
     }
 
     try {
+      // NEW: Use resolveLocationForNavigation to handle subsublocations
+      const resolved = resolveLocationForNavigation(locationName);
+      
+      let finalLocationName = locationName;
+      
+      if (resolved.type === 'subsublocation' && resolved.parentSubLocation) {
+        // For subsublocations, navigate to the parent sublocation
+        finalLocationName = resolved.parentSubLocation.name;
+        console.log(`[LOCATION NAVIGATION] Mapping subsublocation "${locationName}" to parent "${finalLocationName}"`);
+      } else if (resolved.type === 'sublocation' && resolved.location) {
+        // For regular sublocations, use as-is
+        finalLocationName = resolved.location.name;
+      } else if (resolved.type === 'country' && resolved.country) {
+        // For countries, use as-is
+        finalLocationName = resolved.country.name;
+      }
+
       // Navigate to LocationViewScreen for proper stack navigation
       navigation.navigate('LocationView', {
-        location: locationName,
+        location: finalLocationName, // Use the resolved location name
         fromScreen: fromScreen,
         scrollPosition: 0
       });
       
-      console.log(`[LOCATION NAVIGATION] Navigated to LocationView with location: ${locationName}`);
+      console.log(`[LOCATION NAVIGATION] Navigated to LocationView with location: ${finalLocationName} (original: ${locationName})`);
       return true;
     } catch (error) {
       console.warn('Failed to navigate to location view:', error);

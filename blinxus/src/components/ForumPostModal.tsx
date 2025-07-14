@@ -110,12 +110,21 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
         locationId = selectedLocation;
       } else {
         // Country-specific forum: find the actual location ID
-        const location = country.subLocations.find(loc => loc.name === selectedLocation);
-        if (location) {
-          locationId = location.id; // Use actual location ID for country forums
+        // NEW: Check if it's a subsublocation first
+        const selectedOption = filteredLocations.find(loc => loc.name === selectedLocation);
+        
+        if (selectedOption && selectedOption.type === 'subsublocation') {
+          // For subsublocations, pass the original name so ForumAPI can format it properly
+          locationId = selectedLocation; // Keep original subsublocation name
         } else {
-          // Fallback to 'All' if location not found
-          locationId = 'All';
+          // Regular sublocation handling
+          const location = country.subLocations.find(loc => loc.name === selectedLocation);
+          if (location) {
+            locationId = location.id;
+          } else {
+            // Fallback to 'All' if location not found
+            locationId = 'All';
+          }
         }
       }
     }
@@ -639,15 +648,27 @@ const ForumPostModal: React.FC<ForumPostModalProps> = ({
                 }}
               >
                 <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 12 }}>📍</Text>
-                <Text style={{
-                  fontSize: 16,
-                  color: themeColors.text,
-                  fontFamily: 'System',
-                  fontWeight: selectedLocation === item.name ? '600' : '400',
-                  flex: 1,
-                }}>
-                  {item.displayName}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontSize: 16,
+                    color: themeColors.text,
+                    fontFamily: 'System',
+                    fontWeight: selectedLocation === item.name ? '600' : '400',
+                  }}>
+                    {item.displayName}
+                  </Text>
+                  {/* NEW: Show parent location for subsublocations */}
+                  {item.type === 'subsublocation' && item.parentLocation && (
+                    <Text style={{
+                      fontSize: 13,
+                      color: themeColors.textSecondary,
+                      fontFamily: 'System',
+                      marginTop: 2,
+                    }}>
+                      in {item.parentLocation}
+                    </Text>
+                  )}
+                </View>
                 {item.isGeneral && (
                   <Text style={{
                     fontSize: 14,

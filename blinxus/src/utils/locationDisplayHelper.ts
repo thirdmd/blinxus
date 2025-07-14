@@ -1,11 +1,12 @@
-import { placesData, Country, SubLocation } from '../constants/placesData';
+import { placesData, Country, SubLocation, SubSubLocation, getSubSubLocationById, getParentSubLocation } from '../constants/placesData';
 
 export interface LocationDisplayOption {
   id: string;
   name: string;
   displayName: string;
-  type: 'global' | 'country' | 'sublocation';
+  type: 'global' | 'country' | 'sublocation' | 'subsublocation'; // NEW: Add subsublocation type
   country?: string;
+  parentLocation?: string; // NEW: Add parent location for subsublocations
   isGeneral: boolean;
   alternateNames?: string[]; // Include alternateNames for better search performance
 }
@@ -63,7 +64,7 @@ export class LocationDisplayHelper {
 
   /**
    * Get all locations for search functionality
-   * This includes everything: global, countries, and sublocations
+   * This includes everything: global, countries, sublocations, and subsublocations
    */
   static getAllLocations(includeGlobal: boolean = false): LocationDisplayOption[] {
     const options: LocationDisplayOption[] = [];
@@ -106,6 +107,24 @@ export class LocationDisplayHelper {
             isGeneral: false,
             alternateNames: location.alternateNames,
           });
+          
+          // NEW: Add subsublocations if they exist
+          if (location.subSubLocations) {
+            location.subSubLocations.forEach(subSubLocation => {
+              options.push({
+                id: subSubLocation.id,
+                name: subSubLocation.name,
+                displayName: includeGlobal 
+                  ? `${subSubLocation.name}, ${location.name}, ${country.name}` // For GlobalFeed
+                  : `${subSubLocation.name}, ${location.name}`, // For country-specific
+                type: 'subsublocation',
+                country: country.name,
+                parentLocation: location.name,
+                isGeneral: false,
+                alternateNames: subSubLocation.alternateNames,
+              });
+            });
+          }
         });
       });
     });
@@ -131,30 +150,60 @@ export class LocationDisplayHelper {
     const allLocations = this.getAllLocations(includeGlobal);
     const query = searchQuery.toLowerCase();
 
-    return allLocations.filter(location => {
-      // Check main name
-      if (location.name.toLowerCase().includes(query)) return true;
-      
-      // Check display name
-      if (location.displayName.toLowerCase().includes(query)) return true;
-      
-      // Check country name
-      if (location.country && location.country.toLowerCase().includes(query)) return true;
-      
-      // IMPORTANT: Check alternateNames for code names (BTG, Elyu, SFO, LAX, etc.)
-      if (location.alternateNames) {
-        return location.alternateNames.some((altName: string) => 
+    // NEW: Enhanced search logic to include subsublocations when searching by parent alternate names
+    const matchingResults: LocationDisplayOption[] = [];
+    const seenLocationIds = new Set<string>();
+
+    // First pass: Direct matches
+    allLocations.forEach(location => {
+      const isDirectMatch = 
+        location.name.toLowerCase().includes(query) ||
+        location.displayName.toLowerCase().includes(query) ||
+        (location.country && location.country.toLowerCase().includes(query)) ||
+        (location.alternateNames && location.alternateNames.some((altName: string) => 
           altName.toLowerCase().includes(query)
-        );
+        ));
+
+      if (isDirectMatch && !seenLocationIds.has(location.id)) {
+        matchingResults.push(location);
+        seenLocationIds.add(location.id);
       }
-      
-      return false;
     });
+
+    // NEW: Second pass - Enhanced alternate name search for subsublocations
+    // When searching for a sublocation's alternate name (e.g., "btg" for Batangas),
+    // also include all subsublocations within that sublocation
+    allLocations.forEach(location => {
+      if (location.type === 'sublocation') {
+        // Check if this sublocation matches by alternate name
+        const matchesAlternateName = location.alternateNames && 
+          location.alternateNames.some((altName: string) => 
+            altName.toLowerCase().includes(query)
+          );
+
+        if (matchesAlternateName) {
+          // Find all subsublocations that belong to this matching sublocation
+          const subSubLocationsForThisLocation = allLocations.filter(subLoc => 
+            subLoc.type === 'subsublocation' && 
+            subLoc.parentLocation === location.name &&
+            !seenLocationIds.has(subLoc.id)
+          );
+
+          // Add all subsublocations to results
+          subSubLocationsForThisLocation.forEach(subSubLoc => {
+            matchingResults.push(subSubLoc);
+            seenLocationIds.add(subSubLoc.id);
+          });
+        }
+      }
+    });
+
+    return matchingResults;
   }
 
   /**
    * Get locations for country-specific components (ForumPostModal, etc.)
-   * Shows country as "General" option + all sublocations
+   * Shows country as "General" option + all sublocations + subsublocations
    */
   static getCountryLocations(country: Country, searchQuery: string = ''): LocationDisplayOption[] {
     const options: LocationDisplayOption[] = [];
@@ -170,7 +219,7 @@ export class LocationDisplayHelper {
       alternateNames: country.alternateNames,
     });
 
-    // Add all sublocations
+    // Add all sublocations and their subsublocations
     country.subLocations.forEach(location => {
       options.push({
         id: location.id,
@@ -181,27 +230,78 @@ export class LocationDisplayHelper {
         isGeneral: false,
         alternateNames: location.alternateNames,
       });
+      
+      // NEW: Only add subsublocations when there's a search query
+      // This ensures forum dropdown shows only sublocations by default
+      if (searchQuery.trim() && location.subSubLocations) {
+        location.subSubLocations.forEach(subSubLocation => {
+          options.push({
+            id: subSubLocation.id,
+            name: subSubLocation.name,
+            displayName: `${subSubLocation.name}, ${location.name}`,
+            type: 'subsublocation',
+            country: country.name,
+            parentLocation: location.name,
+            isGeneral: false,
+            alternateNames: subSubLocation.alternateNames,
+          });
+        });
+      }
     });
 
     // Filter based on search query if provided
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      return options.filter(location => {
-        // Check main name
-        if (location.name.toLowerCase().includes(query)) return true;
-        
-        // Check display name  
-        if (location.displayName.toLowerCase().includes(query)) return true;
-        
-        // IMPORTANT: Check alternateNames for code names (BTG, Elyu, etc.)
-        if (location.alternateNames) {
-          return location.alternateNames.some((altName: string) => 
+      
+      // NEW: Enhanced search logic to include subsublocations when searching by parent alternate names
+      const matchingResults: LocationDisplayOption[] = [];
+      const seenLocationIds = new Set<string>();
+
+      // First pass: Direct matches
+      options.forEach(location => {
+        const isDirectMatch = 
+          location.name.toLowerCase().includes(query) ||
+          location.displayName.toLowerCase().includes(query) ||
+          (location.parentLocation && location.parentLocation.toLowerCase().includes(query)) ||
+          (location.alternateNames && location.alternateNames.some((altName: string) => 
             altName.toLowerCase().includes(query)
-          );
+          ));
+
+        if (isDirectMatch && !seenLocationIds.has(location.id)) {
+          matchingResults.push(location);
+          seenLocationIds.add(location.id);
         }
-        
-        return false;
       });
+
+      // NEW: Second pass - Enhanced alternate name search for subsublocations  
+      // When searching for a sublocation's alternate name (e.g., "btg" for Batangas),
+      // also include all subsublocations within that sublocation
+      options.forEach(location => {
+        if (location.type === 'sublocation') {
+          // Check if this sublocation matches by alternate name
+          const matchesAlternateName = location.alternateNames && 
+            location.alternateNames.some((altName: string) => 
+              altName.toLowerCase().includes(query)
+            );
+
+          if (matchesAlternateName) {
+            // Find all subsublocations that belong to this matching sublocation
+            const subSubLocationsForThisLocation = options.filter(subLoc => 
+              subLoc.type === 'subsublocation' && 
+              subLoc.parentLocation === location.name &&
+              !seenLocationIds.has(subLoc.id)
+            );
+
+            // Add all subsublocations to results
+            subSubLocationsForThisLocation.forEach(subSubLoc => {
+              matchingResults.push(subSubLoc);
+              seenLocationIds.add(subSubLoc.id);
+            });
+          }
+        }
+      });
+
+      return matchingResults;
     }
 
     return options;

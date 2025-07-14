@@ -22,6 +22,13 @@ export interface SubLocation extends BaseLocation {
   difficulty?: 'easy' | 'moderate' | 'challenging';
   crowdLevel?: 'low' | 'moderate' | 'high';
   budgetLevel?: 'budget' | 'mid-range' | 'luxury';
+  subSubLocations?: SubSubLocation[]; // NEW: Add support for sub-sub-locations
+}
+
+// NEW: Sub-sub-location interface (specific areas within a city/town)
+export interface SubSubLocation extends BaseLocation {
+  parentSubLocationId: string; // ID of parent sublocation
+  popularActivities?: ActivityKey[];
 }
 
 // Country/Region interface
@@ -69,12 +76,36 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 14.5995,
         longitude: 120.9842
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-manila-binondo',
+          name: 'Binondo',
+          alternateNames: ['Binondo District'],
+          parentSubLocationId: 'ph-manila',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 14.5561,
+            longitude: 120.9761
+          }
+        },
+        {
+          id: 'ph-manila-malate',
+          name: 'Malate',
+          alternateNames: ['Malate District'],
+          parentSubLocationId: 'ph-manila',
+          popularActivities: ['city', 'heritage'],
+          coordinates: {
+            latitude: 14.5777,
+            longitude: 120.9811
+          }
+        }
+      ]
     },
     {
       id: 'ph-palawan',
       name: 'Palawan',
-      alternateNames: ['Palawan Province', 'Last Frontier'],
+      alternateNames: [''],
       parentId: 'ph',
       popularActivities: ['aquatics', 'outdoors', 'wellness'],
       description: 'A pristine island province known as the "Last Frontier" of the Philippines.',
@@ -87,7 +118,31 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 9.8349,
         longitude: 118.7384
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-palawan-el-nido',
+          name: 'El Nido',
+          alternateNames: ['elnido', 'El Nido Palawan'],
+          parentSubLocationId: 'ph-palawan',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          coordinates: {
+            latitude: 11.1949,
+            longitude: 119.5089
+          }
+        },
+        {
+          id: 'ph-palawan-coron',
+          name: 'Coron',
+          alternateNames: ['Coron Island', 'Coron Palawan'],
+          parentSubLocationId: 'ph-palawan',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          coordinates: {
+            latitude: 11.9989,
+            longitude: 120.2043
+          }
+        }
+      ]
     },
     {
       id: 'ph-boracay',
@@ -105,7 +160,31 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 11.9674,
         longitude: 121.9248
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-boracay-white-beach',
+          name: 'White Beach',
+          alternateNames: ['White Beach District'],
+          parentSubLocationId: 'ph-boracay',
+          popularActivities: ['aquatics', 'wellness', 'amusements'],
+          coordinates: {
+            latitude: 11.9674,
+            longitude: 121.9248
+          }
+        },
+        {
+          id: 'ph-boracay-kitesurfing',
+          name: 'Kitesurfing',
+          alternateNames: ['Kitesurfing District'],
+          parentSubLocationId: 'ph-boracay',
+          popularActivities: ['aquatics', 'wellness', 'amusements'],
+          coordinates: {
+            latitude: 11.9674,
+            longitude: 121.9248
+          }
+        }
+      ]
     },
     {
       id: 'ph-siargao',
@@ -123,7 +202,31 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 9.8601,
         longitude: 126.0619
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-siargao-cloud-9',
+          name: 'Cloud 9 Surf Break',
+          alternateNames: ['Cloud 9 District'],
+          parentSubLocationId: 'ph-siargao',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          coordinates: {
+            latitude: 9.8601,
+            longitude: 126.0619
+          }
+        },
+        {
+          id: 'ph-siargao-island-hopping',
+          name: 'Island Hopping',
+          alternateNames: ['Island Hopping District'],
+          parentSubLocationId: 'ph-siargao',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          coordinates: {
+            latitude: 9.8601,
+            longitude: 126.0619
+          }
+        }
+      ]
     },
     {
       id: 'ph-cebu',
@@ -141,7 +244,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 10.3157,
         longitude: 123.8854
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-cebu-magellan-cross',
+          name: 'Magellan\'s Cross',
+          alternateNames: ['Magellan\'s Cross District'],
+          parentSubLocationId: 'ph-cebu',
+          popularActivities: ['heritage', 'cultural'],
+          coordinates: {
+            latitude: 10.3157,
+            longitude: 123.8854
+          }
+        },
+        {
+          id: 'ph-cebu-lechon',
+          name: 'Lechon',
+          alternateNames: ['Lechon District'],
+          parentSubLocationId: 'ph-cebu',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 10.3157,
+            longitude: 123.8854
+          }
+        },
+        {
+          id: 'ph-cebu-whale-shark-watching',
+          name: 'Whale Shark Watching',
+          alternateNames: ['Whale Shark Watching District'],
+          parentSubLocationId: 'ph-cebu',
+          popularActivities: ['aquatics', 'cultural'],
+          coordinates: {
+            latitude: 10.3157,
+            longitude: 123.8854
+          }
+        }
+      ]
     },
     {
       id: 'ph-bohol',
@@ -159,7 +297,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 9.8349,
         longitude: 124.1433
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-bohol-chocolate-hills',
+          name: 'Chocolate Hills',
+          alternateNames: ['Chocolate Hills District'],
+          parentSubLocationId: 'ph-bohol',
+          popularActivities: ['outdoors', 'cultural'],
+          coordinates: {
+            latitude: 9.8349,
+            longitude: 124.1433
+          }
+        },
+        {
+          id: 'ph-bohol-tarsier-sanctuary',
+          name: 'Tarsier Sanctuary',
+          alternateNames: ['Tarsier Sanctuary District'],
+          parentSubLocationId: 'ph-bohol',
+          popularActivities: ['outdoors', 'cultural'],
+          coordinates: {
+            latitude: 9.8349,
+            longitude: 124.1433
+          }
+        },
+        {
+          id: 'ph-bohol-loboc-river',
+          name: 'Loboc River',
+          alternateNames: ['Loboc River District'],
+          parentSubLocationId: 'ph-bohol',
+          popularActivities: ['aquatics', 'cultural'],
+          coordinates: {
+            latitude: 9.8349,
+            longitude: 124.1433
+          }
+        }
+      ]
     },
     {
       id: 'ph-la-union',
@@ -177,7 +350,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 16.6159,
         longitude: 120.3209
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-la-union-surfing',
+          name: 'Surfing',
+          alternateNames: ['Surfing District'],
+          parentSubLocationId: 'ph-la-union',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          coordinates: {
+            latitude: 16.6159,
+            longitude: 120.3209
+          }
+        },
+        {
+          id: 'ph-la-union-halo-halo',
+          name: 'Halo-halo',
+          alternateNames: ['Halo-halo District'],
+          parentSubLocationId: 'ph-la-union',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 16.6159,
+            longitude: 120.3209
+          }
+        },
+        {
+          id: 'ph-la-union-grape-picking',
+          name: 'Grape Picking',
+          alternateNames: ['Grape Picking District'],
+          parentSubLocationId: 'ph-la-union',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 16.6159,
+            longitude: 120.3209
+          }
+        }
+      ]
     },
     {
       id: 'ph-batangas',
@@ -195,7 +403,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 13.7565,
         longitude: 121.0583
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-batangas-anilao',
+          name: 'Anilao',
+          alternateNames: ['Anilao Beach', 'Diving Capital'],
+          parentSubLocationId: 'ph-batangas',
+          popularActivities: ['aquatics', 'outdoors'],
+          coordinates: {
+            latitude: 13.7143,
+            longitude: 120.9203
+          }
+        },
+        {
+          id: 'ph-batangas-nasugbu',
+          name: 'Nasugbu',
+          alternateNames: ['Nasugbu Beach'],
+          parentSubLocationId: 'ph-batangas',
+          popularActivities: ['aquatics', 'wellness'],
+          coordinates: {
+            latitude: 14.0722,
+            longitude: 120.6320
+          }
+        },
+        {
+          id: 'ph-batangas-lipa',
+          name: 'Lipa',
+          alternateNames: ['Lipa City'],
+          parentSubLocationId: 'ph-batangas',
+          popularActivities: ['food', 'cultural', 'city'],
+          coordinates: {
+            latitude: 13.9414,
+            longitude: 121.1647
+          }
+        }
+      ]
     },
     {
       id: 'ph-ilocos',
@@ -213,7 +456,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 17.5895,
         longitude: 120.4501
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-ilocos-vigan-heritage-village',
+          name: 'Vigan Heritage Village',
+          alternateNames: ['Vigan District'],
+          parentSubLocationId: 'ph-ilocos',
+          popularActivities: ['heritage', 'cultural'],
+          coordinates: {
+            latitude: 17.5895,
+            longitude: 120.4501
+          }
+        },
+        {
+          id: 'ph-ilocos-bangui-windmills',
+          name: 'Bangui Windmills',
+          alternateNames: ['Bangui District'],
+          parentSubLocationId: 'ph-ilocos',
+          popularActivities: ['heritage', 'cultural'],
+          coordinates: {
+            latitude: 17.5895,
+            longitude: 120.4501
+          }
+        },
+        {
+          id: 'ph-ilocos-empanada',
+          name: 'Empanada',
+          alternateNames: ['Empanada District'],
+          parentSubLocationId: 'ph-ilocos',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 17.5895,
+            longitude: 120.4501
+          }
+        }
+      ]
     },
     {
       id: 'ph-zambales',
@@ -231,7 +509,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 15.0794,
         longitude: 119.9647
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-zambales-anawangin-cove',
+          name: 'Anawangin Cove',
+          alternateNames: ['Anawangin Cove District'],
+          parentSubLocationId: 'ph-zambales',
+          popularActivities: ['aquatics', 'outdoors', 'wellness'],
+          coordinates: {
+            latitude: 15.0794,
+            longitude: 119.9647
+          }
+        },
+        {
+          id: 'ph-zambales-capones-island',
+          name: 'Capones Island',
+          alternateNames: ['Capones Island District'],
+          parentSubLocationId: 'ph-zambales',
+          popularActivities: ['outdoors', 'heritage'],
+          coordinates: {
+            latitude: 15.0794,
+            longitude: 119.9647
+          }
+        },
+        {
+          id: 'ph-zambales-subic-bay',
+          name: 'Subic Bay',
+          alternateNames: ['Subic Bay District'],
+          parentSubLocationId: 'ph-zambales',
+          popularActivities: ['outdoors', 'heritage'],
+          coordinates: {
+            latitude: 15.0794,
+            longitude: 119.9647
+          }
+        }
+      ]
     },
     {
       id: 'ph-davao',
@@ -249,7 +562,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 7.1907,
         longitude: 125.4553
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-davao-mount-apo',
+          name: 'Mount Apo',
+          alternateNames: ['Mount Apo District'],
+          parentSubLocationId: 'ph-davao',
+          popularActivities: ['outdoors', 'heritage'],
+          coordinates: {
+            latitude: 7.1907,
+            longitude: 125.4553
+          }
+        },
+        {
+          id: 'ph-davao-durian',
+          name: 'Durian',
+          alternateNames: ['Durian District'],
+          parentSubLocationId: 'ph-davao',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 7.1907,
+            longitude: 125.4553
+          }
+        },
+        {
+          id: 'ph-davao-philippine-eagle-center',
+          name: 'Philippine Eagle Center',
+          alternateNames: ['Philippine Eagle Center District'],
+          parentSubLocationId: 'ph-davao',
+          popularActivities: ['cultural', 'outdoors'],
+          coordinates: {
+            latitude: 7.1907,
+            longitude: 125.4553
+          }
+        }
+      ]
     },
     {
       id: 'ph-baguio',
@@ -267,7 +615,42 @@ export const philippinesData: Country = {
       coordinates: {
         latitude: 16.4023,
         longitude: 120.5960
-      }
+      },
+      subSubLocations: [
+        {
+          id: 'ph-baguio-session-road',
+          name: 'Session Road',
+          alternateNames: ['Session Road District'],
+          parentSubLocationId: 'ph-baguio',
+          popularActivities: ['outdoors', 'cultural'],
+          coordinates: {
+            latitude: 16.4023,
+            longitude: 120.5960
+          }
+        },
+        {
+          id: 'ph-baguio-burnham-park',
+          name: 'Burnham Park',
+          alternateNames: ['Burnham Park District'],
+          parentSubLocationId: 'ph-baguio',
+          popularActivities: ['outdoors', 'cultural'],
+          coordinates: {
+            latitude: 16.4023,
+            longitude: 120.5960
+          }
+        },
+        {
+          id: 'ph-baguio-strawberry-picking',
+          name: 'Strawberry Picking',
+          alternateNames: ['Strawberry Picking District'],
+          parentSubLocationId: 'ph-baguio',
+          popularActivities: ['food', 'cultural'],
+          coordinates: {
+            latitude: 16.4023,
+            longitude: 120.5960
+          }
+        }
+      ]
     }
   ]
 };
@@ -2790,6 +3173,42 @@ export const searchLocations = (query: string): SubLocation[] => {
   return results;
 };
 
+// NEW: Search including subsublocations
+export const searchAllLocations = (query: string): (SubLocation | SubSubLocation)[] => {
+  const normalizedQuery = query.toLowerCase().trim();
+  const results: (SubLocation | SubSubLocation)[] = [];
+  
+  placesData.forEach(continent => {
+    continent.countries.forEach(country => {
+      country.subLocations.forEach(location => {
+        // Check main location
+        if (location.name.toLowerCase().includes(normalizedQuery)) {
+          results.push(location);
+        } else if (location.alternateNames.some(altName => 
+          altName.toLowerCase().includes(normalizedQuery)
+        )) {
+          results.push(location);
+        }
+        
+        // NEW: Check subsublocations
+        if (location.subSubLocations) {
+          location.subSubLocations.forEach(subSubLocation => {
+            if (subSubLocation.name.toLowerCase().includes(normalizedQuery)) {
+              results.push(subSubLocation);
+            } else if (subSubLocation.alternateNames.some(altName => 
+              altName.toLowerCase().includes(normalizedQuery)
+            )) {
+              results.push(subSubLocation);
+            }
+          });
+        }
+      });
+    });
+  });
+  
+  return results;
+};
+
 export const getLocationById = (id: string): SubLocation | null => {
   for (const continent of placesData) {
     for (const country of continent.countries) {
@@ -2847,13 +3266,29 @@ export const getCountryByName = (name: string): Country | null => {
   return null;
 };
 
-// NEW: Unified location resolver - handles both SubLocations and Countries
+// NEW: Unified location resolver - handles SubLocations, Countries, and SubSubLocations
 export const resolveLocationForNavigation = (locationName: string): { 
-  type: 'sublocation' | 'country' | null;
+  type: 'sublocation' | 'country' | 'subsublocation' | null;
   location?: SubLocation;
   country?: Country;
+  subSubLocation?: SubSubLocation;
+  parentSubLocation?: SubLocation; // Parent sublocation for subsublocations
 } => {
-  // First try to find as SubLocation
+  // First try to find as SubSubLocation
+  const subSubLocation = getSubSubLocationByName(locationName);
+  if (subSubLocation) {
+    const parentSubLocation = getParentSubLocation(subSubLocation.id);
+    const country = parentSubLocation ? getCountryByLocationId(parentSubLocation.id) : null;
+    return {
+      type: 'subsublocation',
+      subSubLocation: subSubLocation,
+      parentSubLocation: parentSubLocation || undefined,
+      location: parentSubLocation || undefined, // For backward compatibility
+      country: country || undefined
+    };
+  }
+  
+  // Then try to find as SubLocation
   const subLocation = getLocationByName(locationName);
   if (subLocation) {
     const country = getCountryByLocationId(subLocation.id);
@@ -2864,7 +3299,7 @@ export const resolveLocationForNavigation = (locationName: string): {
     };
   }
   
-  // Then try to find as Country
+  // Finally try to find as Country
   const country = getCountryByName(locationName);
   if (country) {
     return {
@@ -2895,6 +3330,65 @@ export const getContinentByLocationId = (locationId: string): Continent | null =
       }
     }
   }
+  return null;
+};
+
+// NEW: Get parent sublocation for a subsublocation
+export const getParentSubLocation = (subSubLocationId: string): SubLocation | null => {
+  for (const continent of placesData) {
+    for (const country of continent.countries) {
+      for (const location of country.subLocations) {
+        if (location.subSubLocations) {
+          const found = location.subSubLocations.find(ssl => ssl.id === subSubLocationId);
+          if (found) return location;
+        }
+      }
+    }
+  }
+  return null;
+};
+
+// NEW: Get subsublocation by ID
+export const getSubSubLocationById = (id: string): SubSubLocation | null => {
+  for (const continent of placesData) {
+    for (const country of continent.countries) {
+      for (const location of country.subLocations) {
+        if (location.subSubLocations) {
+          const found = location.subSubLocations.find(ssl => ssl.id === id);
+          if (found) return found;
+        }
+      }
+    }
+  }
+  return null;
+};
+
+// NEW: Get subsublocation by name
+export const getSubSubLocationByName = (name: string): SubSubLocation | null => {
+  const normalizedName = name.toLowerCase().trim();
+  
+  for (const continent of placesData) {
+    for (const country of continent.countries) {
+      for (const location of country.subLocations) {
+        if (location.subSubLocations) {
+          for (const subSubLocation of location.subSubLocations) {
+            // Check main name
+            if (subSubLocation.name.toLowerCase() === normalizedName) {
+              return subSubLocation;
+            }
+            
+            // Check alternate names
+            if (subSubLocation.alternateNames.some(altName => 
+              altName.toLowerCase() === normalizedName
+            )) {
+              return subSubLocation;
+            }
+          }
+        }
+      }
+    }
+  }
+  
   return null;
 };
 

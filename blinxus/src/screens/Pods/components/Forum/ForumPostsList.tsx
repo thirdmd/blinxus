@@ -237,8 +237,18 @@ export const ForumPostsList = forwardRef<ForumPostsListRef, ForumPostsListProps>
   }, [filters, actions.updateFilters]);
 
   const handleLocationPress = useCallback((post: any, location: any) => {
+    // NEW: Handle subsublocation navigation properly
+    let targetFilter = location.name;
+    
+    // Check if the location is a formatted subsublocation like "Anilao, Batangas"
+    if (location.name.includes(', ')) {
+      const [subSubLocationName, parentSubLocationName] = location.name.split(', ');
+      // For subsublocations, navigate to the parent sublocation tab
+      targetFilter = parentSubLocationName;
+    }
+    
     // Switch filter tab and select sublocation without navigating away
-    onLocationFilterChange(location.name);
+    onLocationFilterChange(targetFilter);
     onTabChange('Forum');
   }, [onLocationFilterChange, onTabChange]);
 

@@ -14,7 +14,7 @@ import {
   FORUM_CATEGORIES,
   FORUM_ACTIVITY_TAGS
 } from './forumTypes';
-import { Country, placesData, getLocationByName, getLocationById } from '../../../../constants/placesData';
+import { Country, SubLocation, placesData, getLocationByName, getLocationById, resolveLocationForNavigation, getSubSubLocationByName, getParentSubLocation } from '../../../../constants/placesData';
 import { usersDatabase, getCurrentUser } from '../../../../types/userData/users_data';
 
 // Mock users database - includes current user integration + 40 diverse users
@@ -1074,7 +1074,7 @@ export class ForumAPI {
       // Combine mock posts with user posts - user posts always stay at top
       posts = [...userPosts, ...posts];
 
-      // ENHANCED: Improved location filtering for centralized posting logic
+      // ENHANCED: Improved location filtering for centralized posting logic with subsublocation support
       if (params.locationId && params.locationId !== 'All') {
         const locationFilter = params.locationId;
         posts = posts.filter(post => {
@@ -1083,6 +1083,27 @@ export class ForumAPI {
           
           // Match with location name (for name-based filtering)
           if (post.location.name === locationFilter) return true;
+          
+          // NEW: Handle subsublocation posts
+          // Check if the post location is a subsublocation that should be grouped under the filter
+          const resolvedPostLocation = resolveLocationForNavigation(post.location.name);
+          
+          if (resolvedPostLocation.type === 'subsublocation' && resolvedPostLocation.parentSubLocation) {
+            // If post is from a subsublocation, check if it belongs to the filtered sublocation
+            if (resolvedPostLocation.parentSubLocation.id === locationFilter ||
+                resolvedPostLocation.parentSubLocation.name === locationFilter) {
+              return true;
+            }
+          }
+          
+          // Handle case where filter might be a subsublocation name  
+          // If filtering by subsublocation, show only posts from that specific subsublocation
+          const resolvedFilter = resolveLocationForNavigation(locationFilter);
+          if (resolvedFilter.type === 'subsublocation' && resolvedFilter.subSubLocation) {
+            // Filter is a subsublocation - only show posts from that specific subsublocation
+            return post.location.name === resolvedFilter.subSubLocation.name ||
+                   post.locationId === resolvedFilter.subSubLocation.id;
+          }
           
           // Handle legacy format (countryId-locationId)
           if (post.locationId.includes('-')) {
@@ -1100,8 +1121,8 @@ export class ForumAPI {
           return false;
         });
       } else if (params.locationId === 'All') {
-        // For "All" filter, show ALL posts in this country (including specific locations)
-        // This ensures posts created in specific cities are visible in the country's "All" view
+        // For "All" filter, show ALL posts in this country (including specific locations and subsublocations)
+        // This ensures posts created in specific cities and subsublocations are visible in the country's "All" view
         // Posts are already filtered by country, so no additional filtering needed
       }
 
@@ -1219,9 +1240,18 @@ export class ForumAPI {
         
         if (actualLocation) {
           // Found exact location in placesData
+          // NEW: Check if this is a subsublocation and format accordingly
+          const resolvedLocation = resolveLocationForNavigation(actualLocation.name);
+          
+          let displayName = actualLocation.name;
+          if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+            // For subsublocations, format as "Anilao, Batangas"
+            displayName = `${resolvedLocation.subSubLocation?.name || actualLocation.name}, ${resolvedLocation.parentSubLocation.name}`;
+          }
+          
           locationData = {
             id: actualLocation.id,
-            name: actualLocation.name,
+            name: displayName, // Use formatted display name
             type: 'city' as const,
             countryId: data.countryId
           };
@@ -1492,7 +1522,15 @@ export class ForumAPI {
     const filters = ['All'];
     
     if (country.subLocations) {
+      // Add sublocations
       filters.push(...country.subLocations.map(loc => loc.name));
+      
+      // NEW: Add subsublocations
+      country.subLocations.forEach(sublocation => {
+        if (sublocation.subSubLocations && sublocation.subSubLocations.length > 0) {
+          filters.push(...sublocation.subSubLocations.map(subSubLoc => subSubLoc.name));
+        }
+      });
     }
     
     return filters;

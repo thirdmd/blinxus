@@ -176,15 +176,27 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
                 }}
               >
                 <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginRight: 12 }}>📍</Text>
-                <Text style={{
-                  fontSize: 16,
-                  color: themeColors.text,
-                  fontFamily: 'System',
-                  fontWeight: selectedLocation === item.name ? '600' : '400',
-                  flex: 1,
-                }}>
-                  {item.displayName}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontSize: 16,
+                    color: themeColors.text,
+                    fontFamily: 'System',
+                    fontWeight: selectedLocation === item.name ? '600' : '400',
+                  }}>
+                    {item.displayName}
+                  </Text>
+                  {/* NEW: Show parent location for subsublocations */}
+                  {item.type === 'subsublocation' && item.parentLocation && (
+                    <Text style={{
+                      fontSize: 13,
+                      color: themeColors.textSecondary,
+                      fontFamily: 'System',
+                      marginTop: 2,
+                    }}>
+                      in {item.parentLocation}
+                    </Text>
+                  )}
+                </View>
                 {item.isGeneral && (
                   <Text style={{
                     fontSize: 14,

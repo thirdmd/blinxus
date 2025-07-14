@@ -26,6 +26,7 @@ import { useLikedPosts } from '../../../../store/LikedPostsContext';
 import { useSavedPosts } from '../../../../store/SavedPostsContext';
 import { useComments } from '../../../../store/CommentsContext';
 import { ri } from '../../../../utils/responsive';
+import { resolveLocationForNavigation } from '../../../../constants/placesData';
 
 interface ForumPostCardProps {
   post: ForumPost;
@@ -115,6 +116,22 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
     // @ts-ignore
     navigation.navigate('ForumComments', { post });
   }, [navigation, post]);
+
+  // NEW: Helper function to format location display text
+  const getFormattedLocationText = useCallback(() => {
+    const locationName = post.location.name;
+    
+    // Check if this is a subsublocation
+    const resolvedLocation = resolveLocationForNavigation(locationName);
+    
+    if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+      // For subsublocations, show "Anilao, Batangas" format
+      return `${resolvedLocation.subSubLocation?.name || locationName}, ${resolvedLocation.parentSubLocation.name}`;
+    }
+    
+    // For regular locations, use existing logic
+    return locationName.split('-').pop() || locationName;
+  }, [post.location.name]);
 
   // Get category data
   const categoryData = FORUM_CATEGORIES.find(cat => cat.id === post.category);
@@ -354,7 +371,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
                         fontFamily: 'System',
                         letterSpacing: -0.1,
                       }}>
-                        {post.location.name.split('-').pop() || post.location.name}
+                        {getFormattedLocationText()}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -390,7 +407,7 @@ export const ForumPostCard: React.FC<ForumPostCardProps> = React.memo(({
                       fontFamily: 'System',
                       letterSpacing: -0.1,
                     }}>
-                      {post.location.name.split('-').pop() || post.location.name}
+                      {getFormattedLocationText()}
                     </Text>
                   </View>
                 )}

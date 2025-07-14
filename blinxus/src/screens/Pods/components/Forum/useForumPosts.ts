@@ -10,7 +10,7 @@ import {
   UpdatePostInteractionRequest
 } from './forumTypes';
 import { ForumAPI } from './forumAPI';
-import { Country } from '../../../../constants/placesData';
+import { Country, getLocationById, getLocationByName, getSubSubLocationByName, resolveLocationForNavigation } from '../../../../constants/placesData';
 import { useLikedPosts } from '../../../../store/LikedPostsContext';
 import { useSavedPosts } from '../../../../store/SavedPostsContext';
 import { useComments } from '../../../../store/CommentsContext';
@@ -201,12 +201,70 @@ export const useForumPosts = ({
         },
         content: data.content,
         locationId: data.locationId,
-        location: {
-          id: data.locationId,
-          name: data.locationId === 'All' ? (country?.name || 'Global') : data.locationId,
-          type: 'city',
-          countryId: country?.id || 'global'
-        },
+        location: (() => {
+          // NEW: Use the same location formatting logic as ForumAPI.createPost
+          if (data.locationId === 'All') {
+            return {
+              id: 'All',
+              name: country?.name || 'Global',
+              type: 'city' as const,
+              countryId: country?.id || 'global'
+            };
+          } else {
+            // Check if this is a sublocation or subsublocation and format accordingly
+            const actualLocation = getLocationById(data.locationId) || getLocationByName(data.locationId);
+            const actualSubSubLocation = getSubSubLocationByName(data.locationId);
+            
+            if (actualLocation) {
+              // Found as a regular sublocation
+              const resolvedLocation = resolveLocationForNavigation(actualLocation.name);
+              
+              let displayName = actualLocation.name;
+              if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+                // For subsublocations, format as "Anilao, Batangas"
+                displayName = `${resolvedLocation.subSubLocation?.name || actualLocation.name}, ${resolvedLocation.parentSubLocation.name}`;
+              }
+              
+              return {
+                id: actualLocation.id,
+                name: displayName,
+                type: 'city' as const,
+                countryId: country?.id || 'global'
+              };
+            } else if (actualSubSubLocation) {
+              // Found as a subsublocation
+              const resolvedLocation = resolveLocationForNavigation(actualSubSubLocation.name);
+              
+              if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+                // For subsublocations, format as "Anilao, Batangas"
+                const displayName = `${actualSubSubLocation.name}, ${resolvedLocation.parentSubLocation.name}`;
+                
+                return {
+                  id: actualSubSubLocation.id,
+                  name: displayName,
+                  type: 'city' as const,
+                  countryId: country?.id || 'global'
+                };
+              } else {
+                // Fallback if resolution fails
+                return {
+                  id: actualSubSubLocation.id,
+                  name: actualSubSubLocation.name,
+                  type: 'city' as const,
+                  countryId: country?.id || 'global'
+                };
+              }
+            } else {
+              // Fallback for unknown locations
+              return {
+                id: data.locationId,
+                name: data.locationId,
+                type: 'city' as const,
+                countryId: country?.id || 'global'
+              };
+            }
+          }
+        })(),
         countryId: country?.id || 'global',
         category: data.category,
         activityTags: data.activityTags,

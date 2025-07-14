@@ -20,7 +20,15 @@ import { ForumAPI } from './Forum/forumAPI';
 import { ForumPost, FORUM_CATEGORIES } from './Forum/forumTypes';
 import { useThemeColors } from '../../../hooks/useThemeColors';
 import { PodThemeConfig } from '../../../types/structures/podsUIStructure';
-import { placesData, getCountryByLocationId, getLocationByName } from '../../../constants/placesData';
+import { 
+  placesData, 
+  SubLocation, 
+  Country,
+  SubSubLocation,
+  getLocationByName,
+  getCountryByLocationId,
+  resolveLocationForNavigation
+} from '../../../constants/placesData';
 import LocationDisplayHelper from '../../../utils/locationDisplayHelper';
 import UserProfileNavigation from '../../../utils/userProfileNavigation';
 import LocationNavigation from '../../../utils/locationNavigation';
@@ -278,13 +286,15 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
           if (foundCountry) {
             countryId = foundCountry.id;
             
-            // Find the specific location within that country
-            const foundLocation = foundCountry.subLocations.find(
-              loc => loc.name === locationName
-            );
+            // Use resolveLocationForNavigation to handle all location types
+            const resolvedLocation = resolveLocationForNavigation(locationName);
             
-            if (foundLocation) {
-              actualLocationId = foundLocation.id;
+            if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+              // For subsublocations, pass the original name so ForumAPI can format it properly
+              actualLocationId = locationName; // Keep original subsublocation name
+            } else if (resolvedLocation.type === 'sublocation' && resolvedLocation.location) {
+              // For regular sublocations
+              actualLocationId = resolvedLocation.location.id;
             } else {
               // If location not found, use 'All' for the country
               actualLocationId = 'All';
@@ -300,20 +310,19 @@ const GlobalFeed = forwardRef<GlobalFeedRef, GlobalFeedProps>(({
             countryId = foundCountry.id;
             actualLocationId = 'All'; // Country-level post
           } else {
-            // Try to find location by ID or name across all countries
-            const country = getCountryByLocationId(postData.locationId);
-            if (country) {
-              countryId = country.id;
-              actualLocationId = postData.locationId;
-            } else {
-              // Try to find by location name as fallback
-              const location = getLocationByName(postData.locationId);
-              if (location) {
-                const locationCountry = getCountryByLocationId(location.id);
-                if (locationCountry) {
-                  countryId = locationCountry.id;
-                  actualLocationId = location.id;
-                }
+            // Try to resolve as any location type
+            const resolvedLocation = resolveLocationForNavigation(postData.locationId);
+            
+            if (resolvedLocation.country) {
+              countryId = resolvedLocation.country.id;
+              
+              if (resolvedLocation.type === 'subsublocation' && resolvedLocation.parentSubLocation) {
+                // For subsublocations, pass the original name so ForumAPI can format it properly
+                actualLocationId = postData.locationId; // Keep original subsublocation name
+              } else if (resolvedLocation.type === 'sublocation' && resolvedLocation.location) {
+                actualLocationId = resolvedLocation.location.id;
+              } else {
+                actualLocationId = 'All';
               }
             }
           }
